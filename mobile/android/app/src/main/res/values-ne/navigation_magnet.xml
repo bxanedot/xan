@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">नेभिगेसन मेनु खोल्नुहोस्</string>
+    <string name="close_navigation_magnet">नेभिगेसन मेनु बन्द गर्नुहोस्</string>
+    <string name="navigation_magnet_expanded">नेभिगेसन मेनु विस्तार गरियो</string>
+    <string name="navigation_magnet_collapsed">नेभिगेसन मेनु संक्षिप्त भयो</string>
+    <string name="magnet_position">चुम्बक स्थिति</string>
+    <string name="magnet_bottom_left">तल बायाँ</string>
+    <string name="magnet_bottom_right">तल दायाँ</string>
+</resources>

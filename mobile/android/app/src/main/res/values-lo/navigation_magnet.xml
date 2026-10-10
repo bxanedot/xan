@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">ເປີດເມນູນໍາທາງ</string>
+    <string name="close_navigation_magnet">ປິດເມນູນໍາທາງ</string>
+    <string name="navigation_magnet_expanded">ຂະຫຍາຍເມນູນຳທາງແລ້ວ</string>
+    <string name="navigation_magnet_collapsed">ຫຍໍ້ເມນູນຳທາງລົງ</string>
+    <string name="magnet_position">ຕໍາແຫນ່ງແມ່ເຫຼັກ</string>
+    <string name="magnet_bottom_left">ຊ້າຍລຸ່ມ</string>
+    <string name="magnet_bottom_right">ລຸ່ມຂວາ</string>
+</resources>

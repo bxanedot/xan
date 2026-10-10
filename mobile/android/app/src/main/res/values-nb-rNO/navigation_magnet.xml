@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">Åpne navigasjonsmenyen</string>
+    <string name="close_navigation_magnet">Lukk navigasjonsmenyen</string>
+    <string name="navigation_magnet_expanded">Navigasjonsmenyen utvidet</string>
+    <string name="navigation_magnet_collapsed">Navigasjonsmenyen er skjult</string>
+    <string name="magnet_position">Magnetposisjon</string>
+    <string name="magnet_bottom_left">Nederst til venstre</string>
+    <string name="magnet_bottom_right">Nederst til høyre</string>
+</resources>

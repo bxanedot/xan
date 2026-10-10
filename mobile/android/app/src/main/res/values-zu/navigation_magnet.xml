@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">Vula imenyu yokuzulazula</string>
+    <string name="close_navigation_magnet">Vala imenyu yokuzulazula</string>
+    <string name="navigation_magnet_expanded">Imenyu yokuzulazula inwetshiwe</string>
+    <string name="navigation_magnet_collapsed">Imenyu yokuzulazula igoqiwe</string>
+    <string name="magnet_position">Isimo sikazibuthe</string>
+    <string name="magnet_bottom_left">Phansi kwesokunxele</string>
+    <string name="magnet_bottom_right">Phansi kwesokudla</string>
+</resources>

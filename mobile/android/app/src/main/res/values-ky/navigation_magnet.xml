@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">Навигация менюсун ачыңыз</string>
+    <string name="close_navigation_magnet">Навигация менюсун жабуу</string>
+    <string name="navigation_magnet_expanded">Чабыттоо менюсу кеңейтилди</string>
+    <string name="navigation_magnet_collapsed">Чабыттоо менюсу жыйышты</string>
+    <string name="magnet_position">Магниттин абалы</string>
+    <string name="magnet_bottom_left">Төмөнкү сол</string>
+    <string name="magnet_bottom_right">Төмөнкү оң</string>
+</resources>

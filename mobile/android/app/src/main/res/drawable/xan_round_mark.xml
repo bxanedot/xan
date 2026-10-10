@@ -1,0 +1,10 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="@color/ic_launcher_static_background" />
+        </shape>
+    </item>
+    <item android:drawable="@drawable/xan_mark"
+        android:left="@dimen/launcher_icon_legacy_mark_inset" android:top="@dimen/launcher_icon_legacy_mark_inset"
+        android:right="@dimen/launcher_icon_legacy_mark_inset" android:bottom="@dimen/launcher_icon_legacy_mark_inset" />
+</layer-list>

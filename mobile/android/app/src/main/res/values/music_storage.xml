@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="logo_boost_rotation">Boost logo rotation from 50 to 80</string>
+    <string name="music_storage_title">Your music folder</string>
+    <string name="music_storage_setup_title">Save your music</string>
+    <string name="music_copy_action">Copy / migrate music</string>
+    <string name="music_copy_description">Choose a folder for converted copies of your downloaded music. Existing downloads will be copied there, and new downloads can be copied automatically.</string>
+    <string name="music_copy_keep_default">XAN always keeps the default original for offline playback. Copying or migrating never deletes it.</string>
+    <string name="music_copy_formats">Copy formats</string>
+    <string name="music_copy_lossless_note">FLAC and WAV preserve the decoded audio. Converting a compressed source does not restore lost quality.</string>
+    <string name="music_copy_default_folder">Default: XAN internal music storage. Choose an additional folder below.</string>
+    <string name="music_copy_selected_folder">Copy folder: %1$s</string>
+    <string name="music_copy_automatic">Copy future downloads automatically</string>
+    <string name="music_copy_running">Converting music. Default originals are kept.</string>
+    <string name="music_copy_queued">Music copies queued.</string>
+    <string name="music_copy_progress">Copying track %1$d of %2$d…</string>
+    <string name="music_copy_finished">Copied: %1$d · Already copied: %2$d · Failed: %3$d. Default originals are kept.</string>
+    <string name="music_copy_no_downloads">No completed downloads yet. Your chosen folder will be used for future copies.</string>
+    <string name="music_copy_folder_unavailable">Cannot write to this folder. Choose a folder again to grant access.</string>
+    <string name="music_copy_source_unavailable">The original download is missing or incomplete. Download the track again and retry copying.</string>
+    <string name="music_copy_error">Could not copy music: %1$s</string>
+    <string name="music_copy_unknown_error">Please choose your folder again and retry.</string>
+    <string name="music_copy_cancel">Cancel copies</string>
+    <string name="music_copy_cancelled">Copying cancelled. Default originals and completed copies are kept.</string>
+</resources>

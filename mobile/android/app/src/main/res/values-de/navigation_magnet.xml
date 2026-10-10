@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">Navigationsmenü öffnen</string>
+    <string name="close_navigation_magnet">Navigationsmenü schließen</string>
+    <string name="navigation_magnet_expanded">Navigationsmenü erweitert</string>
+    <string name="navigation_magnet_collapsed">Das Navigationsmenü ist ausgeblendet</string>
+    <string name="magnet_position">Magnetposition</string>
+    <string name="magnet_bottom_left">Unten links</string>
+    <string name="magnet_bottom_right">Unten rechts</string>
+</resources>

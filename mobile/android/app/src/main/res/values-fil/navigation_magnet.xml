@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">Buksan ang menu ng nabigasyon</string>
+    <string name="close_navigation_magnet">Isara ang menu ng nabigasyon</string>
+    <string name="navigation_magnet_expanded">Pinalawak ang menu ng nabigasyon</string>
+    <string name="navigation_magnet_collapsed">Na-collapse ang menu ng nabigasyon</string>
+    <string name="magnet_position">Posisyon ng magneto</string>
+    <string name="magnet_bottom_left">Kaliwa sa ibaba</string>
+    <string name="magnet_bottom_right">kanang ibaba</string>
+</resources>

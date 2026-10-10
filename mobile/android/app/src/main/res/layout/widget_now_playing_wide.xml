@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@android:id/background"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:theme="@style/Theme.Widget.xan">
+
+    <ImageView
+        android:id="@+id/widget_np_wide_bg"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitXY"
+        android:src="@drawable/widget_card_preview"
+        android:contentDescription="@null" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="14dp">
+
+        <ImageView
+            android:id="@+id/widget_np_wide_album_art"
+            android:layout_width="82dp"
+            android:layout_height="82dp"
+            android:scaleType="centerCrop"
+            android:contentDescription="@string/album_art" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="14dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/widget_np_wide_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/widget_now_playing_label"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textAllCaps="true"
+                android:alpha="0.7"
+                android:textColor="@color/widget_on_card"
+                android:maxLines="1" />
+
+            <TextView
+                android:id="@+id/widget_np_wide_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="@string/not_playing"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                android:textColor="@color/widget_on_card"
+                android:maxLines="1"
+                android:ellipsize="end" />
+
+            <TextView
+                android:id="@+id/widget_np_wide_artist"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/tap_to_play"
+                android:textSize="14sp"
+                android:alpha="0.75"
+                android:textColor="@color/widget_on_card"
+                android:maxLines="1"
+                android:ellipsize="end" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="34dp"
+                android:layout_marginTop="7dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <ImageView
+                    android:id="@+id/widget_np_wide_prev"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_widget_skip_previous"
+                    android:contentDescription="@string/previous" />
+
+                <ImageView
+                    android:id="@+id/widget_np_wide_play_pause"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_marginStart="14dp"
+                    android:src="@drawable/ic_widget_play"
+                    android:contentDescription="@string/play_pause" />
+
+                <ImageView
+                    android:id="@+id/widget_np_wide_next"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_marginStart="14dp"
+                    android:src="@drawable/ic_widget_skip_next"
+                    android:contentDescription="@string/next" />
+
+                <TextView android:importantForAccessibility="no"
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1" />
+
+                <ImageView
+                    android:id="@+id/widget_np_wide_like"
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:src="@drawable/ic_widget_heart_outline_nav"
+                    android:contentDescription="@string/like" />
+            </LinearLayout>
+
+            <FrameLayout
+                android:id="@+id/widget_np_wide_progress"
+                android:layout_width="match_parent"
+                android:layout_height="3dp"
+                android:layout_marginTop="7dp">
+
+                <ImageView
+                    android:id="@+id/widget_np_wide_progress_track"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:alpha="0.3"
+                    android:src="@drawable/widget_progress_track"
+                    android:scaleType="fitXY"
+                    android:contentDescription="@null" />
+
+                <ImageView
+                    android:id="@+id/widget_np_wide_progress_fill"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/widget_progress_clip"
+                    android:scaleType="fitXY"
+                    android:contentDescription="@null" />
+            </FrameLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/widget_np_wide_glyph"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_gravity="top|end"
+        android:layout_margin="14dp"
+        android:alpha="0.9"
+        android:src="@drawable/ic_widget_music_note"
+        android:contentDescription="@null" />
+</FrameLayout>

@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">வழிசெலுத்தல் மெனுவைத் திறக்கவும்</string>
+    <string name="close_navigation_magnet">வழிசெலுத்தல் மெனுவை மூடு</string>
+    <string name="navigation_magnet_expanded">வழிசெலுத்தல் மெனு விரிவாக்கப்பட்டது</string>
+    <string name="navigation_magnet_collapsed">வழிசெலுத்தல் மெனு சுருக்கப்பட்டது</string>
+    <string name="magnet_position">காந்த நிலை</string>
+    <string name="magnet_bottom_left">கீழே இடது</string>
+    <string name="magnet_bottom_right">கீழ் வலது</string>
+</resources>

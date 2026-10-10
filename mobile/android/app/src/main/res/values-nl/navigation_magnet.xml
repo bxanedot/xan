@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">Navigatiemenu openen</string>
+    <string name="close_navigation_magnet">Navigatiemenu sluiten</string>
+    <string name="navigation_magnet_expanded">Navigatiemenu uitgebreid</string>
+    <string name="navigation_magnet_collapsed">Navigatiemenu samengevouwen</string>
+    <string name="magnet_position">Magneet positie</string>
+    <string name="magnet_bottom_left">Linksonder</string>
+    <string name="magnet_bottom_right">Rechtsonder</string>
+</resources>

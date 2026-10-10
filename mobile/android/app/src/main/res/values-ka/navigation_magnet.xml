@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">გახსენით ნავიგაციის მენიუ</string>
+    <string name="close_navigation_magnet">ნავიგაციის მენიუს დახურვა</string>
+    <string name="navigation_magnet_expanded">ნავიგაციის მენიუ გაფართოვდა</string>
+    <string name="navigation_magnet_collapsed">ნავიგაციის მენიუ ჩაკეცილია</string>
+    <string name="magnet_position">მაგნიტის პოზიცია</string>
+    <string name="magnet_bottom_left">ქვედა მარცხნივ</string>
+    <string name="magnet_bottom_right">ქვედა მარჯვენა</string>
+</resources>

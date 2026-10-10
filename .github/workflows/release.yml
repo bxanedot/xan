@@ -1,0 +1,454 @@
+name: Stable Release Build
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to build/create (2-4 numeric parts, e.g. v0.6.0)'
+        required: true
+        type: string
+      title:
+        description: 'Release title (leave blank to use the tag)'
+        required: false
+        default: ''
+        type: string
+      notes:
+        description: 'Release notes/changelog (leave blank to generate notes)'
+        required: false
+        default: ''
+        type: string
+      build_android:
+        description: 'Build Android; turn off when verified local APK assets are already attached'
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  build_stable:
+    name: Build Stable Release
+    # A locally verified, signed APK may be attached before the release is published.
+    if: (github.event_name == 'workflow_dispatch' && inputs.build_android) || (github.event_name == 'release' && !contains(github.event.release.assets.*.name, 'xan.apk'))
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Resolve or create GitHub Release
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_TAG: ${{ github.event.release.tag_name }}
+          INPUT_TAG: ${{ inputs.tag }}
+          INPUT_TITLE: ${{ inputs.title }}
+          INPUT_NOTES: ${{ inputs.notes }}
+        run: |
+          set -euo pipefail
+
+          if [ "$EVENT_NAME" = "release" ]; then
+            TAG="$EVENT_TAG"
+          else
+            TAG="$INPUT_TAG"
+          fi
+
+          if ! printf '%s' "$TAG" | grep -Eq '^v[0-9]+(\.[0-9]+){1,3}$'; then
+            echo "Invalid release tag: $TAG" >&2
+            exit 1
+          fi
+
+          WAS_DRAFT="false"
+          if gh release view "$TAG" --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            WAS_DRAFT="$(gh release view "$TAG" --repo "${{ github.repository }}" --json isDraft --jq '.isDraft')"
+          elif [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            TITLE="$INPUT_TITLE"
+            [ -n "$TITLE" ] || TITLE="$TAG"
+            if [ -n "$INPUT_NOTES" ]; then
+              gh release create "$TAG" --repo "${{ github.repository }}" --target "$GITHUB_SHA" --title "$TITLE" --notes "$INPUT_NOTES" --draft
+            else
+              gh release create "$TAG" --repo "${{ github.repository }}" --target "$GITHUB_SHA" --title "$TITLE" --generate-notes --draft
+            fi
+            WAS_DRAFT="true"
+          else
+            echo "Published GitHub Release $TAG could not be found." >&2
+            exit 1
+          fi
+
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+          echo "was_draft=$WAS_DRAFT" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          # A draft release does not publish its tag ref until the release is
+          # published, so workflow_dispatch builds must use the triggering SHA.
+          ref: ${{ github.event_name == 'workflow_dispatch' && github.sha || steps.release.outputs.tag }}
+
+      - name: Validate Android release code increments by one
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          set -euo pipefail
+          CURRENT_CODE="$(sed -n 's/^XAN_VERSION_CODE=//p' mobile/android/version.properties | tail -n 1)"
+          [[ "$CURRENT_CODE" =~ ^[0-9]+$ ]] || { echo "XAN_VERSION_CODE must be an integer." >&2; exit 1; }
+          if [ "$TAG" = "v1.0.0" ] && [ "$CURRENT_CODE" = "1" ]; then
+            echo "Allowing the user-requested v1.0.0 signing reset at code 1."
+            exit 0
+          fi
+          PREVIOUS_TAG="$(git ls-remote --tags --refs origin 'v*' | awk '{sub("refs/tags/", "", $2); print $2}' | grep -E '^v[0-9]+(\.[0-9]+){1,3}$' | grep -v -Fx "$TAG" | sort -V | tail -n 1)"
+          [ -n "$PREVIOUS_TAG" ] || { echo "Cannot find the previous Android release tag." >&2; exit 1; }
+          git fetch --no-tags --depth=1 origin "refs/tags/$PREVIOUS_TAG:refs/tags/$PREVIOUS_TAG"
+          PREVIOUS_CODE="$(git show "$PREVIOUS_TAG:mobile/android/version.properties" | sed -n 's/^XAN_VERSION_CODE=//p' | tail -n 1)"
+          [[ "$PREVIOUS_CODE" =~ ^[0-9]+$ ]] || { echo "Previous release $PREVIOUS_TAG has no valid XAN_VERSION_CODE." >&2; exit 1; }
+          EXPECTED_CODE=$((PREVIOUS_CODE + 1))
+          [ "$CURRENT_CODE" = "$EXPECTED_CODE" ] || { echo "Release $TAG must use Android code $EXPECTED_CODE (previous tag $PREVIOUS_TAG uses $PREVIOUS_CODE)." >&2; exit 1; }
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Set Up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-disabled: true
+
+      - name: Setup FFTW for Android
+        uses: ./.github/actions/setup-fftw
+
+      - name: Grant execute permission for gradlew
+        working-directory: mobile/android
+        run: chmod +x gradlew
+
+      - name: Decode release keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE }}
+        run: |
+          set -euo pipefail
+          [ -n "$KEYSTORE_BASE64" ] || { echo "Missing KEYSTORE repository secret." >&2; exit 1; }
+          mkdir -p mobile/android/app/keystore
+          echo "$KEYSTORE_BASE64" | base64 -d > mobile/android/app/keystore/release.keystore
+
+      - name: Run playback, Magnet, and logo regression tests
+        env:
+          XAN_RELEASE_TAG: ${{ steps.release.outputs.tag }}
+          STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          ./gradlew :app:testDebugUnitTest --tests 'app.xan.music.playback.NetworkRecoveryTest' --tests 'app.xan.music.ui.component.MagnetSemicircleLayoutTest' --tests 'app.xan.music.constants.AppLogoTest' --tests 'app.xan.music.platform.updater.UpdateApkSelectorTest' --no-daemon --no-configuration-cache --console=plain --warning-mode summary -Dorg.gradle.problems.report=false
+        working-directory: mobile/android
+
+      - name: Build signed release APK
+        env:
+          XAN_RELEASE_TAG: ${{ steps.release.outputs.tag }}
+          LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
+          LASTFM_SECRET: ${{ secrets.LASTFM_SECRET }}
+          STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          ./gradlew :app:assembleRelease --no-daemon --no-configuration-cache --console=plain --warning-mode summary -x lint -Dorg.gradle.problems.report=false
+        working-directory: mobile/android
+
+      - name: Verify and upload Android ABI APKs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+          VERSION: ${{ steps.release.outputs.version }}
+        run: |
+          set -euo pipefail
+          APK_DIR=mobile/android/app/build/outputs/apk/release
+          APK_COUNT=$(find "$APK_DIR" -maxdepth 1 -type f -name '*.apk' | wc -l)
+          [ "$APK_COUNT" -eq 5 ] || { echo "Expected four ABI APKs and one universal APK, found $APK_COUNT." >&2; exit 1; }
+
+          APK_SIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n 1)
+          [ -n "$APK_SIGNER" ] || { echo "Android apksigner was not found." >&2; exit 1; }
+
+          OUTPUT_DIR="$RUNNER_TEMP/xan-release-apks"
+          mkdir -p "$OUTPUT_DIR"
+          EXPECTED_CERT="$(tr -d '\r\n ' < mobile/android/signing-certificate.sha256)"
+          [[ "$EXPECTED_CERT" =~ ^[0-9a-f]{64}$ ]] || { echo "Invalid Android signing-certificate.sha256." >&2; exit 1; }
+          for APK_PATH in "$APK_DIR"/*.apk; do
+            case "$(basename "$APK_PATH" | tr '[:upper:]' '[:lower:]')" in
+              *universal*) ASSET_NAME=xan.apk ;;
+              *arm64-v8a*) ASSET_NAME=xan-arm64-v8a.apk ;;
+              *armeabi-v7a*) ASSET_NAME=xan-armeabi-v7a.apk ;;
+              *x86_64*) ASSET_NAME=xan-x86_64.apk ;;
+              *x86*) ASSET_NAME=xan-x86.apk ;;
+              *) echo "Unknown ABI APK output: $APK_PATH" >&2; exit 1 ;;
+            esac
+            CERT=$("$APK_SIGNER" verify --print-certs "$APK_PATH" | sed -n 's/^.*certificate SHA-256 digest: //p' | tr '[:upper:]' '[:lower:]')
+            if [ "$CERT" != "$EXPECTED_CERT" ]; then
+              echo "Refusing to publish: signing certificate mismatch in $APK_PATH." >&2
+              exit 1
+            fi
+            cp "$APK_PATH" "$OUTPUT_DIR/$ASSET_NAME"
+          done
+          for ASSET_NAME in xan.apk xan-arm64-v8a.apk xan-armeabi-v7a.apk xan-x86_64.apk xan-x86.apk; do
+            [ -s "$OUTPUT_DIR/$ASSET_NAME" ] || { echo "Missing Android release asset: $ASSET_NAME" >&2; exit 1; }
+          done
+          gh release upload "$TAG" "$OUTPUT_DIR"/*.apk --repo "${{ github.repository }}" --clobber
+
+      - name: Publish manually-created draft release
+        if: ${{ github.event_name == 'workflow_dispatch' && steps.release.outputs.was_draft == 'true' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          gh release edit "$TAG" --repo "${{ github.repository }}" --draft=false
+
+  build_desktop:
+    name: Build ${{ matrix.label }} installer
+    # Wait until workflow_dispatch has created the draft release, but still
+    # package desktop assets if Android signing fails due to missing secrets.
+    needs: build_stable
+    if: ${{ always() && needs.build_stable.result != 'cancelled' }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: Windows x64 MSI
+            runner: windows-latest
+            task: packageMsi
+            platform_id: windows
+            asset_pattern: '*.msi'
+            output_folder: msi
+          - label: macOS DMG
+            runner: macos-15
+            task: packageDmg
+            platform_id: macos
+            asset_pattern: '*.dmg'
+            output_folder: dmg
+          - label: macOS Intel DMG
+            runner: macos-15-intel
+            task: packageDmg
+            platform_id: macos
+            asset_pattern: '*.dmg'
+            output_folder: dmg
+          - label: Linux DEB
+            runner: ubuntu-24.04
+            task: packageDeb
+            platform_id: linux
+            asset_pattern: '*.deb'
+            output_folder: deb
+          - label: Linux RPM
+            runner: ubuntu-24.04
+            task: packageRpm
+            platform_id: linux
+            asset_pattern: '*.rpm'
+            output_folder: rpm
+          - label: Linux x64 AppImage
+            runner: ubuntu-24.04
+            task: createDistributable
+            platform_id: linux
+            asset_pattern: 'XAN-*-linux-x64.AppImage'
+            output_folder: appimage
+
+    steps:
+      - name: Resolve release version
+        id: release
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_TAG: ${{ github.event.release.tag_name }}
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT_NAME" = "release" ]; then TAG="$EVENT_TAG"; else TAG="$INPUT_TAG"; fi
+          [[ "$TAG" =~ ^v[0-9]+(\.[0-9]+){1,3}$ ]] || { echo "Invalid release tag: $TAG" >&2; exit 1; }
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          ref: ${{ github.event_name == 'workflow_dispatch' && github.sha || steps.release.outputs.tag }}
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Install Linux package builders
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y xvfb libgtk-3-0t64 libasound2t64 libasound2-plugins pulseaudio fakeroot rpm libfuse2t64
+
+      - name: Configure Linux audio output for playback tests
+        if: runner.os == 'Linux'
+        run: |
+          pulseaudio --start --exit-idle-time=-1
+          pactl load-module module-null-sink sink_name=xan_ci
+          pactl set-default-sink xan_ci
+          printf 'pcm.!default { type pulse }\nctl.!default { type pulse }\n' > "$RUNNER_TEMP/xan-alsa.conf"
+          echo "ALSA_CONFIG_PATH=$RUNNER_TEMP/xan-alsa.conf" >> "$GITHUB_ENV"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-disabled: true
+
+      - name: Set up Python for release checksums
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+
+      - name: Grant execute permission for Gradle
+        if: runner.os != 'Windows'
+        run: chmod +x mobile/android/gradlew
+
+      - name: Build native installer
+        shell: bash
+        env:
+          VERSION: ${{ steps.release.outputs.version }}
+          TASK: ${{ matrix.task }}
+          OUTPUT_FOLDER: ${{ matrix.output_folder }}
+          ASSET_PATTERN: ${{ matrix.asset_pattern }}
+          PLATFORM_ID: ${{ matrix.platform_id }}
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+          XAN_WINDOWS_CERTIFICATE_PFX: ${{ secrets.XAN_WINDOWS_CERTIFICATE_PFX }}
+          XAN_WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.XAN_WINDOWS_CERTIFICATE_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            pwsh -NoLogo -NoProfile -Command '& .\mobile\android\gradlew.bat -p desktop/shared test $env:TASK "-PxanDesktopVersion=$env:VERSION" "-Dxan.skipNativeMediaIntegration=true" --no-daemon --no-configuration-cache --console=plain --warning-mode summary; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }'
+          else
+            chmod +x ./mobile/android/gradlew
+            if [[ "$RUNNER_OS" == "Linux" ]]; then
+              xvfb-run -a ./mobile/android/gradlew -p desktop/shared test "$TASK" "-PxanDesktopVersion=$VERSION" --no-daemon --no-configuration-cache --console=plain --warning-mode summary
+            else
+              ./mobile/android/gradlew -p desktop/shared test "$TASK" "-PxanDesktopVersion=$VERSION" --no-daemon --no-configuration-cache --console=plain --warning-mode summary
+            fi
+          fi
+          OUTPUT_DIR="desktop/shared/build/compose/binaries/main/$OUTPUT_FOLDER"
+          if [ "$ASSET_PATTERN" = "XAN-*-linux-x64.AppImage" ]; then
+            bash desktop/shared/packaging/build-appimage.sh "$VERSION"
+          fi
+          shopt -s nullglob
+          ASSETS=("$OUTPUT_DIR"/$ASSET_PATTERN)
+          ((${#ASSETS[@]} > 0)) || { echo "No $ASSET_PATTERN installer was produced in $OUTPUT_DIR." >&2; exit 1; }
+          MACHINE=$(uname -m)
+          case "$MACHINE" in
+            x86_64|amd64) ARCH=x64 ;;
+            arm64|aarch64) ARCH=arm64 ;;
+            *) echo "Unsupported native installer architecture: $MACHINE" >&2; exit 1 ;;
+          esac
+          RENAMED=()
+          for asset in "${ASSETS[@]}"; do
+            [ -s "$asset" ] || { echo "Installer is empty: $asset" >&2; exit 1; }
+            extension="${asset##*.}"
+            target="$OUTPUT_DIR/XAN-$VERSION-$PLATFORM_ID-$ARCH.$extension"
+            if [[ "$asset" != "$target" ]]; then mv "$asset" "$target"; fi
+            if [ "$PLATFORM_ID" = "windows" ] && [ "$extension" = "msi" ]; then
+              pwsh -NoLogo -NoProfile -File desktop/shared/packaging/sign-windows-msi.ps1 -Path "$target"
+            fi
+            RENAMED+=("$target")
+          done
+          CHECKSUMS="$OUTPUT_DIR/XAN-$VERSION-$PLATFORM_ID-$ARCH-SHA256SUMS.txt"
+          python desktop/shared/packaging/write_checksums.py "$CHECKSUMS" "${RENAMED[@]}"
+
+      - name: Check Apple signing configuration
+        if: runner.os == 'macOS'
+        id: macos-signing
+        env:
+          CERTIFICATE_P12_BASE64: ${{ secrets.MACOS_CERTIFICATE_P12_BASE64 }}
+          CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+          SIGNING_IDENTITY: ${{ secrets.MACOS_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.MACOS_APPLE_ID }}
+          TEAM_ID: ${{ secrets.MACOS_TEAM_ID }}
+          APP_SPECIFIC_PASSWORD: ${{ secrets.MACOS_APP_SPECIFIC_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [[ -n "$CERTIFICATE_P12_BASE64" && -n "$CERTIFICATE_PASSWORD" && -n "$SIGNING_IDENTITY" && -n "$APPLE_ID" && -n "$TEAM_ID" && -n "$APP_SPECIFIC_PASSWORD" ]]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Sign and notarize macOS release package
+        if: ${{ runner.os == 'macOS' && steps.macos-signing.outputs.enabled == 'true' }}
+        env:
+          CERTIFICATE_P12_BASE64: ${{ secrets.MACOS_CERTIFICATE_P12_BASE64 }}
+          CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+          SIGNING_IDENTITY: ${{ secrets.MACOS_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.MACOS_APPLE_ID }}
+          TEAM_ID: ${{ secrets.MACOS_TEAM_ID }}
+          APP_SPECIFIC_PASSWORD: ${{ secrets.MACOS_APP_SPECIFIC_PASSWORD }}
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+          VERSION: ${{ steps.release.outputs.version }}
+        run: |
+          set -euo pipefail
+          keychain="$RUNNER_TEMP/xan-signing.keychain-db"
+          keychain_password="$(openssl rand -hex 24)"
+          certificate="$RUNNER_TEMP/xan-signing.p12"
+          mountpoint="$RUNNER_TEMP/xan-dmg"
+          app="$RUNNER_TEMP/XAN.app"
+          signed_dmg="$RUNNER_TEMP/XAN-signed.dmg"
+          machine="$(uname -m)"
+          case "$machine" in
+            x86_64|amd64) architecture=x64 ;;
+            arm64|aarch64) architecture=arm64 ;;
+            *) echo "Unsupported macOS signing architecture: $machine" >&2; exit 1 ;;
+          esac
+          dmg="desktop/shared/build/compose/binaries/main/dmg/XAN-$VERSION-macos-$architecture.dmg"
+          checksums="desktop/shared/build/compose/binaries/main/dmg/XAN-$VERSION-macos-$architecture-SHA256SUMS.txt"
+          printf '%s' "$CERTIFICATE_P12_BASE64" | base64 --decode > "$certificate"
+          security create-keychain -p "$keychain_password" "$keychain"
+          security set-keychain-settings -lut 21600 "$keychain"
+          security unlock-keychain -p "$keychain_password" "$keychain"
+          security import "$certificate" -k "$keychain" -P "$CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$keychain_password" "$keychain"
+          security list-keychains -d user -s "$keychain"
+          mkdir -p "$mountpoint"
+          hdiutil attach -nobrowse -mountpoint "$mountpoint" "$dmg"
+          ditto "$mountpoint/XAN.app" "$app"
+          hdiutil detach "$mountpoint"
+          codesign --force --deep --options runtime --entitlements desktop/shared/packaging/macos-entitlements.plist --timestamp --sign "$SIGNING_IDENTITY" "$app"
+          codesign --verify --deep --strict --verbose=2 "$app"
+          mkdir -p "$RUNNER_TEMP/xan-dmg-root"
+          ditto "$app" "$RUNNER_TEMP/xan-dmg-root/XAN.app"
+          hdiutil create -volname XAN -srcfolder "$RUNNER_TEMP/xan-dmg-root" -ov -format UDZO "$signed_dmg"
+          codesign --force --timestamp --sign "$SIGNING_IDENTITY" "$signed_dmg"
+          xcrun notarytool submit "$signed_dmg" --apple-id "$APPLE_ID" --team-id "$TEAM_ID" --password "$APP_SPECIFIC_PASSWORD" --wait
+          xcrun stapler staple "$signed_dmg"
+          cp "$signed_dmg" "$dmg"
+          python desktop/shared/packaging/write_checksums.py "$checksums" "$dmg"
+          rm -f "$certificate"
+          security delete-keychain "$keychain"
+
+      - name: Upload verified native installer and checksums
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+          VERSION: ${{ steps.release.outputs.version }}
+          PLATFORM_ID: ${{ matrix.platform_id }}
+          OUTPUT_FOLDER: ${{ matrix.output_folder }}
+        run: |
+          set -euo pipefail
+          output="desktop/shared/build/compose/binaries/main/$OUTPUT_FOLDER"
+          shopt -s nullglob
+          assets=("$output"/XAN-"$VERSION"-"$PLATFORM_ID"-*)
+          (("${#assets[@]}" > 0)) || { echo "No native release assets were produced." >&2; exit 1; }
+          gh release upload "$TAG" "${assets[@]}" --repo "${{ github.repository }}" --clobber
+
+      - name: Build and publish the optional Japanese romanization pack
+        if: ${{ matrix.platform_id == 'linux' && matrix.output_folder == 'deb' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          set -euo pipefail
+          ./mobile/android/gradlew -p desktop/features/japanese-romanization jar --no-daemon --no-configuration-cache --console=plain
+          pack="desktop/features/japanese-romanization/build/libs/xan-feature-japanese-romanization.jar"
+          (cd "$(dirname "$pack")" && sha256sum "$(basename "$pack")" > "$(basename "$pack").sha256")
+          gh release upload "$TAG" "$pack" "$pack.sha256" --repo "${{ github.repository }}" --clobber

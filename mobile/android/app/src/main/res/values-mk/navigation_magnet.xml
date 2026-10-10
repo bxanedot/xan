@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">Отворете го менито за навигација</string>
+    <string name="close_navigation_magnet">Затворете го менито за навигација</string>
+    <string name="navigation_magnet_expanded">Менито за навигација е проширено</string>
+    <string name="navigation_magnet_collapsed">Менито за навигација се склопи</string>
+    <string name="magnet_position">Положба на магнет</string>
+    <string name="magnet_bottom_left">Долу лево</string>
+    <string name="magnet_bottom_right">Долу десно</string>
+</resources>

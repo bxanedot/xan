@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">Naviqasiya menyusunu açın</string>
+    <string name="close_navigation_magnet">Naviqasiya menyusunu bağlayın</string>
+    <string name="navigation_magnet_expanded">Naviqasiya menyusu genişləndirildi</string>
+    <string name="navigation_magnet_collapsed">Naviqasiya menyusu yığışdırıldı</string>
+    <string name="magnet_position">Maqnit mövqeyi</string>
+    <string name="magnet_bottom_left">Aşağı sol</string>
+    <string name="magnet_bottom_right">Aşağı sağ</string>
+</resources>

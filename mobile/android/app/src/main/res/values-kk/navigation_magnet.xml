@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">Навигация мәзірін ашыңыз</string>
+    <string name="close_navigation_magnet">Навигация мәзірін жабыңыз</string>
+    <string name="navigation_magnet_expanded">Навигация мәзірі кеңейтілді</string>
+    <string name="navigation_magnet_collapsed">Навигация мәзірі жиырылды</string>
+    <string name="magnet_position">Магнит позициясы</string>
+    <string name="magnet_bottom_left">Төменгі сол жақта</string>
+    <string name="magnet_bottom_right">Төменгі оң жақта</string>
+</resources>

@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">Ouver meni navigasion</string>
+    <string name="close_navigation_magnet">Ferm meni navigasion</string>
+    <string name="navigation_magnet_expanded">Meni navigasion finn agrandi</string>
+    <string name="navigation_magnet_collapsed">Meni navigasion finn defonse</string>
+    <string name="magnet_position">Pozision leman</string>
+    <string name="magnet_bottom_left">Anba a gos</string>
+    <string name="magnet_bottom_right">Anba adrwat</string>
+</resources>

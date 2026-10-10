@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">നാവിഗേഷൻ മെനു തുറക്കുക</string>
+    <string name="close_navigation_magnet">നാവിഗേഷൻ മെനു അടയ്ക്കുക</string>
+    <string name="navigation_magnet_expanded">നാവിഗേഷൻ മെനു വിപുലീകരിച്ചു</string>
+    <string name="navigation_magnet_collapsed">നാവിഗേഷൻ മെനു ചുരുക്കി</string>
+    <string name="magnet_position">കാന്തം സ്ഥാനം</string>
+    <string name="magnet_bottom_left">താഴെ ഇടത്</string>
+    <string name="magnet_bottom_right">താഴെ വലത്</string>
+</resources>

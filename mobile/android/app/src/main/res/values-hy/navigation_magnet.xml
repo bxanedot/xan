@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">Բացեք նավիգացիոն ընտրացանկը</string>
+    <string name="close_navigation_magnet">Փակել նավիգացիոն ընտրացանկը</string>
+    <string name="navigation_magnet_expanded">Նավիգացիայի ընտրացանկը ընդլայնվել է</string>
+    <string name="navigation_magnet_collapsed">Նավիգացիայի ընտրացանկը ծալվեց</string>
+    <string name="magnet_position">Մագնիսների դիրքը</string>
+    <string name="magnet_bottom_left">Ներքևի ձախ</string>
+    <string name="magnet_bottom_right">Ներքևում աջ</string>
+</resources>

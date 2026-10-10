@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">Abre o menú de navegación</string>
+    <string name="close_navigation_magnet">Pechar o menú de navegación</string>
+    <string name="navigation_magnet_expanded">Menú de navegación expandido</string>
+    <string name="navigation_magnet_collapsed">O menú de navegación contraeu</string>
+    <string name="magnet_position">Posición do imán</string>
+    <string name="magnet_bottom_left">Abaixo á esquerda</string>
+    <string name="magnet_bottom_right">Abaixo dereita</string>
+</resources>

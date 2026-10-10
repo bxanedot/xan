@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">เปิดเมนูการนำทาง</string>
+    <string name="close_navigation_magnet">ปิดเมนูนำทาง</string>
+    <string name="navigation_magnet_expanded">เมนูนำทางขยายแล้ว</string>
+    <string name="navigation_magnet_collapsed">เมนูการนำทางยุบลง</string>
+    <string name="magnet_position">ตำแหน่งแม่เหล็ก</string>
+    <string name="magnet_bottom_left">ซ้ายล่าง</string>
+    <string name="magnet_bottom_right">ล่างขวา</string>
+</resources>

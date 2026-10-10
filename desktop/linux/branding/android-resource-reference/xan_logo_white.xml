@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- White launcher mark; the PNG already contains transparency around the ring. -->
+<bitmap xmlns:android="http://schemas.android.com/apk/res/android"
+    android:src="@drawable/xan_launcher_white_mark"
+    android:gravity="fill" />

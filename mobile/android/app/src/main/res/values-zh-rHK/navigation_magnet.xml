@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">開啟導覽選單</string>
+    <string name="close_navigation_magnet">關閉導航選單</string>
+    <string name="navigation_magnet_expanded">導航選單已展開</string>
+    <string name="navigation_magnet_collapsed">導航菜單已折疊</string>
+    <string name="magnet_position">磁鐵位置</string>
+    <string name="magnet_bottom_left">左下角</string>
+    <string name="magnet_bottom_right">右下角</string>
+</resources>

@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">Ouvrir le menu de navigation</string>
+    <string name="close_navigation_magnet">Fermer le menu de navigation</string>
+    <string name="navigation_magnet_expanded">Menu de navigation étendu</string>
+    <string name="navigation_magnet_collapsed">Le menu de navigation est réduit</string>
+    <string name="magnet_position">Position de l\'aimant</string>
+    <string name="magnet_bottom_left">En bas à gauche</string>
+    <string name="magnet_bottom_right">En bas à droite</string>
+</resources>

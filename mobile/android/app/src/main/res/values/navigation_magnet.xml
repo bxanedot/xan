@@ -1,0 +1,15 @@
+<resources>
+    <string name="open_navigation_magnet">Open XAN navigation</string>
+    <string name="close_navigation_magnet">Close XAN navigation</string>
+    <string name="navigation_magnet_expanded">Navigation menu expanded</string>
+    <string name="navigation_magnet_collapsed">Navigation menu collapsed</string>
+    <string name="navigation_style">Navigation style</string>
+    <string name="navigation_style_magnet">Magnet</string>
+    <string name="navigation_style_legacy_buttons">Basic (Legacy)</string>
+    <string name="magnet_position">Magnet position</string>
+    <string name="magnet_bottom_left">Bottom left</string>
+    <string name="magnet_bottom_right">Bottom right</string>
+    <string name="magnet_layout">Magnet layout</string>
+    <string name="magnet_layout_semicircle">Semicircle around the Magnet</string>
+    <string name="magnet_layout_stacked">Original Magnet with labeled buttons</string>
+</resources>

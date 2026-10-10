@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">ನ್ಯಾವಿಗೇಷನ್ ಮೆನು ತೆರೆಯಿರಿ</string>
+    <string name="close_navigation_magnet">ನ್ಯಾವಿಗೇಷನ್ ಮೆನುವನ್ನು ಮುಚ್ಚಿ</string>
+    <string name="navigation_magnet_expanded">ನ್ಯಾವಿಗೇಶನ್ ಮೆನು ವಿಸ್ತರಿಸಲಾಗಿದೆ</string>
+    <string name="navigation_magnet_collapsed">ನ್ಯಾವಿಗೇಶನ್ ಮೆನು ಕುಸಿದಿದೆ</string>
+    <string name="magnet_position">ಮ್ಯಾಗ್ನೆಟ್ ಸ್ಥಾನ</string>
+    <string name="magnet_bottom_left">ಕೆಳಗೆ ಎಡಕ್ಕೆ</string>
+    <string name="magnet_bottom_right">ಕೆಳಗಿನ ಬಲಕ್ಕೆ</string>
+</resources>

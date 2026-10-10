@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">Atidarykite naršymo meniu</string>
+    <string name="close_navigation_magnet">Uždaryti naršymo meniu</string>
+    <string name="navigation_magnet_expanded">Išskleistas naršymo meniu</string>
+    <string name="navigation_magnet_collapsed">Naršymo meniu sutrauktas</string>
+    <string name="magnet_position">Magneto padėtis</string>
+    <string name="magnet_bottom_left">Apačioje kairėje</string>
+    <string name="magnet_bottom_right">Dešinėje apačioje</string>
+</resources>

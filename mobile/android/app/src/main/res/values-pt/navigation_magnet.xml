@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">Abrir menu de navegação</string>
+    <string name="close_navigation_magnet">Fechar menu de navegação</string>
+    <string name="navigation_magnet_expanded">Menu de navegação expandido</string>
+    <string name="navigation_magnet_collapsed">Menu de navegação recolhido</string>
+    <string name="magnet_position">Posição do ímã</string>
+    <string name="magnet_bottom_left">Canto inferior esquerdo</string>
+    <string name="magnet_bottom_right">Canto inferior direito</string>
+</resources>

@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">Hap menunë e navigimit</string>
+    <string name="close_navigation_magnet">Mbyll menynë e navigimit</string>
+    <string name="navigation_magnet_expanded">Menyja e navigimit u zgjerua</string>
+    <string name="navigation_magnet_collapsed">Menyja e navigimit u rrëzua</string>
+    <string name="magnet_position">Pozicioni i magnetit</string>
+    <string name="magnet_bottom_left">Poshtë majtas</string>
+    <string name="magnet_bottom_right">Poshtë djathtas</string>
+</resources>

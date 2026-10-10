@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">פתח את תפריט הניווט</string>
+    <string name="close_navigation_magnet">סגור את תפריט הניווט</string>
+    <string name="navigation_magnet_expanded">תפריט הניווט הורחב</string>
+    <string name="navigation_magnet_collapsed">תפריט הניווט התכווץ</string>
+    <string name="magnet_position">מיקום מגנט</string>
+    <string name="magnet_bottom_left">משמאל למטה</string>
+    <string name="magnet_bottom_right">ימין למטה</string>
+</resources>

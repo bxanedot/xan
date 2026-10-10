@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">નેવિગેશન મેનૂ ખોલો</string>
+    <string name="close_navigation_magnet">નેવિગેશન મેનૂ બંધ કરો</string>
+    <string name="navigation_magnet_expanded">નેવિગેશન મેનૂ વિસ્તૃત કર્યું</string>
+    <string name="navigation_magnet_collapsed">નેવિગેશન મેનૂ સંકુચિત થયું</string>
+    <string name="magnet_position">ચુંબક સ્થિતિ</string>
+    <string name="magnet_bottom_left">નીચે ડાબી બાજુ</string>
+    <string name="magnet_bottom_right">નીચે જમણે</string>
+</resources>

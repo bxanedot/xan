@@ -1,0 +1,90 @@
+/**
+ * xan Project (C) 2026
+ * Licensed under GPL-3.0-only | See LICENCE for details
+ */
+
+package app.xan.music.lyrics
+
+import app.xan.music.constants.PreferredLyricsProvider
+
+/**
+ * Central registry for all lyrics providers.
+ * Maps provider names (used for persistence) to provider objects,
+ * and handles serialization/deserialization of the custom priority order.
+ */
+object LyricsProviderRegistry {
+    private val providerMap = mapOf(
+        "YouLyPlus"       to YouLyPlusLyricsProvider,
+        "Paxsenix"        to PaxSenixLyricsProvider,
+        "Musixmatch"      to MusixmatchLyricsProvider,
+        "BetterLyrics"    to BetterLyricsProvider,
+        "BiniLyrics"      to BiniLyricsProvider,
+        "Unison"          to UnisonLyricsProvider,
+        "SimpMusic"       to SimpMusicLyricsProvider,
+        "LrcLib"          to LrcLibLyricsProvider,
+        "Kugou"           to KuGouLyricsProvider,
+        "YouTubeSubtitle" to YouTubeSubtitleLyricsProvider,
+        "YouTubeMusic"    to YouTubeLyricsProvider,
+    )
+
+    val providerNames = providerMap.keys.toList()
+
+    fun getProviderByName(name: String): LyricsProvider? = providerMap[name]
+
+    fun deserializeProviderOrder(orderString: String): List<String> {
+        if (orderString.isBlank()) return getDefaultProviderOrder()
+        return orderString.split(",").map { it.trim() }.filter { it in providerNames }
+    }
+
+    fun serializeProviderOrder(providers: List<String>): String =
+        providers.filter { it in providerNames }.joinToString(",")
+
+    /**
+     * Prefer providers that can return real word/syllable timing first.
+     * LyricsHelper still scores every non-word result and keeps the best one,
+     * so line-synced/plain providers remain fallbacks rather than masking a
+     * richer result later in the chain.
+     */
+    fun getDefaultProviderOrder(): List<String> = listOf(
+        "BetterLyrics",
+        "BiniLyrics",
+        "Unison",
+        "Musixmatch",
+        "YouLyPlus",
+        "Paxsenix",
+        "LrcLib",
+        "Kugou",
+        "SimpMusic",
+        "YouTubeSubtitle",
+        "YouTubeMusic",
+    )
+
+    fun getOrderedProviders(orderString: String): List<LyricsProvider> =
+        deserializeProviderOrder(orderString).mapNotNull { getProviderByName(it) }
+
+    /** Maps a [PreferredLyricsProvider] enum value to its registry name, used for migration. */
+    fun getProviderNameForEnum(enum: PreferredLyricsProvider): String = when (enum) {
+        PreferredLyricsProvider.LRCLIB        -> "LrcLib"
+        PreferredLyricsProvider.KUGOU         -> "Kugou"
+        PreferredLyricsProvider.BETTER_LYRICS -> "BetterLyrics"
+        PreferredLyricsProvider.SIMPMUSIC     -> "SimpMusic"
+        PreferredLyricsProvider.YOULYPLUS     -> "YouLyPlus"
+        PreferredLyricsProvider.PAXSENIX      -> "Paxsenix"
+    }
+
+    /** Returns the human-readable display name for a registry provider key. */
+    fun getDisplayName(name: String): String = when (name) {
+        "YouLyPlus"       -> "YouLyPlus"
+        "Paxsenix"        -> "PaxSenix"
+        "Musixmatch"      -> "Musixmatch"
+        "BetterLyrics"    -> "Better Lyrics"
+        "BiniLyrics"      -> "BiniLyrics"
+        "Unison"          -> "Unison"
+        "SimpMusic"       -> "SimpMusic"
+        "LrcLib"          -> "LrcLib"
+        "Kugou"           -> "KuGou"
+        "YouTubeSubtitle" -> "YouTube Subtitle"
+        "YouTubeMusic"    -> "YouTube Music"
+        else              -> name
+    }
+}

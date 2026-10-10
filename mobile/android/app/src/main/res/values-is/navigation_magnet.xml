@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">Opnaðu leiðsöguvalmyndina</string>
+    <string name="close_navigation_magnet">Lokaðu leiðsöguvalmyndinni</string>
+    <string name="navigation_magnet_expanded">Leiðsöguvalmynd stækkuð</string>
+    <string name="navigation_magnet_collapsed">Leiðsöguvalmynd hrundi saman</string>
+    <string name="magnet_position">Segulstaða</string>
+    <string name="magnet_bottom_left">Neðst til vinstri</string>
+    <string name="magnet_bottom_right">Neðst til hægri</string>
+</resources>

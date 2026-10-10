@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">Навигацийн цэсийг нээнэ үү</string>
+    <string name="close_navigation_magnet">Навигацийн цэсийг хаах</string>
+    <string name="navigation_magnet_expanded">Навигацийн цэсийг өргөжүүлсэн</string>
+    <string name="navigation_magnet_collapsed">Навигацийн цэсийг буулгасан</string>
+    <string name="magnet_position">Соронзон байрлал</string>
+    <string name="magnet_bottom_left">Зүүн доод талд</string>
+    <string name="magnet_bottom_right">Баруун доод талд</string>
+</resources>

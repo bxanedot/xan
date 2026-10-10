@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">Nyissa meg a navigációs menüt</string>
+    <string name="close_navigation_magnet">Zárja be a navigációs menüt</string>
+    <string name="navigation_magnet_expanded">A navigációs menü kibontva</string>
+    <string name="navigation_magnet_collapsed">A navigációs menü összecsukva</string>
+    <string name="magnet_position">Mágnes pozíció</string>
+    <string name="magnet_bottom_left">Balra lent</string>
+    <string name="magnet_bottom_right">Jobbra lent</string>
+</resources>

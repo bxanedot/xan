@@ -1,0 +1,5 @@
+files:
+  - source: /mobile/android/app/src/main/res/values/strings.xml
+    translation: /mobile/android/app/src/main/res/values-%android_code%/strings.xml
+  - source: /mobile/android/app/src/main/res/values/xan_strings.xml
+    translation: /mobile/android/app/src/main/res/values-%android_code%/xan_strings.xml

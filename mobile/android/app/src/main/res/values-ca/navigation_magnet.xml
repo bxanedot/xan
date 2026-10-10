@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">Obre el menú de navegació</string>
+    <string name="close_navigation_magnet">Tanca el menú de navegació</string>
+    <string name="navigation_magnet_expanded">Menú de navegació ampliat</string>
+    <string name="navigation_magnet_collapsed">El menú de navegació s\'ha replegat</string>
+    <string name="magnet_position">Posició de l\'imant</string>
+    <string name="magnet_bottom_left">A baix a l\'esquerra</string>
+    <string name="magnet_bottom_right">A baix a la dreta</string>
+</resources>

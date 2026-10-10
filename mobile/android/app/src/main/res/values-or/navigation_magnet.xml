@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">ନାଭିଗେସନ୍ ମେନୁ ଖୋଲନ୍ତୁ |</string>
+    <string name="close_navigation_magnet">ନାଭିଗେସନ୍ ମେନୁ ବନ୍ଦ କରନ୍ତୁ |</string>
+    <string name="navigation_magnet_expanded">ନାଭିଗେସନ୍ ମେନୁ ବିସ୍ତାର ହେଲା |</string>
+    <string name="navigation_magnet_collapsed">ନାଭିଗେସନ୍ ମେନୁ ଭୁଶୁଡି ପଡିଲା |</string>
+    <string name="magnet_position">ଚୁମ୍ବକ ସ୍ଥିତି</string>
+    <string name="magnet_bottom_left">ତଳ ବାମ</string>
+    <string name="magnet_bottom_right">ତଳ ଡାହାଣ</string>
+</resources>

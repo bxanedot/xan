@@ -1,0 +1,8 @@
+node_modules
+npm-debug.log
+.env
+.git
+test
+README.md
+wrangler.jsonc
+src

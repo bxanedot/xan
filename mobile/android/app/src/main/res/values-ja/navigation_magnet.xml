@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">ナビゲーションメニューを開く</string>
+    <string name="close_navigation_magnet">ナビゲーションメニューを閉じる</string>
+    <string name="navigation_magnet_expanded">ナビゲーションメニューが拡張されました</string>
+    <string name="navigation_magnet_collapsed">折りたたまれたナビゲーション メニュー</string>
+    <string name="magnet_position">磁石の位置</string>
+    <string name="magnet_bottom_left">左下</string>
+    <string name="magnet_bottom_right">右下</string>
+</resources>

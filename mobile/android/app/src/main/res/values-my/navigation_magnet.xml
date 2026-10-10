@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">လမ်းညွှန်မီနူးကိုဖွင့်ပါ။</string>
+    <string name="close_navigation_magnet">လမ်းညွှန်မီနူးကို ပိတ်ပါ။</string>
+    <string name="navigation_magnet_expanded">လမ်းကြောင်းပြမီနူးကို ချဲ့ထားသည်။</string>
+    <string name="navigation_magnet_collapsed">လမ်းကြောင်းပြမီနူး ပြိုကျသွားသည်။</string>
+    <string name="magnet_position">သံလိုက်အနေအထား</string>
+    <string name="magnet_bottom_left">ဘယ်ဘက်အောက်ခြေ</string>
+    <string name="magnet_bottom_right">အောက်ခြေညာဘက်</string>
+</resources>

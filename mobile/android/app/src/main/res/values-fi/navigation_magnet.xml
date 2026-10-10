@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">Avaa navigointivalikko</string>
+    <string name="close_navigation_magnet">Sulje navigointivalikko</string>
+    <string name="navigation_magnet_expanded">Navigointivalikko laajennettu</string>
+    <string name="navigation_magnet_collapsed">Navigointivalikko kutistettu</string>
+    <string name="magnet_position">Magneetin asento</string>
+    <string name="magnet_bottom_left">Vasemmalla alhaalla</string>
+    <string name="magnet_bottom_right">Alhaalla oikealla</string>
+</resources>

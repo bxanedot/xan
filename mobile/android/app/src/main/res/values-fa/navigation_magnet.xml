@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">منوی ناوبری را باز کنید</string>
+    <string name="close_navigation_magnet">منوی پیمایش را ببندید</string>
+    <string name="navigation_magnet_expanded">منوی پیمایش بزرگ شد</string>
+    <string name="navigation_magnet_collapsed">منوی پیمایش جمع شد</string>
+    <string name="magnet_position">موقعیت آهنربا</string>
+    <string name="magnet_bottom_left">پایین سمت چپ</string>
+    <string name="magnet_bottom_right">پایین سمت راست</string>
+</resources>

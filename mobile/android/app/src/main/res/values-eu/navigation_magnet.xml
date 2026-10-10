@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">Ireki nabigazio menua</string>
+    <string name="close_navigation_magnet">Itxi nabigazio menua</string>
+    <string name="navigation_magnet_expanded">Nabigazio menua zabaldu da</string>
+    <string name="navigation_magnet_collapsed">Nabigazio menua tolestu da</string>
+    <string name="magnet_position">Imanaren posizioa</string>
+    <string name="magnet_bottom_left">Behean ezkerrekoa</string>
+    <string name="magnet_bottom_right">Behean eskuinean</string>
+</resources>

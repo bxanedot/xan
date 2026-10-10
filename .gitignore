@@ -1,0 +1,47 @@
+.gradle/
+.gradle-local/
+.gradle-build/
+.android/
+work/
+archive/
+build-verification.log
+.gradle-tool/
+gradle-build-attempt.log
+.cache/
+__pycache__/
+*.pyc
+.kotlin/
+build/
+**/build/
+.idea/
+*.iml
+local.properties
+*.keystore
+*.jks
+*.p12
+*.pfx
+node_modules/
+dist/
+out/
+.vscode/
+.DS_Store
+Thumbs.db
+.env
+.env.*
+analytics.settings
+
+# Website build/deployment state stays local.
+.next/
+.vercel/
+.impeccable/
+web/bin/
+.tmp-icon-review/
+
+# XcodeGen derives versions from Android and generates the project locally.
+mobile/ios/iosApp/project.generated.yml
+mobile/ios/iosApp/Assets.xcassets/AppIcon.appiconset/AppIcon.png
+mobile/ios/iosApp/XAN.xcodeproj/
+
+# Local release materials and built APKs must stay out of Git history.
+mobile/android/app/keystore/
+outputs/

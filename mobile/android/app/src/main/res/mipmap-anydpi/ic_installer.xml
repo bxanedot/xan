@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@color/ic_launcher_static_background" />
+            <corners android:radius="22dp" />
+        </shape>
+    </item>
+    <item android:drawable="@drawable/xan_logo_white"
+        android:left="39.6dp" android:top="39.6dp"
+        android:right="39.6dp" android:bottom="39.6dp" />
+</layer-list>

@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">འགྲིམ་འགྲུལ་དཀར་ཆག་ཁ་ཕྱེ།</string>
+    <string name="close_navigation_magnet">འགྲིམ་འགྲུལ་དཀར་ཆག་ཁ་རྒྱབ།</string>
+    <string name="navigation_magnet_expanded">འགྲིམ་འགྲུལ་དཀར་ཆག་རྒྱ་བསྐྱེད་པ།</string>
+    <string name="navigation_magnet_collapsed">འགྲིམ་འགྲུལ་དཀར་ཆག་བརྡིབས་འདུག</string>
+    <string name="magnet_position">ཁབ་ལེན་གནས་སྟངས།</string>
+    <string name="magnet_bottom_left">གཡོན་འོག་མ།</string>
+    <string name="magnet_bottom_right">གཤམ་གྱི་གཡས་ཕྱོགས།</string>
+</resources>

@@ -1,0 +1,8 @@
+<resources>
+    <string name="artist_download_progress">%1$d / %2$d downloaded</string>
+    <string name="artist_download_failed_count">%1$d failed · tap to retry</string>
+    <string name="artist_download_load_total">Tap to load song total</string>
+    <string name="artist_download_resolving">Counting songs…</string>
+    <string name="artist_download_error">Could not load the full artist catalogue. Please retry.</string>
+    <string name="artist_download_queue_summary">%1$d songs queued · %2$d already downloaded</string>
+</resources>

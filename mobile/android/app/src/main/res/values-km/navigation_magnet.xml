@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">បើកម៉ឺនុយរុករក</string>
+    <string name="close_navigation_magnet">បិទម៉ឺនុយរុករក</string>
+    <string name="navigation_magnet_expanded">ម៉ឺនុយរុករកត្រូវបានពង្រីក</string>
+    <string name="navigation_magnet_collapsed">ម៉ឺនុយរុករកបានដួលរលំ</string>
+    <string name="magnet_position">ទីតាំងមេដែក</string>
+    <string name="magnet_bottom_left">បាតខាងឆ្វេង</string>
+    <string name="magnet_bottom_right">បាតស្តាំ</string>
+</resources>

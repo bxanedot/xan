@@ -1,0 +1,14 @@
+[
+  {"name":"YouTube search / InnerTube / Google playback APIs","sources":["mobile/android/modules/music-sources/innertube/src/main","mobile/android/app/src/main/kotlin/app/xan/music/utils/YTPlayerUtils.kt"]},
+  {"name":"NewPipeExtractor","sources":["mobile/android/gradle/libs.versions.toml"]},
+  {"name":"Shazam recognition","sources":["mobile/android/modules/services/shazamkit/src/main"]},
+  {"name":"YouLyPlus lyrics","sources":["mobile/android/modules/lyrics/youlyplus/src/main"]},
+  {"name":"LRCLIB lyrics","sources":["mobile/android/modules/lyrics/lrclib/src/main"]},
+  {"name":"SimpMusic lyrics","sources":["mobile/android/modules/lyrics/simpmusic/src/main"]},
+  {"name":"Musixmatch lyrics","sources":["mobile/android/modules/lyrics/musixmatchlyrics/src/main"]},
+  {"name":"BetterLyrics","sources":["mobile/android/modules/lyrics/betterlyrics/src/main"]},
+  {"name":"Paxsenix / Apple Music lyrics","sources":["mobile/android/modules/lyrics/paxsenixlyrics/src/main"]},
+  {"name":"Apple Music canvas","sources":["mobile/android/modules/visuals/applecanvas/src/main"]},
+  {"name":"SponsorBlock","sources":["mobile/android/app/src/main/kotlin/app/xan/music/playback/SponsorBlockClient.kt"]},
+  {"name":"Google Cast / Play Services libraries","sources":["mobile/android/gradle/libs.versions.toml"]}
+]

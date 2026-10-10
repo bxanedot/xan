@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@android:id/background"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:theme="@style/Theme.Widget.xan">
+
+    <ImageView
+        android:id="@+id/widget_compact_bg"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitXY"
+        android:src="@drawable/widget_card_preview"
+        android:contentDescription="@null" />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="12dp">
+
+        <ImageView
+            android:id="@+id/widget_compact_album_art"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:src="@mipmap/ic_launcher"
+            android:contentDescription="@string/album_art" />
+
+        <ImageView
+            android:id="@+id/widget_compact_like_button"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:layout_gravity="top|end"
+            android:layout_margin="9dp"
+            android:src="@drawable/ic_widget_heart_outline_nav"
+            android:contentDescription="@string/like" />
+
+        <LinearLayout
+            android:id="@+id/widget_compact_transport"
+            android:layout_width="wrap_content"
+            android:layout_height="34dp"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_marginBottom="9dp"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:background="@drawable/widget_pill_scrim_light">
+
+            <ImageView
+                android:id="@+id/widget_compact_prev"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:src="@drawable/ic_widget_skip_previous"
+                android:contentDescription="@string/previous" />
+
+            <ImageView
+                android:id="@+id/widget_compact_play_pause"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="10dp"
+                android:src="@drawable/ic_widget_play"
+                android:contentDescription="@string/play_pause" />
+
+            <ImageView
+                android:id="@+id/widget_compact_next"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:src="@drawable/ic_widget_skip_next"
+                android:contentDescription="@string/next" />
+        </LinearLayout>
+    </FrameLayout>
+</FrameLayout>

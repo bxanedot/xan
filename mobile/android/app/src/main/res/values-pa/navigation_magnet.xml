@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">ਨੈਵੀਗੇਸ਼ਨ ਮੀਨੂ ਖੋਲ੍ਹੋ</string>
+    <string name="close_navigation_magnet">ਨੈਵੀਗੇਸ਼ਨ ਮੀਨੂ ਬੰਦ ਕਰੋ</string>
+    <string name="navigation_magnet_expanded">ਨੈਵੀਗੇਸ਼ਨ ਮੀਨੂ ਦਾ ਵਿਸਤਾਰ ਕੀਤਾ ਗਿਆ</string>
+    <string name="navigation_magnet_collapsed">ਨੈਵੀਗੇਸ਼ਨ ਮੀਨੂ ਨੂੰ ਸਮੇਟਿਆ ਗਿਆ</string>
+    <string name="magnet_position">ਚੁੰਬਕ ਸਥਿਤੀ</string>
+    <string name="magnet_bottom_left">ਹੇਠਾਂ ਖੱਬੇ ਪਾਸੇ</string>
+    <string name="magnet_bottom_right">ਹੇਠਾਂ ਸੱਜੇ</string>
+</resources>

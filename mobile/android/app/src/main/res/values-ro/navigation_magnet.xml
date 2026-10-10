@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">Deschideți meniul de navigare</string>
+    <string name="close_navigation_magnet">Închideți meniul de navigare</string>
+    <string name="navigation_magnet_expanded">Meniul de navigare a fost extins</string>
+    <string name="navigation_magnet_collapsed">Meniul de navigare s-a restrâns</string>
+    <string name="magnet_position">Poziția magnetului</string>
+    <string name="magnet_bottom_left">Stânga jos</string>
+    <string name="magnet_bottom_right">dreapta jos</string>
+</resources>

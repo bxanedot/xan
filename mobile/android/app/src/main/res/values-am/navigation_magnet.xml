@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">የአሰሳ ምናሌን ይክፈቱ</string>
+    <string name="close_navigation_magnet">የአሰሳ ምናሌን ዝጋ</string>
+    <string name="navigation_magnet_expanded">የአሰሳ ምናሌ ተዘርግቷል።</string>
+    <string name="navigation_magnet_collapsed">የአሰሳ ምናሌ ተሰብስቧል</string>
+    <string name="magnet_position">የማግኔት አቀማመጥ</string>
+    <string name="magnet_bottom_left">ከታች ግራ</string>
+    <string name="magnet_bottom_right">ከታች በቀኝ</string>
+</resources>

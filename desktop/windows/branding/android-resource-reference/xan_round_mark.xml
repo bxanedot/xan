@@ -1,0 +1,10 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="@color/ic_launcher_static_background" />
+        </shape>
+    </item>
+    <item android:drawable="@drawable/xan_mark"
+        android:left="19.2dp" android:top="19.2dp"
+        android:right="19.2dp" android:bottom="19.2dp" />
+</layer-list>

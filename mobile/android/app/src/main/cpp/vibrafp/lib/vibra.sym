@@ -1,0 +1,6 @@
+{
+  global:
+    Java_app_xan_music_recognition_VibraSignature_*;
+  local:
+    *;
+};

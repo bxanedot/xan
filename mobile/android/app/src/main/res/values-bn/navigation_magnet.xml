@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">নেভিগেশন মেনু খুলুন</string>
+    <string name="close_navigation_magnet">নেভিগেশন মেনু বন্ধ করুন</string>
+    <string name="navigation_magnet_expanded">নেভিগেশন মেনু প্রসারিত</string>
+    <string name="navigation_magnet_collapsed">নেভিগেশন মেনু ভেঙে গেছে</string>
+    <string name="magnet_position">চুম্বক অবস্থান</string>
+    <string name="magnet_bottom_left">নীচে বাম</string>
+    <string name="magnet_bottom_right">নীচে ডান</string>
+</resources>

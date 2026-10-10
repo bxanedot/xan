@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">నావిగేషన్ మెనుని తెరవండి</string>
+    <string name="close_navigation_magnet">నావిగేషన్ మెనుని మూసివేయండి</string>
+    <string name="navigation_magnet_expanded">నావిగేషన్ మెను విస్తరించబడింది</string>
+    <string name="navigation_magnet_collapsed">నావిగేషన్ మెను కుదించబడింది</string>
+    <string name="magnet_position">అయస్కాంత స్థానం</string>
+    <string name="magnet_bottom_left">దిగువ ఎడమ</string>
+    <string name="magnet_bottom_right">దిగువ కుడి</string>
+</resources>

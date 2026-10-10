@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/xan_logo_white"
+    android:insetLeft="43.2dp"
+    android:insetTop="43.2dp"
+    android:insetRight="43.2dp"
+    android:insetBottom="43.2dp" />

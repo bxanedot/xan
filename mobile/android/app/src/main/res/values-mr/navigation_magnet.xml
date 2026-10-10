@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">नेव्हिगेशन मेनू उघडा</string>
+    <string name="close_navigation_magnet">नेव्हिगेशन मेनू बंद करा</string>
+    <string name="navigation_magnet_expanded">नेव्हिगेशन मेनू विस्तृत केला</string>
+    <string name="navigation_magnet_collapsed">नेव्हिगेशन मेनू संकुचित झाला</string>
+    <string name="magnet_position">चुंबक स्थिती</string>
+    <string name="magnet_bottom_left">खाली डावीकडे</string>
+    <string name="magnet_bottom_right">खाली उजवीकडे</string>
+</resources>

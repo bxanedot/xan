@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">Otwórz menu nawigacyjne</string>
+    <string name="close_navigation_magnet">Zamknij menu nawigacyjne</string>
+    <string name="navigation_magnet_expanded">Menu nawigacyjne rozwinięte</string>
+    <string name="navigation_magnet_collapsed">Menu nawigacyjne zwinięte</string>
+    <string name="magnet_position">Pozycja magnesu</string>
+    <string name="magnet_bottom_left">Na dole po lewej</string>
+    <string name="magnet_bottom_right">Prawy dolny róg</string>
+</resources>

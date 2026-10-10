@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Shared visible mark sizing for every selectable Android launcher icon. -->
+    <dimen name="launcher_icon_legacy_mark_inset">12.1dp</dimen>
+    <dimen name="launcher_icon_adaptive_mark_inset">14.8dp</dimen>
+</resources>

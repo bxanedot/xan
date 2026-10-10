@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">فتح قائمة التنقل</string>
+    <string name="close_navigation_magnet">إغلاق قائمة التنقل</string>
+    <string name="navigation_magnet_expanded">تم توسيع قائمة التنقل</string>
+    <string name="navigation_magnet_collapsed">تم تصغير قائمة التنقل</string>
+    <string name="magnet_position">موقف المغناطيس</string>
+    <string name="magnet_bottom_left">أسفل اليسار</string>
+    <string name="magnet_bottom_right">أسفل اليمين</string>
+</resources>

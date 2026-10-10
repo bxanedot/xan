@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">Mở menu điều hướng</string>
+    <string name="close_navigation_magnet">Đóng menu điều hướng</string>
+    <string name="navigation_magnet_expanded">Đã mở rộng menu điều hướng</string>
+    <string name="navigation_magnet_collapsed">Đã thu gọn menu điều hướng</string>
+    <string name="magnet_position">Vị trí nam châm</string>
+    <string name="magnet_bottom_left">Dưới cùng bên trái</string>
+    <string name="magnet_bottom_right">Dưới cùng bên phải</string>
+</resources>

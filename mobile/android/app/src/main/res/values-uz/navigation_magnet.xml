@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">Navigatsiya menyusini oching</string>
+    <string name="close_navigation_magnet">Navigatsiya menyusini yoping</string>
+    <string name="navigation_magnet_expanded">Navigatsiya menyusi kengaytirildi</string>
+    <string name="navigation_magnet_collapsed">Navigatsiya menyusi yopildi</string>
+    <string name="magnet_position">Magnit holati</string>
+    <string name="magnet_bottom_left">Pastki chap</string>
+    <string name="magnet_bottom_right">Pastki o\'ng</string>
+</resources>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#FF000000" />
+        </shape>
+    </item>
+    <item
+        android:drawable="@drawable/xan_in_app_mark"
+        android:left="112dp"
+        android:top="42dp"
+        android:right="112dp"
+        android:bottom="42dp"
+        android:gravity="fill" />
+</layer-list>

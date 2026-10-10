@@ -1,0 +1,8 @@
+<resources>
+    <string name="artist_download_progress">%1$d / %2$d heruntergeladen</string>
+    <string name="artist_download_failed_count">%1$d fehlgeschlagen · zum Wiederholen tippen</string>
+    <string name="artist_download_load_total">Für die Songanzahl tippen</string>
+    <string name="artist_download_resolving">Songs werden gezählt…</string>
+    <string name="artist_download_error">Der vollständige Künstlerkatalog konnte nicht geladen werden. Bitte erneut versuchen.</string>
+    <string name="artist_download_queue_summary">%1$d Songs eingereiht · %2$d bereits heruntergeladen</string>
+</resources>

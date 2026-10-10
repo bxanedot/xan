@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">Avage navigeerimismenüü</string>
+    <string name="close_navigation_magnet">Sulgege navigeerimismenüü</string>
+    <string name="navigation_magnet_expanded">Navigeerimismenüü on laiendatud</string>
+    <string name="navigation_magnet_collapsed">Navigeerimismenüü on ahendatud</string>
+    <string name="magnet_position">Magneti asend</string>
+    <string name="magnet_bottom_left">All vasakul</string>
+    <string name="magnet_bottom_right">All paremal</string>
+</resources>

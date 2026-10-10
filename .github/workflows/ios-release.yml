@@ -1,0 +1,138 @@
+name: iOS Signed Release
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing GitHub release tag to attach the IPA to
+        required: true
+        type: string
+permissions:
+  contents: write
+jobs:
+  signed-ipa:
+    name: Build and upload signed IPA (when Apple credentials are configured)
+    runs-on: macos-15
+    steps:
+      - name: Check signing configuration
+        id: signing
+        env:
+          APPLE_TEAM_ID: ${{ vars.APPLE_TEAM_ID }}
+          APPLE_PROFILE_NAME: ${{ vars.APPLE_PROFILE_NAME }}
+          APPLE_CERTIFICATE_P12_BASE64: ${{ secrets.APPLE_CERTIFICATE_P12_BASE64 }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_PROVISIONING_PROFILE_BASE64: ${{ secrets.APPLE_PROVISIONING_PROFILE_BASE64 }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -n "$APPLE_TEAM_ID" && -n "$APPLE_PROFILE_NAME" && -n "$APPLE_CERTIFICATE_P12_BASE64" && -n "$APPLE_CERTIFICATE_PASSWORD" && -n "$APPLE_PROVISIONING_PROFILE_BASE64" ]]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "Apple signing is not configured. Set APPLE_TEAM_ID and the certificate/password/provisioning profile secrets to publish a signed IPA."
+          fi
+      - uses: actions/checkout@v4
+        if: steps.signing.outputs.ready == 'true'
+        with:
+          ref: ${{ github.event.release.tag_name || inputs.tag }}
+      - uses: actions/setup-java@v5
+        if: steps.signing.outputs.ready == 'true'
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+        if: steps.signing.outputs.ready == 'true'
+      - name: Grant execute permission for Gradle
+        if: steps.signing.outputs.ready == 'true'
+        run: chmod +x ./mobile/android/gradlew
+      - name: Install XcodeGen
+        if: steps.signing.outputs.ready == 'true'
+        run: brew install xcodegen
+      - name: Import Apple signing certificate and profile
+        if: steps.signing.outputs.ready == 'true'
+        env:
+          APPLE_TEAM_ID: ${{ vars.APPLE_TEAM_ID }}
+          APPLE_CERTIFICATE_P12_BASE64: ${{ secrets.APPLE_CERTIFICATE_P12_BASE64 }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_PROVISIONING_PROFILE_BASE64: ${{ secrets.APPLE_PROVISIONING_PROFILE_BASE64 }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          KEYCHAIN_PATH="$RUNNER_TEMP/xan-signing.keychain-db"
+          KEYCHAIN_PASSWORD="$(openssl rand -base64 32)"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          CERTIFICATE_PATH="$RUNNER_TEMP/xan-signing.p12"
+          printf '%s' "$APPLE_CERTIFICATE_P12_BASE64" | base64 --decode > "$CERTIFICATE_PATH"
+          security import "$CERTIFICATE_PATH" -k "$KEYCHAIN_PATH" -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          rm -f "$CERTIFICATE_PATH"
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
+          PROFILE_PATH="$RUNNER_TEMP/xan.mobileprovision"
+          printf '%s' "$APPLE_PROVISIONING_PROFILE_BASE64" | base64 --decode > "$PROFILE_PATH"
+          security cms -D -i "$PROFILE_PATH" > "$RUNNER_TEMP/xan-profile.plist"
+          PROFILE_UUID=$(/usr/libexec/PlistBuddy -c 'Print UUID' "$RUNNER_TEMP/xan-profile.plist")
+          PROFILE_APP_ID=$(/usr/libexec/PlistBuddy -c 'Print :Entitlements:application-identifier' "$RUNNER_TEMP/xan-profile.plist")
+          PROFILE_TEAM_ID=$(/usr/libexec/PlistBuddy -c 'Print :Entitlements:com.apple.developer.team-identifier' "$RUNNER_TEMP/xan-profile.plist")
+          [[ "$PROFILE_UUID" =~ ^[A-Fa-f0-9-]{36}$ ]] || { echo "Invalid provisioning profile UUID." >&2; exit 1; }
+          [[ "$PROFILE_APP_ID" == *.app.xan.ios ]] || { echo "Provisioning profile is not for app.xan.ios: $PROFILE_APP_ID" >&2; exit 1; }
+          [[ "$PROFILE_TEAM_ID" == "$APPLE_TEAM_ID" ]] || { echo "Provisioning profile team does not match APPLE_TEAM_ID" >&2; exit 1; }
+          cp "$PROFILE_PATH" "$HOME/Library/MobileDevice/Provisioning Profiles/$PROFILE_UUID.mobileprovision"
+          printf 'XAN_INSTALLED_PROFILE=%s\n' "$HOME/Library/MobileDevice/Provisioning Profiles/$PROFILE_UUID.mobileprovision" >> "$GITHUB_ENV"
+      - name: Test shared iOS behavior
+        if: steps.signing.outputs.ready == 'true'
+        run: ./mobile/android/gradlew -p mobile/ios :iosShared:jvmTest --no-daemon --no-configuration-cache --console=plain
+      - name: Generate Xcode project
+        if: steps.signing.outputs.ready == 'true'
+        env:
+          XAN_RELEASE_TAG: ${{ github.event.release.tag_name || inputs.tag }}
+        working-directory: mobile/ios/iosApp
+        run: |
+          python3 ../generate-project-spec.py
+          xcodegen generate --spec project.generated.yml
+      - name: Archive signed iOS application
+        if: steps.signing.outputs.ready == 'true'
+        env:
+          APPLE_TEAM_ID: ${{ vars.APPLE_TEAM_ID }}
+          APPLE_PROFILE_NAME: ${{ vars.APPLE_PROFILE_NAME }}
+          RELEASE_TAG: ${{ github.event.release.tag_name || inputs.tag }}
+        working-directory: mobile/ios/iosApp
+        run: |
+          [[ "$RELEASE_TAG" =~ ^v[0-9]+(\.[0-9]+){1,3}$ ]] || { echo "Invalid release tag: $RELEASE_TAG" >&2; exit 1; }
+          xcodebuild -project XAN.xcodeproj -scheme XAN -configuration Release -destination 'generic/platform=iOS' -archivePath "$RUNNER_TEMP/XAN.xcarchive" DEVELOPMENT_TEAM="$APPLE_TEAM_ID" CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY='Apple Distribution' PROVISIONING_PROFILE_SPECIFIER="$APPLE_PROFILE_NAME" OTHER_CODE_SIGN_FLAGS="--keychain $RUNNER_TEMP/xan-signing.keychain-db" archive
+      - name: Export IPA for App Store Connect
+        if: steps.signing.outputs.ready == 'true'
+        env:
+          APPLE_TEAM_ID: ${{ vars.APPLE_TEAM_ID }}
+          APPLE_PROFILE_NAME: ${{ vars.APPLE_PROFILE_NAME }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import os, pathlib, plistlib
+          options = {
+              "destination": "export", "method": "app-store-connect",
+              "signingStyle": "manual", "teamID": os.environ["APPLE_TEAM_ID"],
+              "provisioningProfiles": {"app.xan.ios": os.environ["APPLE_PROFILE_NAME"]},
+          }
+          path = pathlib.Path(os.environ["RUNNER_TEMP"]) / "ExportOptions.plist"
+          path.write_bytes(plistlib.dumps(options))
+          PY
+          xcodebuild -exportArchive -archivePath "$RUNNER_TEMP/XAN.xcarchive" -exportPath "$RUNNER_TEMP/ipa" -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" OTHER_CODE_SIGN_FLAGS="--keychain $RUNNER_TEMP/xan-signing.keychain-db"
+          test -f "$RUNNER_TEMP/ipa/XAN.ipa"
+          (cd "$RUNNER_TEMP/ipa" && shasum -a 256 XAN.ipa > XAN.ipa.sha256)
+      - name: Attach signed IPA and checksum to GitHub Release
+        if: steps.signing.outputs.ready == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name || inputs.tag }}
+        run: gh release upload "$TAG" "$RUNNER_TEMP/ipa/XAN.ipa" "$RUNNER_TEMP/ipa/XAN.ipa.sha256" --repo "${{ github.repository }}" --clobber
+
+      - name: Remove temporary Apple signing material
+        if: always() && steps.signing.outputs.ready == 'true'
+        shell: bash
+        run: |
+          security delete-keychain "$RUNNER_TEMP/xan-signing.keychain-db" 2>/dev/null || true
+          rm -f "$RUNNER_TEMP/xan-signing.p12" "$RUNNER_TEMP/xan.mobileprovision" "$RUNNER_TEMP/xan-profile.plist"
+          if [[ -n "${XAN_INSTALLED_PROFILE:-}" ]]; then rm -f "$XAN_INSTALLED_PROFILE"; fi

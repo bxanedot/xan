@@ -1,0 +1,63 @@
+name: iOS Build
+on:
+  pull_request:
+    paths:
+      - 'mobile/ios/**'
+      - 'mobile/android/**'
+      - '.github/workflows/ios-ci.yml'
+  push:
+    branches:
+      - main
+      - 'codex/**'
+    paths:
+      - 'mobile/ios/**'
+      - 'mobile/android/**'
+      - '.github/workflows/ios-ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ios-${{ github.workflow }}-${{ github.event_name }}-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+jobs:
+  ios-simulator:
+    name: iOS Simulator app build
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Grant execute permission for Gradle
+        run: chmod +x ./mobile/android/gradlew
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Test shared protocol and UI
+        run: ./mobile/android/gradlew -p mobile/ios :iosShared:jvmTest :iosShared:compileKotlinIosSimulatorArm64 --no-daemon --no-configuration-cache --console=plain
+      - name: Test shared Kotlin on the iOS Simulator target
+        run: ./mobile/android/gradlew -p mobile/ios :iosShared:iosSimulatorArm64Test --no-daemon --no-configuration-cache --console=plain
+      - name: Generate Xcode project
+        working-directory: mobile/ios/iosApp
+        run: |
+          python3 ../generate-project-spec.py
+          xcodegen generate --spec project.generated.yml
+      - name: Build unsigned iOS Simulator application
+        working-directory: mobile/ios/iosApp
+        run: xcodebuild -project XAN.xcodeproj -scheme XAN -configuration Debug -destination 'generic/platform=iOS Simulator' -sdk iphonesimulator ARCHS=arm64 ONLY_ACTIVE_ARCH=YES CODE_SIGNING_ALLOWED=NO -derivedDataPath "$RUNNER_TEMP/xan-ios" build
+      - name: Archive Simulator application
+        run: ditto -c -k --sequesterRsrc --keepParent "$RUNNER_TEMP/xan-ios/Build/Products/Debug-iphonesimulator/XAN.app" "$RUNNER_TEMP/XAN-ios-simulator-arm64.zip"
+      - name: Upload Simulator application
+        uses: actions/upload-artifact@v6
+        with:
+          name: xan-ios-simulator-arm64
+          path: ${{ runner.temp }}/XAN-ios-simulator-arm64.zip
+
+      - name: Upload shared test reports
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: xan-ios-shared-tests
+          if-no-files-found: warn
+          path: mobile/ios/shared/build/reports/tests/**

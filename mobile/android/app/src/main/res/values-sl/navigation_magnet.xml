@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">Odpri navigacijski meni</string>
+    <string name="close_navigation_magnet">Zapri navigacijski meni</string>
+    <string name="navigation_magnet_expanded">Navigacijski meni razširjen</string>
+    <string name="navigation_magnet_collapsed">Navigacijski meni je strnjen</string>
+    <string name="magnet_position">Položaj magneta</string>
+    <string name="magnet_bottom_left">Levo spodaj</string>
+    <string name="magnet_bottom_right">Desno spodaj</string>
+</resources>

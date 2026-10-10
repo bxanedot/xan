@@ -1,0 +1,155 @@
+name: Desktop CI
+
+on:
+  pull_request:
+    paths:
+      - "desktop/**"
+      - "mobile/android/**"
+      - ".github/workflows/desktop-ci.yml"
+      - ".github/workflows/release.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "desktop/**"
+      - "mobile/android/**"
+      - ".github/workflows/desktop-ci.yml"
+      - ".github/workflows/release.yml"
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desktop-ci-${{ github.workflow }}-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  desktop:
+    name: ${{ matrix.label }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: Windows x64
+            runner: windows-latest
+          - label: macOS Apple Silicon
+            runner: macos-15
+          - label: macOS Intel
+            runner: macos-15-intel
+          - label: Linux x64
+            runner: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          java-version: "21"
+          distribution: temurin
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build removable Japanese romanization pack
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: .\mobile\android\gradlew.bat -p desktop\features\japanese-romanization jar --no-daemon --no-configuration-cache --console=plain
+
+      - name: Build removable Japanese romanization pack
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x ./mobile/android/gradlew
+          ./mobile/android/gradlew -p desktop/features/japanese-romanization jar --no-daemon --no-configuration-cache --console=plain
+
+      - name: Install Linux desktop and package dependencies
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y xvfb libgtk-3-0t64 libasound2t64 libasound2-plugins pulseaudio libfuse2t64 fakeroot rpm
+
+      - name: Configure Linux audio output for playback tests
+        if: runner.os == 'Linux'
+        run: |
+          pulseaudio --start --exit-idle-time=-1
+          pactl load-module module-null-sink sink_name=xan_ci
+          pactl set-default-sink xan_ci
+          printf 'pcm.!default { type pulse }\nctl.!default { type pulse }\n' > "$RUNNER_TEMP/xan-alsa.conf"
+          echo "ALSA_CONFIG_PATH=$RUNNER_TEMP/xan-alsa.conf" >> "$GITHUB_ENV"
+
+      - name: Test and build Windows MSI
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          # JavaFX Media crashes its native test worker on the hosted Windows runner. Keep the playback integration test enabled by default and in local Windows verification; run the rest of the Windows suite and build the MSI here.
+          .\mobile\android\gradlew.bat -p desktop/shared test packageMsi "-Dxan.skipNativeMediaIntegration=true" --no-daemon --no-configuration-cache --console=plain
+
+      - name: Test and build Linux packages
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x ./mobile/android/gradlew
+          xvfb-run -a ./mobile/android/gradlew -p desktop/shared test packageDeb packageRpm createDistributable --no-daemon --no-configuration-cache --console=plain
+
+      - name: Test and build macOS DMG
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x ./mobile/android/gradlew
+          ./mobile/android/gradlew -p desktop/shared test packageDmg --no-daemon --no-configuration-cache --console=plain
+
+      - name: Print macOS jpackage diagnostics on failure
+        if: failure() && runner.os == 'macOS'
+        shell: bash
+        run: |
+          shopt -s nullglob
+          logs=(desktop/shared/build/compose/logs/createDistributable/*.txt)
+          if ((${#logs[@]} == 0)); then
+            echo "No jpackage diagnostics were written."
+            exit 0
+          fi
+          for log in "${logs[@]}"; do
+            echo "::group::$log"
+            cat "$log"
+            echo "::endgroup::"
+          done
+
+      - name: Build and smoke-test Linux AppImage
+        if: runner.os == 'Linux'
+        env:
+          APPIMAGE_EXTRACT_AND_RUN: "1"
+        run: |
+          set -euo pipefail
+          version=$(sed -n 's/^XAN_VERSION=//p' mobile/android/version.properties | tr -d '\r')
+          bash desktop/shared/packaging/build-appimage.sh "$version"
+          image="desktop/shared/build/compose/binaries/main/appimage/XAN-$version-linux-x64.AppImage"
+          chmod +x "$image"
+          set +e
+          xvfb-run -a timeout 20s "$image" > /tmp/xan-appimage-smoke.log 2>&1
+          result=$?
+          set -e
+          if [[ "$result" -ne 124 ]]; then
+            cat /tmp/xan-appimage-smoke.log
+            echo "AppImage did not stay open for the startup smoke test (exit $result)." >&2
+            exit 1
+          fi
+
+      - name: Upload desktop packages and test reports
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: xan-desktop-${{ matrix.runner }}
+          if-no-files-found: warn
+          path: |
+            desktop/shared/build/compose/binaries/main/msi/*.msi
+            desktop/shared/build/compose/binaries/main/dmg/*.dmg
+            desktop/shared/build/compose/binaries/main/deb/*.deb
+            desktop/shared/build/compose/binaries/main/rpm/*.rpm
+            desktop/shared/build/compose/binaries/main/appimage/*.AppImage
+            desktop/shared/build/reports/tests/test/**
+            desktop/shared/build/compose/logs/createDistributable/**

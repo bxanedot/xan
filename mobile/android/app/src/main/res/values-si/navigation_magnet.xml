@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">සංචාලන මෙනුව විවෘත කරන්න</string>
+    <string name="close_navigation_magnet">සංචාලන මෙනුව වසන්න</string>
+    <string name="navigation_magnet_expanded">සංචාලන මෙනුව පුළුල් කරන ලදී</string>
+    <string name="navigation_magnet_collapsed">සංචාලන මෙනුව හකුළන ලදී</string>
+    <string name="magnet_position">චුම්බක පිහිටීම</string>
+    <string name="magnet_bottom_left">පහළ වම්</string>
+    <string name="magnet_bottom_right">පහළ දකුණ</string>
+</resources>

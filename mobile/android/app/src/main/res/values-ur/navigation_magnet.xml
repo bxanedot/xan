@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">نیویگیشن مینو کھولیں۔</string>
+    <string name="close_navigation_magnet">نیویگیشن مینو بند کریں۔</string>
+    <string name="navigation_magnet_expanded">نیویگیشن مینو کو پھیلا دیا گیا۔</string>
+    <string name="navigation_magnet_collapsed">نیویگیشن مینو سکڑ گیا۔</string>
+    <string name="magnet_position">مقناطیس کی پوزیشن</string>
+    <string name="magnet_bottom_left">نیچے بائیں</string>
+    <string name="magnet_bottom_right">نیچے دائیں طرف</string>
+</resources>

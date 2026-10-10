@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">Buka menu navigasi</string>
+    <string name="close_navigation_magnet">Tutup menu navigasi</string>
+    <string name="navigation_magnet_expanded">Menu navigasi dikembangkan</string>
+    <string name="navigation_magnet_collapsed">Menu navigasi runtuh</string>
+    <string name="magnet_position">Kedudukan magnet</string>
+    <string name="magnet_bottom_left">Bawah kiri</string>
+    <string name="magnet_bottom_right">Bawah kanan</string>
+</resources>

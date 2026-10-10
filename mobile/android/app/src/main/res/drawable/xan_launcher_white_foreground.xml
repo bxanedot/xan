@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/xan_logo_white"
+    android:insetLeft="@dimen/launcher_icon_adaptive_mark_inset"
+    android:insetTop="@dimen/launcher_icon_adaptive_mark_inset"
+    android:insetRight="@dimen/launcher_icon_adaptive_mark_inset"
+    android:insetBottom="@dimen/launcher_icon_adaptive_mark_inset" />

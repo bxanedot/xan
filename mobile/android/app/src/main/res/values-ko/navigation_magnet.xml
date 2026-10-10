@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">탐색 메뉴 열기</string>
+    <string name="close_navigation_magnet">탐색 메뉴 닫기</string>
+    <string name="navigation_magnet_expanded">탐색 메뉴 확장됨</string>
+    <string name="navigation_magnet_collapsed">탐색 메뉴가 접혔습니다.</string>
+    <string name="magnet_position">자석 위치</string>
+    <string name="magnet_bottom_left">왼쪽 하단</string>
+    <string name="magnet_bottom_right">오른쪽 하단</string>
+</resources>

@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">Otevřete navigační nabídku</string>
+    <string name="close_navigation_magnet">Zavřete navigační nabídku</string>
+    <string name="navigation_magnet_expanded">Navigační nabídka byla rozšířena</string>
+    <string name="navigation_magnet_collapsed">Navigační nabídka je sbalená</string>
+    <string name="magnet_position">Poloha magnetu</string>
+    <string name="magnet_bottom_left">Vlevo dole</string>
+    <string name="magnet_bottom_right">Vpravo dole</string>
+</resources>

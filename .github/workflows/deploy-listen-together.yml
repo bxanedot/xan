@@ -1,0 +1,51 @@
+name: Deploy Listen Together Worker
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/listen-together/**'
+      - '.github/workflows/deploy-listen-together.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Test and deploy Worker
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Test Listen Together Worker
+        run: node --test backend/listen-together/test/room.test.mjs
+
+      - name: Check Cloudflare deployment credentials
+        id: credentials
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [[ -n "$CLOUDFLARE_API_TOKEN" && -n "$CLOUDFLARE_ACCOUNT_ID" ]]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Deploy to Cloudflare
+        if: ${{ steps.credentials.outputs.configured == 'true' }}
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: backend/listen-together
+          command: deploy
+
+      - name: Explain skipped deployment
+        if: ${{ steps.credentials.outputs.configured == 'false' }}
+        run: echo 'Worker tests passed. Add CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID in GitHub Actions secrets to enable deployment.'

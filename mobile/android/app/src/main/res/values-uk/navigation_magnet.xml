@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">Відкрити навігаційне меню</string>
+    <string name="close_navigation_magnet">Закрити навігаційне меню</string>
+    <string name="navigation_magnet_expanded">Навігаційне меню розширено</string>
+    <string name="navigation_magnet_collapsed">Навігаційне меню згорнуто</string>
+    <string name="magnet_position">Положення магніту</string>
+    <string name="magnet_bottom_left">Внизу зліва</string>
+    <string name="magnet_bottom_right">Праворуч внизу</string>
+</resources>

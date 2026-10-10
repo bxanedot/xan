@@ -1,0 +1,17 @@
+{
+  "name": "xan-listen-together-server",
+  "version": "1.0.0",
+  "license": "GPL-3.0-only",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --test test/docker-server.test.mjs test/room.test.mjs"
+  },
+  "dependencies": {
+    "ws": "8.22.0"
+  }
+}

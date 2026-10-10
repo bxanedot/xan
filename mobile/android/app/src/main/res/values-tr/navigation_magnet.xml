@@ -1,0 +1,9 @@
+<resources>
+    <string name="open_navigation_magnet">Gezinme menüsünü aç</string>
+    <string name="close_navigation_magnet">Gezinme menüsünü kapat</string>
+    <string name="navigation_magnet_expanded">Gezinme menüsü genişletildi</string>
+    <string name="navigation_magnet_collapsed">Gezinme menüsü daraltıldı</string>
+    <string name="magnet_position">Mıknatıs konumu</string>
+    <string name="magnet_bottom_left">Sol alt</string>
+    <string name="magnet_bottom_right">Sağ alt</string>
+</resources>
