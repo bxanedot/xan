@@ -32,12 +32,12 @@ jobs:
     name: Detect Android/platform drift
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
-      - uses: actions/setup-python@v7
+      - uses: actions/setup-python@v7.0.0
         with:
-          python-version: "3.12"
+          python-version: "3.14"
       - name: Sync current Android logo assets into platform resources
         run: python tools/check_android_platform_parity.py --sync-assets-only
       - name: Test the parity detector and synced resources

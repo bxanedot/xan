@@ -24,20 +24,25 @@ interface Queue {
         val mediaItemIndex: Int,
         val position: Long = 0L,
     ) {
+        fun filterPlaybackDomain(video: Boolean): Status {
+            val selected = items.getOrNull(mediaItemIndex)?.mediaId
+            val filtered = items.filter { (it.metadata?.isExternalVideo == true) == video }
+            return copy(items = filtered, mediaItemIndex = filtered.indexOfFirst { it.mediaId == selected }.coerceAtLeast(0))
+        }
+        private fun withFilteredItems(filtered: List<MediaItem>): Status {
+            val selected = items.getOrNull(mediaItemIndex)?.mediaId
+            return copy(items = filtered, mediaItemIndex = filtered.indexOfFirst { it.mediaId == selected }.coerceAtLeast(0))
+        }
         fun filterExplicit(enabled: Boolean = true) =
             if (enabled) {
-                copy(
-                    items = items.filterExplicit(),
-                )
+                withFilteredItems(items.filterExplicit())
             } else {
                 this
             }
 
         fun filterVideoSongs(disableVideos: Boolean = false) =
             if (disableVideos) {
-                copy(
-                    items = items.filterVideoSongs(true),
-                )
+                withFilteredItems(items.filterVideoSongs(true))
             } else {
                 this
             }

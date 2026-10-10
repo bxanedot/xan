@@ -10,15 +10,15 @@ import java.util.Properties
 import javax.imageio.ImageIO
 
 plugins {
-    kotlin("jvm") version "2.4.20"
-    id("org.jetbrains.kotlin.plugin.compose") version "2.4.20"
-    id("org.jetbrains.kotlin.plugin.serialization") version "2.4.20"
-    id("org.jetbrains.compose") version "1.12.0"
+    kotlin("jvm") version "2.4.21"
+    id("org.jetbrains.kotlin.plugin.compose") version "2.4.21"
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.4.21"
+    id("org.jetbrains.compose") version "1.12.1"
     id("org.openjfx.javafxplugin") version "0.1.0"
 }
 
 javafx {
-    version = "21.0.10"
+    version = "21.0.12"
     modules("javafx.media", "javafx.swing")
 }
 
@@ -227,7 +227,7 @@ dependencies {
     implementation("io.ktor:ktor-client-encoding:3.6.0")
     implementation("org.brotli:dec:0.1.2")
     implementation("com.github.TeamNewPipe:NewPipeExtractor:0.26.5")
-    implementation("com.microsoft:credential-secure-storage:1.0.0")
+    implementation("com.microsoft:credential-secure-storage:1.0.3")
     implementation("com.github.kwhat:jnativehook:2.2.2")
     implementation("org.xerial:sqlite-jdbc:3.53.4.0")
     implementation("net.jthink:jaudiotagger:3.0.1")

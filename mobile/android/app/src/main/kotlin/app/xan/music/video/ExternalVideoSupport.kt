@@ -164,7 +164,7 @@ fun buildExternalVideoQueue(
     result: ExternalVideoSearchResult,
     info: ExternalVideoInfo,
     format: ExternalVideoFormat,
-): ListQueue {
+): ExternalVideoQueue {
     val mediaId = externalVideoMediaId(result, format)
     val duration = info.durationSeconds.takeIf { it in 0..Int.MAX_VALUE.toLong() }?.toInt() ?: -1
     val metadata = MediaMetadata(
@@ -195,7 +195,11 @@ fun buildExternalVideoQueue(
         externalVideoVideoOnly = format.videoOnly,
         externalVideoFormats = info.formats.map { it.toPlaybackFormat() },
     )
-    return ListQueue(title = result.serviceName, items = listOf(buildExternalVideoMediaItem(metadata, format.toPlaybackFormat())))
+    return ExternalVideoQueue(
+        result.serviceName,
+        buildExternalVideoMediaItem(metadata, format.toPlaybackFormat()),
+        info.relatedVideos,
+    )
 }
 
 fun buildExternalVideoMediaItem(

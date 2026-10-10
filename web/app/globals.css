@@ -1,6 +1,5 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@config "../tailwind.config.ts";
 
 :root { --bg:#080808; --panel:#121212; --ink:#f7f7f7; --muted:#9b9b9b; --line:#ffffff1a; --pink:#f7f7f7; --icon:#fff; --blue:#d5d5d5; --gradient:linear-gradient(110deg,#ffffff,#f2f2f2 48%,#bcbcbc); }
 html[data-theme="gold"] { --bg:#080808; --panel:#15120b; --ink:#fff9e8; --muted:#b9ae91; --line:#f1c85a2b; --pink:#f4c84a; --icon:#f4c84a; --blue:#d9a738; --gradient:linear-gradient(110deg,#f8dd7a,#d9a738 48%,#a66a05); }

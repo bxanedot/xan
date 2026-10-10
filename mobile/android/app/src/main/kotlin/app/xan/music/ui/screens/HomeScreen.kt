@@ -1384,6 +1384,14 @@ fun HomeScreen(
                     )
                 } else if (videoOnly) {
                     val videos = videoHomePage?.videos.orEmpty()
+                    if (videos.isEmpty() && !isLoading) {
+                        item(key = "video_home_empty") {
+                            Column(modifier = Modifier.fillMaxWidth().padding(AppleTokens.Gutter)) {
+                                Text(stringResource(R.string.home_feed_unavailable))
+                                Button(onClick = viewModel::refresh) { Text(stringResource(R.string.retry)) }
+                            }
+                        }
+                    }
                     itemsIndexed(
                         items = videos,
                         key = { _, item -> item.id },

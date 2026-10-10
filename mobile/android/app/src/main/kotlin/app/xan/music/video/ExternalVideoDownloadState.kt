@@ -73,7 +73,9 @@ fun observeExternalVideoDownloads(context: Context) =
         }
 
 fun retryExternalVideoDownload(context: Context, download: ExternalVideoDownloadState) {
-    require(download.retryData.getString(ExternalVideoDownloadWorker.VIDEO_URL) != null) {
+    val persistedRequest = download.retryData.getString(ExternalVideoDownloadWorker.REQUEST_FILE)
+    require(persistedRequest?.let { File(it).isFile } == true ||
+        download.retryData.getString(ExternalVideoDownloadWorker.VIDEO_URL) != null) {
         "Open this video and download it again to refresh its source."
     }
     val request = OneTimeWorkRequestBuilder<ExternalVideoDownloadWorker>()

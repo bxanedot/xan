@@ -209,6 +209,7 @@ import app.xan.music.utils.SyncUtils
 import app.xan.music.utils.YTPlayerUtils
 import app.xan.music.video.EXTERNAL_VIDEO_MEDIA_ID_PREFIX
 import app.xan.music.video.EXTERNAL_VIDEO_USER_AGENT
+import app.xan.music.video.autoPlaybackFormat
 import app.xan.music.utils.InnerTubeXPlayer
 import app.xan.music.utils.BotDetectionMitigator
 import app.xan.music.utils.dataStore
@@ -376,7 +377,7 @@ class MusicService :
     var queueTitle: String? = null
 
     private data class RadioRecommendations(
-        val queue: YouTubeQueue,
+        val queue: Queue,
         val title: String?,
         val items: List<MediaItem>,
     )
@@ -1547,12 +1548,16 @@ class MusicService :
             player.playWhenReady = shouldPlay
         }
         scope.launch(SilentHandler) {
-            val initialStatus =
+            val loadedStatus =
                 withContext(Dispatchers.IO) {
                     queue.getInitialStatus()
                         .filterExplicit(dataStore.get(HideExplicitKey, false))
                         .filterVideoSongs(dataStore.get(HideVideoSongsKey, false) || dataStore.get(DataSaverEnabledKey, false))
                 }
+            if (currentQueue !== queue) return@launch
+            val videoDomain = queue.preloadItem?.isExternalVideo
+                ?: (loadedStatus.items.getOrNull(loadedStatus.mediaItemIndex)?.metadata?.isExternalVideo == true)
+            val initialStatus = loadedStatus.filterPlaybackDomain(videoDomain)
             if (queue.preloadItem != null && player.playbackState == STATE_IDLE) return@launch
             if (initialStatus.title != null) {
                 queueTitle = initialStatus.title
@@ -1639,6 +1644,21 @@ class MusicService :
     }
 
     private suspend fun loadRadioRecommendations(currentMediaId: String): RadioRecommendations {
+        val current = player.currentMetadata
+        if (current?.isExternalVideo == true) {
+            val videoQueue = withContext(Dispatchers.IO) {
+                val result = app.xan.music.video.externalVideoResult(current) ?: return@withContext null
+                val info = com.music.innertube.NewPipeExtractor.getVideoInfo(result).getOrNull()
+                    ?: return@withContext null
+                val format = info.autoPlaybackFormat() ?: return@withContext null
+                app.xan.music.video.buildExternalVideoQueue(result, info, format)
+            }
+            return RadioRecommendations(
+                queue = videoQueue ?: EmptyQueue,
+                title = current.externalVideoSource,
+                items = videoQueue?.nextPage().orEmpty(),
+            )
+        }
         val radioQueue = YouTubeQueue(endpoint = WatchEndpoint(videoId = currentMediaId))
         val hideExplicit = dataStore.get(HideExplicitKey, false)
         val hideVideos = dataStore.get(HideVideoSongsKey, false) || dataStore.get(DataSaverEnabledKey, false)
@@ -1684,11 +1704,26 @@ class MusicService :
             .filterExplicit(hideExplicit)
             .filterVideoSongs(hideVideos)
 
+    fun requestNextVideo() {
+        val expectedId = player.currentMediaItem?.mediaId ?: return
+        if (player.currentMetadata?.isExternalVideo != true) return
+        scope.launch(SilentHandler) {
+            maybeLoadMoreOrAutoplay(expectedId)
+            queueContinuationJob?.join()
+            if (player.currentMediaItem?.mediaId == expectedId && player.hasNextMediaItem()) {
+                player.seekToNextMediaItem()
+                if (player.playbackState == Player.STATE_IDLE || player.playbackState == Player.STATE_ENDED) player.prepare()
+                player.play()
+            }
+        }
+    }
+
     private fun maybeLoadMoreOrAutoplay(currentMediaId: String?) {
         val expectedMediaId = currentMediaId?.takeIf { it.isNotBlank() } ?: return
         if (queueContinuationJob?.isActive == true) return
 
         val expectedQueue = currentQueue
+        val expectedVideoDomain = player.currentMetadata?.isExternalVideo == true
         queueContinuationJob = scope.launch(SilentHandler) {
             val canLoadMore = dataStore.get(AutoLoadMoreKey, true) &&
                 !(dataStore.get(DisableLoadMoreWhenRepeatAllKey, false) && player.repeatMode == REPEAT_MODE_ALL)
@@ -1701,6 +1736,7 @@ class MusicService :
                         expectedQueue.nextPage()
                             .filterExplicit(dataStore.get(HideExplicitKey, false))
                             .filterVideoSongs(dataStore.get(HideVideoSongsKey, false) || dataStore.get(DataSaverEnabledKey, false))
+                            .filter { (it.metadata?.isExternalVideo == true) == expectedVideoDomain }
                     }
                     if (currentQueue !== expectedQueue || player.currentMediaItem?.mediaId != expectedMediaId) return@launch
 

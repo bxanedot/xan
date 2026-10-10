@@ -24,12 +24,12 @@ jobs:
     name: iOS Simulator app build
     runs-on: macos-15
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v5
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-java@v6.0.1
         with:
           distribution: temurin
           java-version: '21'
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v6.4.0
       - name: Grant execute permission for Gradle
         run: chmod +x ./mobile/android/gradlew
       - name: Install XcodeGen
@@ -49,14 +49,14 @@ jobs:
       - name: Archive Simulator application
         run: ditto -c -k --sequesterRsrc --keepParent "$RUNNER_TEMP/xan-ios/Build/Products/Debug-iphonesimulator/XAN.app" "$RUNNER_TEMP/XAN-ios-simulator-arm64.zip"
       - name: Upload Simulator application
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: xan-ios-simulator-arm64
           path: ${{ runner.temp }}/XAN-ios-simulator-arm64.zip
 
       - name: Upload shared test reports
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: xan-ios-shared-tests
           if-no-files-found: warn

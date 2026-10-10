@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="home_discover_music">Discover music</string>
+    <string name="home_feed_unavailable">Recommendations are unavailable right now. Pull down to refresh or try Search.</string>
     <string name="artist_image_description">Artist image</string>
     <string name="no_recognition_history">No recognition history</string>
     <string name="no_results_for_query">No results for “%1$s”</string>

@@ -15,6 +15,7 @@ import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
@@ -83,7 +84,7 @@ internal object DesktopPlayer {
     ) {
         require(tracks.isNotEmpty()) { "There are no songs to play." }
         require(startIndex in tracks.indices)
-        _state.value = _state.value.copy(queue = tracks.toList(), queueIndex = startIndex)
+        _state.update { current -> current.copy(queue = tracks.toList(), queueIndex = startIndex) }
         startAt(startIndex, resolveTrackUri)
     }
 
@@ -112,7 +113,7 @@ internal object DesktopPlayer {
         }
         val insertionIndex = (snapshot.queueIndex + 1).coerceIn(0, snapshot.queue.size)
         val queue = snapshot.queue.toMutableList().apply { add(insertionIndex, track) }
-        _state.value = snapshot.copy(queue = queue, notice = "Added to the queue: ${track.title}")
+        _state.update { current -> current.copy(queue = queue, notice = "Added to the queue: ${track.title}") }
     }
 
     suspend fun playQueuePosition(index: Int) {
@@ -126,13 +127,13 @@ internal object DesktopPlayer {
         val queue = snapshot.queue.toMutableList()
         val moved = queue.removeAt(from)
         queue.add(to, moved)
-        val current = when {
+        val currentIndex = when {
             snapshot.queueIndex == from -> to
             from < snapshot.queueIndex && to >= snapshot.queueIndex -> snapshot.queueIndex - 1
             from > snapshot.queueIndex && to <= snapshot.queueIndex -> snapshot.queueIndex + 1
             else -> snapshot.queueIndex
         }
-        _state.value = snapshot.copy(queue = queue, queueIndex = current)
+        _state.update { current -> current.copy(queue = queue, queueIndex = currentIndex) }
         return true
     }
 
@@ -143,21 +144,21 @@ internal object DesktopPlayer {
         if (index == snapshot.queueIndex) {
             if (queue.isEmpty()) {
                 stop()
-                _state.value = _state.value.copy(queue = emptyList(), queueIndex = -1)
+                _state.update { current -> current.copy(queue = emptyList(), queueIndex = -1) }
             } else {
                 val nextIndex = index.coerceAtMost(queue.lastIndex)
-                _state.value = snapshot.copy(queue = queue, queueIndex = nextIndex)
+                _state.update { current -> current.copy(queue = queue, queueIndex = nextIndex) }
                 startAt(nextIndex)
             }
         } else {
-            _state.value = snapshot.copy(queue = queue, queueIndex = if (index < snapshot.queueIndex) snapshot.queueIndex - 1 else snapshot.queueIndex)
+            _state.update { current -> current.copy(queue = queue, queueIndex = if (index < snapshot.queueIndex) snapshot.queueIndex - 1 else snapshot.queueIndex) }
         }
         return true
     }
 
     suspend fun shuffle(tracks: List<MusicTrack> = _state.value.queue) {
         if (tracks.isEmpty()) {
-            _state.value = _state.value.copy(notice = "Add songs to your library or queue before using Shuffle.")
+            _state.update { current -> current.copy(notice = "Add songs to your library or queue before using Shuffle.") }
             return
         }
         val shuffled = tracks.shuffled()
@@ -170,7 +171,7 @@ internal object DesktopPlayer {
             RepeatMode.ALL -> RepeatMode.ONE
             RepeatMode.ONE -> RepeatMode.OFF
         }
-        _state.value = _state.value.copy(repeatMode = next)
+        _state.update { current -> current.copy(repeatMode = next) }
         return next
     }
 
@@ -181,7 +182,7 @@ internal object DesktopPlayer {
         val deadlineNanos = System.nanoTime() + durationMillis * 1_000_000L
         synchronized(sleepTimerLock) {
             val generation = clearSleepTimerStateLocked()
-            _state.value = _state.value.copy(sleepTimerDeadlineEpochMillis = deadline, sleepTimerRemainingMillis = durationMillis)
+            _state.update { current -> current.copy(sleepTimerDeadlineEpochMillis = deadline, sleepTimerRemainingMillis = durationMillis) }
             sleepTimerJob = callbackScope.launch {
                 while (generation == sleepTimerGeneration.get()) {
                     val remaining = desktopSleepTimerRemainingMillis(deadlineNanos, System.nanoTime())
@@ -192,7 +193,7 @@ internal object DesktopPlayer {
                     val stillCurrent = synchronized(sleepTimerLock) {
                         if (generation != sleepTimerGeneration.get()) false
                         else {
-                            _state.value = _state.value.copy(sleepTimerDeadlineEpochMillis = deadline, sleepTimerRemainingMillis = remaining)
+                            _state.update { current -> current.copy(sleepTimerDeadlineEpochMillis = deadline, sleepTimerRemainingMillis = remaining) }
                             true
                         }
                     }
@@ -214,7 +215,7 @@ internal object DesktopPlayer {
             val remaining = (snapshot.durationMillis - snapshot.positionMillis).takeIf { snapshot.durationMillis > 0L }?.coerceAtLeast(0L)
             if (remaining == 0L) true
             else {
-                _state.value = snapshot.copy(sleepTimerPauseAtTrackEnd = true, sleepTimerRemainingMillis = remaining)
+                _state.update { current -> current.copy(sleepTimerPauseAtTrackEnd = true, sleepTimerRemainingMillis = remaining) }
                 false
             }
         }
@@ -241,11 +242,11 @@ internal object DesktopPlayer {
         val generation = sleepTimerGeneration.updateAndGet { if (it == Long.MAX_VALUE) 1L else it + 1L }
         sleepTimerJob?.cancel()
         sleepTimerJob = null
-        _state.value = _state.value.copy(
+        _state.update { current -> current.copy(
             sleepTimerDeadlineEpochMillis = null,
             sleepTimerRemainingMillis = null,
             sleepTimerPauseAtTrackEnd = false,
-        )
+        ) }
         return generation
     }
 
@@ -284,13 +285,13 @@ internal object DesktopPlayer {
     }
 
     internal fun setRepeatModeForTest(mode: RepeatMode) {
-        _state.value = _state.value.copy(repeatMode = mode)
+        _state.update { current -> current.copy(repeatMode = mode) }
     }
 
     suspend fun stop() {
         requests.incrementAndGet()
         if (!toolkitStartRequested) {
-            _state.value = _state.value.copy(status = PlaybackStatus.IDLE, positionMillis = 0, audioSpectrum = emptyList(), error = null)
+            _state.update { current -> current.copy(status = PlaybackStatus.IDLE, positionMillis = 0, audioSpectrum = emptyList(), error = null) }
             return
         }
         runOnFx {
@@ -298,7 +299,7 @@ internal object DesktopPlayer {
             mediaPlayer?.stop()
             mediaPlayer?.dispose()
             mediaPlayer = null
-            _state.value = _state.value.copy(status = PlaybackStatus.IDLE, positionMillis = 0, audioSpectrum = emptyList(), error = null)
+            _state.update { current -> current.copy(status = PlaybackStatus.IDLE, positionMillis = 0, audioSpectrum = emptyList(), error = null) }
         }
     }
 
@@ -394,9 +395,9 @@ internal object DesktopPlayer {
         val index = queueIndex?.takeIf { it in snapshot.queue.indices && identity(snapshot.queue[it]) == identity(track) }
             ?: snapshot.queue.indexOfFirst { identity(it) == identity(track) }
         val queue = if (index >= 0) snapshot.queue else snapshot.queue + track
-        _state.value = snapshot.copy(
+        _state.update { current -> current.copy(
             track = track,
-            playbackSessionId = snapshot.playbackSessionId + 1,
+            playbackSessionId = current.playbackSessionId + 1,
             status = PlaybackStatus.PLAYING,
             positionMillis = 0,
             durationMillis = track.durationSeconds?.times(1000L) ?: 0L,
@@ -406,7 +407,7 @@ internal object DesktopPlayer {
             startedAtEpochSeconds = System.currentTimeMillis() / 1000,
             notice = null,
             error = null,
-        )
+        ) }
         externalLastSampleMillis = System.currentTimeMillis()
     }
 
@@ -414,32 +415,32 @@ internal object DesktopPlayer {
         val snapshot = _state.value
         val currentId = snapshot.track?.videoId
         val currentIndex = tracks.indexOfFirst { it.videoId == currentId }
-        _state.value = snapshot.copy(
+        _state.update { current -> current.copy(
             queue = tracks,
             queueIndex = when {
                 tracks.isEmpty() -> -1
                 currentIndex >= 0 -> currentIndex
                 else -> snapshot.queueIndex.coerceIn(0, tracks.lastIndex)
             },
-        )
+        ) }
     }
 
     fun addRoomQueueItem(track: MusicTrack, insertNext: Boolean) {
         val snapshot = _state.value
         val updated = DesktopQueueOperations.add(DesktopQueueState(snapshot.queue, snapshot.queueIndex), track, insertNext)
-        _state.value = snapshot.copy(queue = updated.tracks, queueIndex = updated.currentIndex)
+        _state.update { current -> current.copy(queue = updated.tracks, queueIndex = updated.currentIndex) }
     }
 
     fun removeRoomQueueItem(videoId: String) {
         val snapshot = _state.value
         val updated = DesktopQueueOperations.removeFuture(DesktopQueueState(snapshot.queue, snapshot.queueIndex), videoId)
-        _state.value = snapshot.copy(queue = updated.tracks, queueIndex = updated.currentIndex)
+        _state.update { current -> current.copy(queue = updated.tracks, queueIndex = updated.currentIndex) }
     }
 
     fun clearRoomQueueAfterCurrent() {
         val snapshot = _state.value
         val updated = DesktopQueueOperations.clearFuture(DesktopQueueState(snapshot.queue, snapshot.queueIndex))
-        _state.value = snapshot.copy(queue = updated.tracks, queueIndex = updated.currentIndex)
+        _state.update { current -> current.copy(queue = updated.tracks, queueIndex = updated.currentIndex) }
     }
 
     fun updateExternalPlayback(isPlaying: Boolean, positionMillis: Long, durationMillis: Long) {
@@ -450,19 +451,19 @@ internal object DesktopPlayer {
             (now - externalLastSampleMillis).coerceIn(0, 2_000)
         } else 0L
         externalLastSampleMillis = now
-        _state.value = snapshot.copy(
+        _state.update { current -> current.copy(
             status = if (isPlaying) PlaybackStatus.PLAYING else PlaybackStatus.PAUSED,
             positionMillis = positionMillis.coerceAtLeast(0),
             durationMillis = durationMillis.coerceAtLeast(0),
-            listenedMillis = snapshot.listenedMillis + elapsed,
-        )
+            listenedMillis = current.listenedMillis + elapsed,
+        ) }
     }
 
     fun clearExternalPlayback() {
         externalLastSampleMillis = 0
         val snapshot = _state.value
         if (snapshot.track != null && snapshot.status != PlaybackStatus.IDLE) {
-            _state.value = snapshot.copy(status = PlaybackStatus.PAUSED)
+            _state.update { current -> current.copy(status = PlaybackStatus.PAUSED) }
         }
     }
 
@@ -475,7 +476,7 @@ internal object DesktopPlayer {
     fun setVolume(volume: Float) {
         val safe = volume.coerceIn(0f, 1f)
         DesktopBackend.setPlayerVolume(safe)
-        _state.value = _state.value.copy(volume = safe)
+        _state.update { current -> current.copy(volume = safe) }
         mediaPlayer?.let { player -> runOnFxAsync {
             if (mediaPlayer === player) applyAudioSettings(player, DesktopBackend.equalizerSettings())
         } }
@@ -486,7 +487,7 @@ internal object DesktopPlayer {
         mediaPlayer?.let { player ->
             runOnFxAsync {
                 runCatching { if (mediaPlayer === player) applyAudioSettings(player, settings) }
-                    .onFailure { _state.value = _state.value.copy(notice = "Equalizer could not be applied: ${it.message ?: "audio engine error"}") }
+                    .onFailure { _state.update { current -> current.copy(notice = "Equalizer could not be applied: ${it.message ?: "audio engine error"}") } }
             }
         }
     }
@@ -499,7 +500,7 @@ internal object DesktopPlayer {
     }
 
     fun setNotice(message: String?) {
-        _state.value = _state.value.copy(notice = message)
+        _state.update { current -> current.copy(notice = message) }
     }
 
     private fun applyAudioSettings(player: MediaPlayer, settings: EqualizerSettings) {
@@ -530,19 +531,19 @@ internal object DesktopPlayer {
                 runCatching { previousPlayer.pause() }
             }
         }
-        val track = _state.value.queue[index]
-        _state.value = _state.value.copy(
+        val track = _state.value.queue.getOrNull(index) ?: return
+        _state.update { current -> current.copy(
             track = track, playbackSessionId = request, queueIndex = index, positionMillis = 0, listenedMillis = 0, startedAtEpochSeconds = null,
             durationMillis = track.durationSeconds?.times(1000L) ?: 0,
             status = PlaybackStatus.RESOLVING, audioSpectrum = emptyList(), error = null, notice = null,
-        )
+        ) }
         val uri = runCatching {
             val timeout = if (track.kind == "video") DesktopBackend.VIDEO_PREPARATION_TIMEOUT_MILLIS else STREAM_RESOLVE_TIMEOUT_MILLIS
             withTimeout(timeout) { resolveTrackUri(track) }
         }.getOrElse { failure ->
             if (failure is CancellationException && failure !is kotlinx.coroutines.TimeoutCancellationException) throw failure
             DiagnosticLog.warn(DesktopBackend.diagnosticsDirectory(), "playback_resolve_failed", "Could not resolve the selected audio source.", failure, mapOf("source" to (track.source ?: "unknown")))
-            if (requests.get() == request) _state.value = _state.value.copy(status = PlaybackStatus.ERROR, error = failure.message ?: "Could not open this audio source.")
+            if (requests.get() == request) _state.update { current -> current.copy(status = PlaybackStatus.ERROR, error = failure.message ?: "Could not open this audio source.") }
             return
         }
         if (requests.get() != request) return
@@ -550,10 +551,10 @@ internal object DesktopPlayer {
         val startupFailure = runCatching { awaitFxStarted() }.exceptionOrNull()
         if (startupFailure != null) {
             DiagnosticLog.warn(DesktopBackend.diagnosticsDirectory(), "playback_toolkit_start_failed", "The desktop audio engine did not start.", startupFailure)
-            if (requests.get() == request) _state.value = _state.value.copy(
+            if (requests.get() == request) _state.update { current -> current.copy(
                 status = PlaybackStatus.ERROR,
                 error = "The desktop audio engine could not start: ${startupFailure.message ?: "startup timed out"}",
-            )
+            ) }
             return
         }
         val configured = CompletableFuture<Unit>()
@@ -572,23 +573,29 @@ internal object DesktopPlayer {
             val failure = setupFailure.cause ?: setupFailure
             DiagnosticLog.warn(DesktopBackend.diagnosticsDirectory(), "playback_setup_failed", "Could not configure the desktop media engine.", failure)
             if (requests.get() == request && !retryRemotePlaybackLocally(uri, track, request, failure, autoplay = !pauseAtTransition)) {
-                _state.value = _state.value.copy(
+                _state.update { current -> current.copy(
                     status = PlaybackStatus.ERROR,
                     error = failure.message ?: "The desktop media engine could not open this audio source.",
-                )
+                ) }
             }
             return
         }
         if (requests.get() == request && _state.value.status == PlaybackStatus.RESOLVING) {
-            _state.value = _state.value.copy(status = PlaybackStatus.BUFFERING)
+            _state.update { current -> current.copy(status = PlaybackStatus.BUFFERING) }
         }
         callbackScope.launch {
             while (requests.get() == request) {
                 kotlinx.coroutines.delay(250)
                 if (requests.get() == request && _state.value.status == PlaybackStatus.PLAYING) {
-                    _state.value = _state.value.copy(listenedMillis = _state.value.listenedMillis + 250)
+                    _state.update { current -> current.copy(listenedMillis = current.listenedMillis + 250) }
                 }
             }
+        }
+    }
+
+    private fun updatePlayback(request: Long, transform: (PlaybackSnapshot) -> PlaybackSnapshot) {
+        _state.update { current ->
+            if (requests.get() == request && current.playbackSessionId == request) transform(current) else current
         }
     }
 
@@ -603,24 +610,24 @@ internal object DesktopPlayer {
         applyAudioSettings(nextPlayer, equalizerSettings)
         nextPlayer.setOnReady {
             if (requests.get() != request) { nextPlayer.dispose(); return@setOnReady }
-            _state.value = _state.value.copy(
+            updatePlayback(request) { current -> current.copy(
                 status = PlaybackStatus.BUFFERING,
                 durationMillis = nextPlayer.totalDuration.toMillis().toLong().coerceAtLeast(0),
                 error = null,
                 notice = null,
-            )
+            ) }
             applyFadeVolume(nextPlayer)
             if (autoplay) nextPlayer.play() else nextPlayer.pause()
         }
         nextPlayer.setOnPlaying {
-            if (requests.get() == request) _state.value = _state.value.copy(
+            if (requests.get() == request) updatePlayback(request) { current -> current.copy(
                 status = PlaybackStatus.PLAYING,
-                startedAtEpochSeconds = _state.value.startedAtEpochSeconds ?: System.currentTimeMillis() / 1000,
-            )
+                startedAtEpochSeconds = current.startedAtEpochSeconds ?: System.currentTimeMillis() / 1000,
+            ) }
             if (requests.get() == request) applyFadeVolume(nextPlayer)
         }
-        nextPlayer.setOnPaused { if (requests.get() == request) _state.value = _state.value.copy(status = PlaybackStatus.PAUSED, audioSpectrum = emptyList()) }
-        nextPlayer.setOnStalled { if (requests.get() == request) _state.value = _state.value.copy(status = PlaybackStatus.BUFFERING) }
+        nextPlayer.setOnPaused { if (requests.get() == request) updatePlayback(request) { current -> current.copy(status = PlaybackStatus.PAUSED, audioSpectrum = emptyList()) } }
+        nextPlayer.setOnStalled { if (requests.get() == request) updatePlayback(request) { current -> current.copy(status = PlaybackStatus.BUFFERING) } }
         nextPlayer.setOnError {
             if (requests.get() == request) {
                 val error = nextPlayer.error ?: media.error
@@ -632,7 +639,7 @@ internal object DesktopPlayer {
         }
         nextPlayer.currentTimeProperty().addListener { _, _, time ->
             if (requests.get() == request) {
-                _state.value = _state.value.copy(positionMillis = time.toMillis().toLong().coerceAtLeast(0))
+                updatePlayback(request) { current -> current.copy(positionMillis = time.toMillis().toLong().coerceAtLeast(0)) }
                 applyFadeVolume(nextPlayer)
             }
         }
@@ -640,7 +647,7 @@ internal object DesktopPlayer {
         nextPlayer.audioSpectrumInterval = 0.08
         nextPlayer.setAudioSpectrumListener { _, _, magnitudes, _ ->
             if (requests.get() == request && _state.value.status == PlaybackStatus.PLAYING) {
-                _state.value = _state.value.copy(audioSpectrum = magnitudes.map { ((it + 60f) / 60f).coerceIn(0f, 1f) })
+                updatePlayback(request) { current -> current.copy(audioSpectrum = magnitudes.map { ((it + 60f) / 60f).coerceIn(0f, 1f) }) }
             }
         }
         nextPlayer.setOnEndOfMedia {
@@ -667,7 +674,7 @@ internal object DesktopPlayer {
             "The embedded media engine rejected a remote stream; retrying with a local AAC file.",
             failure,
         )
-        _state.value = _state.value.copy(status = PlaybackStatus.RESOLVING, error = null, notice = "Preparing compatible in-app audio…")
+        updatePlayback(request) { current -> current.copy(status = PlaybackStatus.RESOLVING, error = null, notice = "Preparing compatible in-app audio…") }
         callbackScope.launch {
             val fallback = runCatching {
                 withTimeout(PLAYBACK_FALLBACK_TIMEOUT_MILLIS) { DesktopBackend.downloadPlaybackFallback(track) }
@@ -698,11 +705,11 @@ internal object DesktopPlayer {
     }
 
     private fun finishPlaybackError(request: Long, failure: Throwable) {
-        if (requests.get() == request) _state.value = _state.value.copy(
+        if (requests.get() == request) updatePlayback(request) { current -> current.copy(
             status = PlaybackStatus.ERROR,
             error = failure.message ?: "The embedded player could not open this audio source.",
             notice = null,
-        )
+        ) }
     }
 
     @Synchronized

@@ -392,7 +392,12 @@ object YouTube {
                     ?: renderer.browseId("shortBylineText"),
             )
         }.distinctBy { it.id }
-        ExternalVideoHomePage(videos, findVideoHomeContinuation(root))
+        if (videos.isEmpty() && continuation.isNullOrBlank()) {
+            ExternalVideoHomePage(searchExternalYouTubeVideos("popular videos").getOrThrow(), null)
+        } else ExternalVideoHomePage(videos, findVideoHomeContinuation(root))
+    }.recoverCatching { failure ->
+        if (failure is kotlinx.coroutines.CancellationException || !continuation.isNullOrBlank()) throw failure
+        ExternalVideoHomePage(searchExternalYouTubeVideos("popular videos").getOrThrow(), null)
     }
 
     private fun findVideoHomeContinuation(element: JsonElement?): String? = when (element) {
@@ -412,13 +417,44 @@ object YouTube {
         when (element) {
             is JsonObject -> {
                 (element["videoRenderer"] as? JsonObject)?.let(results::add)
+                (element["lockupViewModel"] as? JsonObject)?.let(::normalizeVideoLockup)?.let(results::add)
                 element.forEach { (key, value) ->
-                    if (key != "videoRenderer") collectStandardVideoRenderers(value, results)
+                    if (key != "videoRenderer" && key != "lockupViewModel") collectStandardVideoRenderers(value, results)
                 }
             }
             is JsonArray -> element.forEach { collectStandardVideoRenderers(it, results) }
             else -> Unit
         }
+    }
+
+    /** Current web feeds use lockup view models; normalize them for the shared video parser. */
+    private fun normalizeVideoLockup(lockup: JsonObject): JsonObject? {
+        fun at(element: JsonElement?, vararg keys: String): JsonElement? =
+            keys.fold(element) { current, key -> (current as? JsonObject)?.get(key) }
+        fun text(element: JsonElement?): String? = when (element) {
+            is JsonPrimitive -> element.contentOrNull
+            is JsonObject -> text(element["content"]) ?: text(element["text"]) ?: text(element["simpleText"])
+            else -> null
+        }
+        val id = text(lockup["contentId"]) ?: return null
+        val type = text(lockup["contentType"]).orEmpty()
+        if (!type.contains("VIDEO") && !(type.isBlank() && id.matches(Regex("[A-Za-z0-9_-]{11}")))) return null
+        val metadata = at(lockup, "metadata", "lockupMetadataViewModel") ?: return null
+        val title = text(at(metadata, "title"))?.takeIf(String::isNotBlank) ?: return null
+        val rows = at(metadata, "metadata", "contentMetadataViewModel", "metadataRows") as? JsonArray
+        val byline = rows?.firstOrNull()?.let { row ->
+            val parts = at(row, "metadataParts") as? JsonArray
+            parts?.mapNotNull { text(at(it, "text")) }?.joinToString(" · ")
+        }.orEmpty()
+        val sources = at(lockup, "contentImage", "thumbnailViewModel", "image", "sources") as? JsonArray
+            ?: at(lockup, "contentImage", "contentImageViewModel", "image", "sources") as? JsonArray
+            ?: JsonArray(emptyList())
+        return JsonObject(mapOf(
+            "videoId" to JsonPrimitive(id),
+            "title" to JsonObject(mapOf("simpleText" to JsonPrimitive(title))),
+            "ownerText" to JsonObject(mapOf("simpleText" to JsonPrimitive(byline))),
+            "thumbnail" to JsonObject(mapOf("thumbnails" to sources)),
+        ))
     }
 
     private fun JsonObject.textField(name: String): String? {

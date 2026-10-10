@@ -80,7 +80,7 @@ jobs:
           echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
           echo "was_draft=$WAS_DRAFT" >> "$GITHUB_OUTPUT"
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.1
         with:
           submodules: recursive
           # A draft release does not publish its tag ref until the release is
@@ -108,13 +108,13 @@ jobs:
           [ "$CURRENT_CODE" = "$EXPECTED_CODE" ] || { echo "Release $TAG must use Android code $EXPECTED_CODE (previous tag $PREVIOUS_TAG uses $PREVIOUS_CODE)." >&2; exit 1; }
 
       - name: Set up JDK 21
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6.0.1
         with:
           java-version: '21'
           distribution: 'temurin'
 
       - name: Set Up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v6.4.0
         with:
           cache-disabled: true
 
@@ -276,13 +276,13 @@ jobs:
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.1
         with:
           submodules: recursive
           ref: ${{ github.event_name == 'workflow_dispatch' && github.sha || steps.release.outputs.tag }}
 
       - name: Set up JDK 21
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6.0.1
         with:
           java-version: '21'
           distribution: 'temurin'
@@ -301,14 +301,14 @@ jobs:
           echo "ALSA_CONFIG_PATH=$RUNNER_TEMP/xan-alsa.conf" >> "$GITHUB_ENV"
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v6.4.0
         with:
           cache-disabled: true
 
       - name: Set up Python for release checksums
-        uses: actions/setup-python@v7
+        uses: actions/setup-python@v7.0.0
         with:
-          python-version: '3.13'
+          python-version: '3.14'
 
       - name: Grant execute permission for Gradle
         if: runner.os != 'Windows'

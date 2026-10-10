@@ -84,7 +84,7 @@ plugins {
 android {
     namespace = "app.xan.music"
     compileSdk = 37
-    ndkVersion = "27.0.12077973"
+    ndkVersion = "30.0.16248370"
 
     defaultConfig {
         applicationId = "app.xan.music"
@@ -387,7 +387,7 @@ dependencies {
     implementation(libs.androidx.core.splashscreen)
 
     testImplementation(libs.junit)
-    testImplementation("org.robolectric:robolectric:4.16.1")
+    testImplementation("org.robolectric:robolectric:4.17")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:${libs.versions.coroutinesGuava.get()}")
     testImplementation("org.xerial:sqlite-jdbc:3.53.4.0")
 }

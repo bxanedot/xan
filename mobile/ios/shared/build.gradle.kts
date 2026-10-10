@@ -5,7 +5,7 @@ plugins {
     kotlin("multiplatform")
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.compose.compiler)
-    id("org.jetbrains.compose") version "1.12.0"
+    id("org.jetbrains.compose") version "1.12.1"
 }
 
 kotlin {
@@ -24,8 +24,8 @@ kotlin {
                 implementation(compose.components.resources)
                 implementation("io.coil-kt.coil3:coil-compose:3.6.3")
                 implementation("io.coil-kt.coil3:coil-network-ktor3:3.6.3")
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
                 implementation("io.ktor:ktor-client-core:3.6.0")
                 implementation("io.ktor:ktor-client-websockets:3.6.0")
                 implementation("io.ktor:ktor-client-content-negotiation:3.6.0")

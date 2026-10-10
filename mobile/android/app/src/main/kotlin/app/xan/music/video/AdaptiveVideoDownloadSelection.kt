@@ -7,7 +7,7 @@ import androidx.media3.common.Format
 import androidx.media3.common.MediaItem
 import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.common.TrackSelectionParameters
-import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.offline.DownloadHelper
 import androidx.media3.exoplayer.offline.DownloadRequest
 import app.xan.music.playback.DownloadTarget
@@ -58,7 +58,7 @@ suspend fun buildAdaptiveVideoDownloadRequest(
     require(activeVideo != null && activeVideo.height > 0) {
         "Wait for the video to start before downloading Auto quality."
     }
-    val sourceFactory = DefaultHttpDataSource.Factory()
+    val sourceFactory = OkHttpDataSource.Factory(com.music.innertube.externalVideoHttpClientBuilder().build())
         .setUserAgent(EXTERNAL_VIDEO_USER_AGENT)
         .setDefaultRequestProperties(buildMap {
             target.externalVideoPageUrl?.takeIf(String::isNotBlank)?.let { put("Referer", it) }

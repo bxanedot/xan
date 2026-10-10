@@ -33,11 +33,8 @@ import java.net.SocketAddress
 import java.net.URI
 import java.text.NumberFormat
 
-class NewPipeDownloaderImpl(
-    proxy: Proxy?,
-    proxyAuth: String? = null,
-) : Downloader() {
-    private val client =
+/** Extraction and signed-stream transfers must use the same outgoing IP and proxy. */
+fun externalVideoHttpClientBuilder(): OkHttpClient.Builder =
         OkHttpClient.Builder()
             .dns(object : Dns {
                 override fun lookup(hostname: String): List<InetAddress> {
@@ -54,13 +51,18 @@ class NewPipeDownloaderImpl(
                 override fun connectFailed(uri: URI?, sa: SocketAddress?, ioe: IOException?) {}
             })
             .proxyAuthenticator { _, response ->
-                YouTube.proxyAuth?.let { auth ->
+                YouTube.proxyAuth?.takeIf { response.request.header("Proxy-Authorization") == null }?.let { auth ->
                     response.request.newBuilder()
                         .header("Proxy-Authorization", auth)
                         .build()
-                } ?: response.request
+                }
             }
-            .build()
+
+class NewPipeDownloaderImpl(
+    proxy: Proxy?,
+    proxyAuth: String? = null,
+) : Downloader() {
+    private val client = externalVideoHttpClientBuilder().build()
 
     @Throws(IOException::class, ReCaptchaException::class)
     override fun execute(request: Request): Response {
@@ -189,6 +191,7 @@ data class ExternalVideoInfo(
     val durationSeconds: Long,
     val thumbnailUrl: String?,
     val formats: List<ExternalVideoFormat>,
+    val relatedVideos: List<ExternalVideoSearchResult> = emptyList(),
 )
 
 /** A page from YouTube's regular video home feed. */
@@ -404,6 +407,14 @@ object NewPipeExtractor {
             durationSeconds = info.duration,
             thumbnailUrl = thumbnail,
             formats = formats,
+            relatedVideos = info.relatedItems.filterIsInstance<StreamInfoItem>().map { item ->
+                ExternalVideoSearchResult(
+                    serviceId = service.serviceId, serviceName = service.serviceInfo.name,
+                    id = item.url, url = item.url, title = item.name,
+                    uploader = item.uploaderName.orEmpty(), durationSeconds = item.duration,
+                    thumbnailUrl = item.thumbnails.firstOrNull()?.url,
+                )
+            }.filterNot { it.url == result.url }.distinctBy { it.url },
         )
     }
 }

@@ -416,6 +416,10 @@ class PlayerConnection(
                     "shuffle=${player.shuffleModeEnabled} hasNext=${player.hasNextMediaItem()} " +
                     "nextIndex=${player.nextMediaItemIndex}"
             )
+            if (player.currentMetadata?.isExternalVideo == true && !player.hasNextMediaItem()) {
+                service.requestNextVideo()
+                return
+            }
             player.seekToNext()
             Timber.tag(TAG).d(
                 "SKIP_DEBUG seekToNext() returned: afterIndex=${player.currentMediaItemIndex} " +
@@ -524,7 +528,7 @@ class PlayerConnection(
             canSkipPrevious.value = player.isCommandAvailable(COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM) ||
                     !window.isLive ||
                     player.isCommandAvailable(COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM)
-            canSkipNext.value = window.isLive &&
+            canSkipNext.value = player.currentMetadata?.isExternalVideo == true || window.isLive &&
                     window.isDynamic ||
                     player.isCommandAvailable(COMMAND_SEEK_TO_NEXT_MEDIA_ITEM)
         } else {

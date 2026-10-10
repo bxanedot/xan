@@ -66,6 +66,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
@@ -75,6 +76,8 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.CancellationException
+import app.xan.music.R
 import java.time.LocalDate
 import java.util.concurrent.atomic.AtomicLong
 import javax.inject.Inject
@@ -653,14 +656,30 @@ class HomeViewModel @Inject constructor(
         // Update combined YT items once all network data has settled
         allYtItems.value = similarRecommendations.value?.flatMap { it.items }.orEmpty() +
                 homePage.value?.sections?.flatMap { it.items }.orEmpty()
+        if (homePage.value?.sections.isNullOrEmpty()) {
+            val albums = explorePage.value?.newReleaseAlbums.orEmpty()
+            val publicItems: List<YTItem> = if (albums.isNotEmpty()) albums else
+                YouTube.search("new music", YouTube.SearchFilter.FILTER_SONG).getOrNull()?.items.orEmpty()
+                    .filterExplicit(hideExplicit).filterVideoSongs(hideVideoSongs)
+            if (publicItems.isNotEmpty()) {
+                homePage.value = HomePage(null, listOf(HomePage.Section(
+                    title = context.getString(R.string.home_discover_music), label = null,
+                    thumbnail = null, endpoint = null, items = publicItems,
+                )))
+                allYtItems.value = allYtItems.value + publicItems
+            }
+        }
     }
 
     private suspend fun load() {
         isLoading.value = true
+        try {
+        val preferences = context.dataStore.data.first()
+        YouTube.cookie = preferences[InnerTubeCookieKey]?.takeIf(String::isNotBlank)
 
         // Local-only mode never touches the network — the Room flows above already
         // feed Home, so the only thing left to fetch is the folder index.
-        if (localOnlyMode.value) {
+        if (preferences[LocalOnlyModeKey] == true) {
             localFolders.value = runCatching { LocalFolderIndex.load(context) }.getOrDefault(emptyList())
             isLoading.value = false
             return
@@ -668,9 +687,8 @@ class HomeViewModel @Inject constructor(
 
         // Phase 1: Local DB only â€” UI renders immediately after this
         loadLocalDataPhase()
-        isLoading.value = false
 
-        if (videoOnlyMode.value) {
+        if (preferences[VideoSearchFallbackKey] == true) {
             videoHomePage.value = null
             isLoading.value = true
             try {
@@ -691,6 +709,13 @@ class HomeViewModel @Inject constructor(
 
         // Phase 2: All network sections in parallel â€” streams in progressively
         loadNetworkDataPhase()
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (failure: Exception) {
+            reportException(failure)
+        } finally {
+            isLoading.value = false
+        }
     }
 
     /** Pull-to-refresh in local-only mode rescans the device instead of the network. */
@@ -828,14 +853,12 @@ class HomeViewModel @Inject constructor(
         // Load home data. Re-runs when local-only mode is toggled, so Home swaps
         // between the YouTube feed and the on-device library without a restart.
         viewModelScope.launch(Dispatchers.IO) {
-            context.dataStore.data
-                .map { it[InnerTubeCookieKey] }
+            context.dataStore.data.map { preferences ->
+                Triple(preferences[LocalOnlyModeKey] == true,
+                    preferences[VideoSearchFallbackKey] == true, preferences[InnerTubeCookieKey])
+            }
                 .distinctUntilChanged()
-                .first()
-
-            combine(localOnlyMode, videoOnlyMode) { localOnly, videoOnly -> localOnly to videoOnly }
-                .distinctUntilChanged()
-                .collect { load() }
+                .collectLatest { load() }
         }
 
         // Run sync in separate coroutine with cooldown to avoid blocking UI
