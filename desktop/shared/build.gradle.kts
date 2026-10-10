@@ -286,6 +286,14 @@ compose.desktop {
                 iconFile.set(project.file("../macos/branding/xan-icon-pack/desktop-app-icons/icon.icns"))
                 bundleID = "app.xan.desktop"
                 dockName = "XAN"
+                infoPlist {
+                    extraKeysRawXml = """
+                        <key>NSMicrophoneUsageDescription</key>
+                        <string>XAN uses microphone access only when you start music recognition.</string>
+                        <key>NSLocalNetworkUsageDescription</key>
+                        <string>XAN uses your local network to discover and connect to Cast devices.</string>
+                    """.trimIndent()
+                }
             }
             linux {
                 iconFile.set(project.file("../linux/branding/xan-icon-pack/desktop-app-icons/icon.png"))
