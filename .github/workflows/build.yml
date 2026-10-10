@@ -19,7 +19,7 @@ jobs:
     if: github.actor != 'dependabot[bot]'
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Test Listen Together Worker
         run: node --test backend/listen-together/test/room.test.mjs
