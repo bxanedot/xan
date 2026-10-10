@@ -208,7 +208,17 @@ jobs:
     # Wait until workflow_dispatch has created the draft release, but still
     # package desktop assets if Android signing fails due to missing secrets.
     needs: build_stable
-    if: ${{ always() && needs.build_stable.result != 'cancelled' }}
+    # Publishing an already verified draft must not replace its binaries and
+    # invalidate the final release checksum manifest.
+    if: >-
+      ${{ always() && needs.build_stable.result != 'cancelled' &&
+          (github.event_name != 'release' ||
+           !(contains(join(github.event.release.assets.*.name, ' '), '-windows-x64.msi') &&
+             contains(join(github.event.release.assets.*.name, ' '), '-macos-arm64.dmg') &&
+             contains(join(github.event.release.assets.*.name, ' '), '-macos-x64.dmg') &&
+             contains(join(github.event.release.assets.*.name, ' '), '-linux-x64.deb') &&
+             contains(join(github.event.release.assets.*.name, ' '), '-linux-x64.rpm') &&
+             contains(join(github.event.release.assets.*.name, ' '), '-linux-x64.AppImage'))) }}
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
