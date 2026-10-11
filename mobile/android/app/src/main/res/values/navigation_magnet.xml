@@ -14,4 +14,13 @@
     <string name="magnet_layout_stacked">Stacked above the Magnet</string>
     <string name="magnet_show_icon_names">Show icon names</string>
     <string name="magnet_show_icon_names_desc">Show names alongside Magnet icons. Off by default.</string>
+    <string name="magnet_settings">Magnet settings</string>
+    <string name="magnet_settings_desc">Choose its position, layout, labels and motion.</string>
+    <string name="magnet_straight_layout">Straight icon layout</string>
+    <string name="magnet_straight_layout_desc">Show the icons in a compact stack instead of the screenshot arc.</string>
+    <string name="magnet_spring_animations">Soft spring animations</string>
+    <string name="magnet_spring_animations_desc">Cycle through twelve gentle opening motions.</string>
+    <string name="magnet_animation_enabled">Enabled</string>
+    <string name="magnet_animation_disabled">Disabled</string>
+    <string name="magnet_opens_toward_center">The icon arc opens toward the center of the screen.</string>
 </resources>

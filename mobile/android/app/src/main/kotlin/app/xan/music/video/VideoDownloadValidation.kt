@@ -24,8 +24,9 @@ internal fun findCompatibleRefreshedVideoFormat(
     audioExtension: String?,
     videoCodec: String?,
     audioCodec: String?,
+    requireAudio: Boolean = true,
 ): ExternalVideoFormat? = formats.filter {
-    it.videoOnly && !it.audioUrl.isNullOrBlank() && it.height == height &&
+    it.videoOnly && (!requireAudio || !it.audioUrl.isNullOrBlank()) && it.height == height &&
         it.extension.equals(extension, true) &&
         (audioExtension.isNullOrBlank() || it.audioExtension.equals(audioExtension, true)) &&
         (videoCodec.isNullOrBlank() || it.codec == videoCodec) &&

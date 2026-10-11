@@ -861,7 +861,8 @@ class MainActivity : ComponentActivity() {
 
                 val (localOnlyMode) = rememberPreference(LocalOnlyModeKey, false)
                 val (magnetOnLeft) = rememberPreference(app.xan.music.constants.MagnetOnLeftKey, false)
-                val (magnetSemicircle) = rememberPreference(app.xan.music.constants.MagnetSemicircleKey, false)
+                val (magnetSemicircle) = rememberPreference(app.xan.music.constants.MagnetSemicircleKey, true)
+                val (magnetSpringAnimations) = rememberPreference(app.xan.music.constants.MagnetSpringAnimationsKey, true)
                 val (useMagnetNavigation) = rememberPreference(UseMagnetNavigationKey, defaultValue = true)
                 val (magnetShowIconNames) = rememberPreference(MagnetShowIconNamesKey, defaultValue = false)
                 // Local-only mode adds the flat all-songs tab after Home.
@@ -2345,6 +2346,7 @@ class MainActivity : ComponentActivity() {
                         onLeft = magnetOnLeft,
                         semicircle = magnetSemicircle,
                         showIconNames = magnetShowIconNames,
+                        springAnimationsEnabled = magnetSpringAnimations,
                         onNavigate = { screen ->
                             if (playerBottomSheetState.isExpanded) playerBottomSheetState.collapseSoft()
                             if (screen == Screens.Search) {

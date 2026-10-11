@@ -12,19 +12,19 @@ import org.junit.Test
 
 class OriginalMagnetMigrationTest {
     @Test
-    fun `fresh installs start with the original menu`() = runTest {
+    fun `fresh installs start with the inward facing arc`() = runTest {
         val before = emptyPreferences()
         assertTrue(OriginalMagnetMigration.shouldMigrate(before))
         val after = OriginalMagnetMigration.migrate(before)
-        assertEquals(false, after[MagnetSemicircleKey])
+        assertEquals(true, after[MagnetSemicircleKey])
         assertFalse(OriginalMagnetMigration.shouldMigrate(after))
     }
 
     @Test
-    fun `upgrade restores original menu without changing side preference`() = runTest {
+    fun `upgrade restores arc layout without changing side preference`() = runTest {
         val before = preferencesOf(MagnetSemicircleKey to true, MagnetOnLeftKey to true)
         val after = OriginalMagnetMigration.migrate(before)
-        assertEquals(false, after[MagnetSemicircleKey])
+        assertEquals(true, after[MagnetSemicircleKey])
         assertEquals(true, after[MagnetOnLeftKey])
         assertEquals(true, before[MagnetSemicircleKey])
     }

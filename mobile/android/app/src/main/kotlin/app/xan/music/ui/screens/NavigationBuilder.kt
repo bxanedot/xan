@@ -60,6 +60,7 @@ import app.xan.music.ui.screens.settings.CanvasSelection
 import app.xan.music.ui.screens.settings.diy.PresetsScreen
 import app.xan.music.ui.screens.settings.FontSelectionScreen
 import app.xan.music.ui.screens.settings.GlassEffectSettings
+import app.xan.music.ui.screens.settings.MagnetSettingsScreen
 import app.xan.music.ui.screens.settings.PlayerThemeScreen
 import app.xan.music.ui.screens.settings.BackupAndRestore
 import app.xan.music.ui.screens.settings.SpotifyScreen
@@ -354,6 +355,10 @@ fun NavGraphBuilder.navigationBuilder(
 
     sharedComposable("settings/appearance") {
         AppearanceSettings(navController, scrollBehavior, activity, snackbarHostState)
+    }
+
+    sharedComposable("settings/appearance/magnet") {
+        MagnetSettingsScreen(navController, scrollBehavior)
     }
 
     sharedComposable("settings/home_feed_order") {

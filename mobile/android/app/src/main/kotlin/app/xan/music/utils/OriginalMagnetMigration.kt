@@ -5,7 +5,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import app.xan.music.constants.MagnetSemicircleKey
 
-/** Restore the original menu once, before settings are read on an upgraded install. */
+/** Seed the screenshot-matching arc layout once, before settings are read. */
 internal object OriginalMagnetMigration : DataMigration<Preferences> {
     private val restoredKey = booleanPreferencesKey("originalMagnetRestored")
 
@@ -14,7 +14,7 @@ internal object OriginalMagnetMigration : DataMigration<Preferences> {
 
     override suspend fun migrate(currentData: Preferences): Preferences =
         currentData.toMutablePreferences().apply {
-            this[MagnetSemicircleKey] = false
+            this[MagnetSemicircleKey] = true
             this[restoredKey] = true
         }
 

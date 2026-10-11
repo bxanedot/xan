@@ -5,6 +5,7 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -24,6 +25,10 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalDensity
@@ -64,8 +69,8 @@ private data class MagnetMotion(
     val scatter: Boolean = false,
 )
 
-// Three original gestures, followed by five new paths. Distinct position,
-// rotation, scale and ordering make each cycle visibly different.
+// Twelve soft, spring-driven paths. Varying the launch vector, rotation, scale,
+// order and spring timing makes each opening feel distinct without hard snaps.
 private val MagnetMotions = listOf(
     MagnetMotion("Float", .66f, 350f, 32, 18f, 32f, 8f, .78f, .78f),
     MagnetMotion("Elastic fan", .48f, 440f, 40, 48f, 20f, -14f, .68f, .84f),
@@ -75,6 +80,10 @@ private val MagnetMotions = listOf(
     MagnetMotion("Raindrop", .72f, 510f, 48, 0f, -95f, 0f, .82f, 1.18f, reverseOrder = true),
     MagnetMotion("Bloom", .62f, 385f, 27, 90f, 48f, 24f, .20f, .20f, alternateSides = true, scatter = true),
     MagnetMotion("Accordion", .54f, 630f, 58, 0f, 16f, 0f, .58f, 1.40f, reverseOrder = true),
+    MagnetMotion("Velvet orbit", .72f, 330f, 44, 34f, 52f, -18f, .62f, .62f, reverseOrder = true),
+    MagnetMotion("Magnetic pull", .58f, 520f, 20, -42f, 24f, 12f, .48f, .48f, alternateSides = true),
+    MagnetMotion("Soft landing", .86f, 300f, 36, 12f, -54f, -8f, .76f, .76f),
+    MagnetMotion("Double pulse", .50f, 610f, 62, 26f, 66f, 22f, .38f, .58f, reverseOrder = true, alternateSides = true),
 )
 
 private data class MagnetEntry(
@@ -112,30 +121,31 @@ fun NavigationMagnet(
     currentRoute: String?,
     onLeft: Boolean,
     onNavigate: (Screens) -> Unit,
-    semicircle: Boolean = false,
+    semicircle: Boolean = true,
     showIconNames: Boolean = false,
+    springAnimationsEnabled: Boolean = true,
     modifier: Modifier = Modifier,
 ) {
     var open by rememberSaveable { mutableStateOf(false) }
     var showing by remember { mutableStateOf(open) }
     var motionVariant by remember { mutableIntStateOf(0) }
     val haptics = LocalHapticFeedback.current
-    val popupOffset = with(LocalDensity.current) { -72.dp.roundToPx() }
+    val popupOffset = with(LocalDensity.current) { -64.dp.roundToPx() }
     val configuration = LocalConfiguration.current
     val menuMaxHeight = configuration.screenHeightDp.dp * .65f
     val arcWidth = (configuration.screenWidthDp - 32).coerceAtMost(320)
-    val arcLayout = remember(arcWidth, onLeft, showIconNames, configuration.fontScale) {
+    val arcLayout = remember(arcWidth, onLeft) {
         magnetSemicircleLayout(
             arcWidth.coerceAtLeast(240).toFloat(),
             onLeft,
             itemCount = MagnetNavigationScreens.size,
-            labelSpace = if (showIconNames) 56f * configuration.fontScale else 0f,
         )
     }
-    // Fall back to a scrolling stack when the arc and optional enlarged names cannot fit.
-    val useSemicircle = semicircle && arcWidth >= 240 &&
+    // Four 52dp circles need a little over 300dp of width to keep the arc airy.
+    // Fall back to a scrolling stack on narrower screens rather than overlap them.
+    val useSemicircle = semicircle && arcWidth >= 310 &&
         configuration.screenHeightDp >= maxOf(360f, arcLayout.height + 32f)
-    // Cycle through eight distinct spring gestures, including five new paths.
+    // Cycle through twelve distinct soft spring paths.
     // Compose's animation clock honours the system animator duration scale.
     val motion = MagnetMotions[motionVariant]
     val damping = motion.damping
@@ -143,10 +153,10 @@ fun NavigationMagnet(
     val glassConfig = LocalGlassEffectConfig.current
     val useGlass = glassConfig.isEnabledFor(GlassComponent.NAV_BAR) && isGlassAllowed()
     val rotation by animateFloatAsState(
-        if (open) 90f else 0f, spring(damping, stiffness), label = "magnetRotation",
+        if (open && springAnimationsEnabled) 90f else 0f, spring(damping, stiffness), label = "magnetRotation",
     )
     val scale by animateFloatAsState(
-        if (open && !useSemicircle) 1.06f else 1f,
+        if (open && !useSemicircle && springAnimationsEnabled) 1.06f else 1f,
         spring(damping, stiffness), label = "magnetPress",
     )
     val expandedDescription = stringResource(
@@ -209,6 +219,9 @@ fun NavigationMagnet(
                         open = open,
                         rotation = rotation,
                         scale = scale,
+                        motion = motion,
+                        motionVariant = motionVariant,
+                        springAnimationsEnabled = springAnimationsEnabled,
                         onToggle = toggle,
                         onSelect = { entry ->
                             if (open) {
@@ -230,13 +243,15 @@ fun NavigationMagnet(
                         entries.forEachIndexed { index, entry ->
                             val label = stringResource(entry.titleId)
                             val arrival = remember { Animatable(0f) }
-                            LaunchedEffect(open, motionVariant) {
-                                if (open) {
+                            LaunchedEffect(open, motionVariant, springAnimationsEnabled) {
+                                if (open && springAnimationsEnabled) {
                                     val order = if (motion.reverseOrder) index else entries.lastIndex - index
                                     delay(order * motion.staggerMs)
-                                    arrival.animateTo(1f, spring(damping, stiffness))
+                                }
+                                if (springAnimationsEnabled) {
+                                    arrival.animateTo(if (open) 1f else 0f, spring(damping, stiffness))
                                 } else {
-                                    arrival.animateTo(0f, spring(.9f, 650f))
+                                    arrival.snapTo(if (open) 1f else 0f)
                                 }
                             }
                             val selected = currentRoute == entry.screen.route ||
@@ -353,6 +368,9 @@ private fun SemicircleMagnetMenu(
     open: Boolean,
     rotation: Float,
     scale: Float,
+    motion: MagnetMotion,
+    motionVariant: Int,
+    springAnimationsEnabled: Boolean,
     onToggle: () -> Unit,
     onSelect: (MagnetEntry) -> Unit,
 ) {
@@ -360,12 +378,50 @@ private fun SemicircleMagnetMenu(
         if (open) R.string.navigation_magnet_expanded else R.string.navigation_magnet_collapsed,
     )
     Box(Modifier.size(layout.width.dp, layout.height.dp)) {
+        Canvas(Modifier.matchParentSize()) {
+            val magnetCenter = Offset(layout.magnet.x.dp.toPx(), layout.magnet.y.dp.toPx())
+            val accent = Color(0xFFB58CFF)
+            val glowAlpha = if (open) 0.15f else 0f
+            layout.items.forEach { point ->
+                drawLine(
+                    color = accent.copy(alpha = if (open) 0.28f else 0f),
+                    start = Offset(point.x.dp.toPx(), point.y.dp.toPx()),
+                    end = magnetCenter,
+                    strokeWidth = 1.dp.toPx(),
+                )
+            }
+            drawCircle(
+                color = accent.copy(alpha = glowAlpha),
+                radius = 76.dp.toPx(),
+                center = magnetCenter,
+                style = Stroke(
+                    width = 1.dp.toPx(),
+                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(6.dp.toPx(), 8.dp.toPx())),
+                ),
+            )
+            drawCircle(
+                brush = androidx.compose.ui.graphics.Brush.radialGradient(
+                    colors = listOf(accent.copy(alpha = if (open) 0.22f else 0f), Color.Transparent),
+                    center = magnetCenter,
+                    radius = 68.dp.toPx(),
+                ),
+                radius = 68.dp.toPx(),
+                center = magnetCenter,
+            )
+        }
         entries.forEachIndexed { index, entry ->
             val point = layout.items[index]
             val arrival = remember { Animatable(0f) }
-            LaunchedEffect(open) {
-                if (open) delay(index * 24L)
-                arrival.animateTo(if (open) 1f else 0f, spring(.72f, 420f))
+            LaunchedEffect(open, motionVariant, springAnimationsEnabled) {
+                if (open && springAnimationsEnabled) {
+                    val order = if (motion.reverseOrder) index else entries.lastIndex - index
+                    delay(order * motion.staggerMs)
+                }
+                if (springAnimationsEnabled) {
+                    arrival.animateTo(if (open) 1f else 0f, spring(motion.damping, motion.stiffness))
+                } else {
+                    arrival.snapTo(if (open) 1f else 0f)
+                }
             }
             val selected = currentRoute == entry.screen.route ||
                 currentRoute?.startsWith("${entry.screen.route}/") == true ||
@@ -377,13 +433,18 @@ private fun SemicircleMagnetMenu(
                 opaqueInSolidMode = true,
                 modifier = Modifier
                     .absoluteOffset((point.x - 26f).dp, (point.y - 26f).dp)
+                    .border(1.2.dp, Color(0xFFB58CFF).copy(alpha = 0.78f), RoundedCornerShape(50))
                     .graphicsLayer {
                         val progress = arrival.value.coerceIn(0f, 1f)
                         alpha = progress.coerceIn(0f, 1f)
-                        translationX = (layout.magnet.x - point.x).dp.toPx() * (1f - progress)
-                        translationY = (layout.magnet.y - point.y).dp.toPx() * (1f - progress)
-                        scaleX = .4f + progress * .6f
-                        scaleY = scaleX
+                        val towardCenter = if (layout.magnet.x < layout.width / 2f) 1f else -1f
+                        translationX = (layout.magnet.x - point.x).dp.toPx() * (1f - progress) +
+                            motion.startX.dp.toPx() * towardCenter * (1f - progress)
+                        translationY = (layout.magnet.y - point.y).dp.toPx() * (1f - progress) +
+                            motion.startY.dp.toPx() * (1f - progress)
+                        rotationZ = motion.rotation * (1f - progress)
+                        scaleX = motion.scaleX + progress * (1f - motion.scaleX)
+                        scaleY = motion.scaleY + progress * (1f - motion.scaleY)
                     }
                     .semantics { this.selected = selected }
                     .then(if (selected) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(50)) else Modifier),
@@ -395,6 +456,7 @@ private fun SemicircleMagnetMenu(
                 }
             }
             if (showIconNames) {
+                val labelX = if (layout.magnet.x < layout.width / 2f) point.x + 30f else point.x - 104f
                 Text(
                     text = label,
                     style = MaterialTheme.typography.labelMedium,
@@ -403,7 +465,7 @@ private fun SemicircleMagnetMenu(
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier
-                        .absoluteOffset((point.x - 48f).coerceIn(0f, layout.width - 96f).dp, (point.y + 32f).dp)
+                        .absoluteOffset(labelX.coerceIn(0f, layout.width - 96f).dp, (point.y - 18f).dp)
                         .width(96.dp)
                         .graphicsLayer {
                             val progress = arrival.value.coerceIn(0f, 1f)
@@ -423,6 +485,7 @@ private fun SemicircleMagnetMenu(
             opaqueInSolidMode = true,
             modifier = Modifier
                 .absoluteOffset((layout.magnet.x - 28f).dp, (layout.magnet.y - 28f).dp)
+                .border(2.dp, Color(0xFFB58CFF).copy(alpha = 0.92f), RoundedCornerShape(50))
                 .semantics {
                     stateDescription = expandedDescription
                 }

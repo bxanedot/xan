@@ -92,6 +92,8 @@ val UseMagnetNavigationKey = booleanPreferencesKey("useMagnetNavigation")
 val MagnetShowIconNamesKey = booleanPreferencesKey("magnetShowIconNames")
 /** True opts into the semicircle layout; false uses the anchored stack. */
 val MagnetSemicircleKey = booleanPreferencesKey("magnetSemicircle")
+/** Enables the soft spring opening motions for the Magnet menu. */
+val MagnetSpringAnimationsKey = booleanPreferencesKey("magnetSpringAnimations")
 val GridItemsSizeKey = stringPreferencesKey("gridItemSize")
 /** 0 = auto (GridColumnMinWidth-driven), else a fixed column count for every adaptive grid. */
 val GridColumnsOverrideKey = intPreferencesKey("gridColumnsOverride")

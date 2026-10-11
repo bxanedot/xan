@@ -27,13 +27,15 @@ class MagnetSemicircleLayoutTest {
     }
 
     @Test
-    fun `optional names have room below the icons before the Magnet button`() {
+    fun `optional names fit beside the icons without covering the Magnet`() {
         for (width in listOf(240f, 280f, 320f)) {
             for (onLeft in listOf(false, true)) {
-                for (fontScale in listOf(1f, 1.5f, 2f)) {
-                    val layout = magnetSemicircleLayout(width, onLeft, labelSpace = 56f * fontScale)
-                    val lowestLabelBottom = layout.items.maxOf { it.y } + 32f + 32f * fontScale + 8f
-                    assertTrue(lowestLabelBottom < layout.magnet.y - 28f)
+                val layout = magnetSemicircleLayout(width, onLeft)
+                layout.items.forEach { item ->
+                    val labelX = if (onLeft) item.x + 30f else item.x - 104f
+                    assertTrue(labelX >= 0f)
+                    assertTrue(labelX + 96f <= layout.width)
+                    assertTrue(item.y >= 26f && item.y <= layout.height - 26f)
                 }
             }
         }

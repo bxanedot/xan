@@ -91,9 +91,6 @@ import app.xan.music.constants.HomeGridColumnsOverrideKey
 import app.xan.music.constants.HomeHeroCardEnabledKey
 import app.xan.music.constants.PureBlackHeroBackgroundKey
 import app.xan.music.constants.HideHomeFavoriteIconKey
-import app.xan.music.constants.MagnetOnLeftKey
-import app.xan.music.constants.MagnetSemicircleKey
-import app.xan.music.constants.MagnetShowIconNamesKey
 import app.xan.music.constants.UseMagnetNavigationKey
 import app.xan.music.ui.utils.GridColumnChoices
 import app.xan.music.ui.utils.GridSpacingChoices
@@ -291,9 +288,6 @@ fun AppearanceSettings(
     val (speedDialColumnsOverride, onSpeedDialColumnsOverrideChange) = rememberPreference(SpeedDialColumnsOverrideKey, 0)
     val (pureBlackHeroBackground, onPureBlackHeroBackgroundChange) = rememberPreference(PureBlackHeroBackgroundKey, false)
     val (useMagnetNavigation, onUseMagnetNavigationChange) = rememberPreference(UseMagnetNavigationKey, defaultValue = true)
-    val (magnetShowIconNames, onMagnetShowIconNamesChange) = rememberPreference(MagnetShowIconNamesKey, defaultValue = false)
-    val (magnetOnLeft, onMagnetOnLeftChange) = rememberPreference(MagnetOnLeftKey, defaultValue = false)
-    val (magnetSemicircle, onMagnetSemicircleChange) = rememberPreference(MagnetSemicircleKey, defaultValue = false)
     val (hideHomeFavoriteIcon, onHideHomeFavoriteIconChange) = rememberPreference(
         HideHomeFavoriteIconKey,
         defaultValue = false
@@ -1244,7 +1238,7 @@ fun AppearanceSettings(
 
         Material3SettingsGroup(
             title = stringResource(R.string.grid_and_cards),
-            items = listOf(
+            items = listOfNotNull(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.grid_view),
                     title = { Text(stringResource(R.string.pure_black_hero_background)) },
@@ -1294,53 +1288,12 @@ fun AppearanceSettings(
                     },
                     onClick = { onUseMagnetNavigationChange(!useMagnetNavigation) }
                 ),
-                Material3SettingsItem(
-                    icon = painterResource(R.drawable.xan_icon_modules),
-                    title = { Text(stringResource(R.string.magnet_show_icon_names)) },
-                    description = { Text(stringResource(R.string.magnet_show_icon_names_desc)) },
-                    trailingContent = {
-                        Switch(
-                            checked = magnetShowIconNames,
-                            onCheckedChange = onMagnetShowIconNamesChange,
-                        )
-                    },
-                    onClick = { onMagnetShowIconNamesChange(!magnetShowIconNames) }
-                ),
-                Material3SettingsItem(
-                    icon = painterResource(R.drawable.xan_icon_modules),
-                    title = { Text(stringResource(R.string.magnet_position)) },
-                    description = { Text(stringResource(if (magnetOnLeft) R.string.magnet_bottom_left else R.string.magnet_bottom_right)) },
-                    trailingContent = {
-                        Switch(
-                            checked = magnetOnLeft,
-                            onCheckedChange = onMagnetOnLeftChange,
-                            thumbContent = {
-                                Icon(
-                                    painter = painterResource(
-                                        id = if (magnetOnLeft) R.drawable.check else R.drawable.xan_icon_close
-                                    ),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(SwitchDefaults.IconSize)
-                                )
-                            }
-                        )
-                    },
-                    onClick = { onMagnetOnLeftChange(!magnetOnLeft) }
-                ),
-                Material3SettingsItem(
-                    icon = painterResource(R.drawable.xan_icon_modules),
-                    title = { Text(stringResource(R.string.magnet_layout)) },
-                    description = {
-                        Text(stringResource(if (magnetSemicircle) R.string.magnet_layout_semicircle else R.string.magnet_layout_stacked))
-                    },
-                    trailingContent = {
-                        Switch(
-                            checked = magnetSemicircle,
-                            onCheckedChange = onMagnetSemicircleChange,
-                        )
-                    },
-                    onClick = { onMagnetSemicircleChange(!magnetSemicircle) }
-                ),
+                if (useMagnetNavigation) Material3SettingsItem(
+                    icon = painterResource(R.drawable.xan_icon_settings),
+                    title = { Text(stringResource(R.string.magnet_settings)) },
+                    description = { Text(stringResource(R.string.magnet_settings_desc)) },
+                    onClick = { navController.navigate("settings/appearance/magnet") },
+                ) else null,
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.favorite_border),
                     title = { Text(stringResource(R.string.hide_home_favorite_icon)) },

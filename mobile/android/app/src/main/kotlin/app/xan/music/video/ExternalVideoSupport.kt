@@ -13,12 +13,8 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Format
 import androidx.media3.common.MediaMetadata.MEDIA_TYPE_VIDEO
 import androidx.core.net.toUri
-import androidx.media3.exoplayer.offline.DownloadService
 import app.xan.music.models.MediaMetadata
 import app.xan.music.models.MediaMetadata.ExternalVideoPlaybackFormat
-import app.xan.music.playback.DownloadTarget
-import app.xan.music.playback.ExoDownloadService
-import app.xan.music.playback.buildDownloadRequest
 import app.xan.music.playback.queues.ListQueue
 import com.music.innertube.models.YouTubeClient
 import com.music.innertube.ExternalVideoFormat
@@ -331,68 +327,12 @@ suspend fun enqueueExternalVideoDownload(
     val uri = Uri.parse(format.url)
     require(uri.scheme == "https" || uri.scheme == "http") { "This video URL cannot be downloaded." }
 
-    val title = info.title.ifBlank { result.title }
-    val uploader = info.uploader.ifBlank { result.uploader }
-    val mediaId = externalVideoMediaId(result, format)
-    when (externalVideoDownloadRoute(format)) {
-        ExternalVideoDownloadRoute.ADAPTIVE_MANIFEST -> {
-            val target = externalVideoDownloadTarget(mediaId, title, uploader, result, info, format)
-            persistExternalVideoTarget(context, target)
-            val request = buildAdaptiveVideoDownloadRequest(
-                context, target, format, activeVideoFormat, activeAudioFormat,
-            )
-            DownloadService.sendAddDownload(context, ExoDownloadService::class.java, request, true)
-        }
-        ExternalVideoDownloadRoute.PROGRESSIVE_FILE -> {
-            val target = externalVideoDownloadTarget(mediaId, title, uploader, result, info, format)
-            persistExternalVideoTarget(context, target)
-            val request = buildDownloadRequest(target, uri, format.mimeType)
-            DownloadService.sendAddDownload(context, ExoDownloadService::class.java, request, true)
-        }
-        ExternalVideoDownloadRoute.SPLIT_TRACKS -> {
-            require(!format.audioUrl.isNullOrBlank()) {
-                "This video quality has no matching audio stream and cannot be downloaded. Select another quality."
-            }
-            enqueueMergedExternalVideoDownload(context, result, info, format)
-        }
-    }
+    // Use one worker and public Movies destination for every video format.
+    // Media3's default download directory is private to XAN, and requiring an
+    // audio pair here rejected otherwise valid video-only streams.
+    enqueueMergedExternalVideoDownload(context, result, info, format)
     return true
 }
-
-private suspend fun persistExternalVideoTarget(context: Context, target: DownloadTarget) {
-    val dependencies = EntryPointAccessors.fromApplication(
-        context.applicationContext,
-        ExternalVideoDownloadDependencies::class.java,
-    )
-    dependencies.downloadUtil().persistQueuedTarget(target)
-}
-
-private fun externalVideoDownloadTarget(
-    id: String,
-    title: String,
-    uploader: String,
-    result: ExternalVideoSearchResult,
-    info: ExternalVideoInfo,
-    format: ExternalVideoFormat,
-) = DownloadTarget(
-    id = id,
-    title = title,
-    artists = listOfNotNull(uploader.takeIf(String::isNotBlank)),
-    thumbnailUrl = info.thumbnailUrl ?: result.thumbnailUrl,
-    duration = info.durationSeconds.takeIf { it in 0..Int.MAX_VALUE.toLong() }?.toInt() ?: -1,
-    externalVideoSource = result.serviceName,
-    externalVideoPageUrl = result.url,
-    externalVideoServiceId = result.serviceId,
-    externalVideoPageId = result.id,
-    externalVideoFormatId = format.id,
-    externalVideoStreamUrl = format.url,
-    externalVideoMimeType = format.mimeType,
-    externalVideoCodec = format.codec,
-    externalVideoAudioCodec = format.audioCodec,
-    externalVideoExtension = format.extension,
-    externalVideoResolution = format.resolution,
-    externalVideoAdaptive = format.adaptiveManifest,
-)
 
 fun externalVideoMediaId(result: ExternalVideoSearchResult, format: ExternalVideoFormat): String =
     externalVideoMediaId(

@@ -4,12 +4,17 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.ContentValues
 import android.content.Context
+import android.Manifest
+import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
+import android.media.MediaScannerConnection
+import android.webkit.MimeTypeMap
 import android.text.format.Formatter
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingWorkPolicy
 import androidx.work.ForegroundInfo
@@ -54,16 +59,20 @@ interface ExternalVideoDownloadDependencies {
     fun downloadUtil(): app.xan.music.playback.DownloadUtil
 }
 
-/** Queue a video+audio stream pair and mux it into a playable file in Downloads. */
+/** Queue a video stream, optionally pair it with audio, and publish it in Movies/XAN. */
 fun enqueueMergedExternalVideoDownload(
     context: Context,
     result: com.music.innertube.ExternalVideoSearchResult,
     info: com.music.innertube.ExternalVideoInfo,
     format: com.music.innertube.ExternalVideoFormat,
 ) {
-    val audioUrl = format.audioUrl ?: throw IllegalArgumentException("An audio stream is not available for this quality.")
-    val extension = format.extension.lowercase().takeIf { it.matches(Regex("[a-z0-9]{1,8}")) }
+    val adaptive = format.adaptiveManifest
+    val extension = (if (adaptive) "mp4" else format.extension.lowercase()).takeIf { it.matches(Regex("[a-z0-9]{1,8}")) }
         ?: throw IllegalArgumentException("This source did not report a supported video container.")
+    val mimeType = if (adaptive) "video/mp4" else format.mimeType
+        ?.takeIf { it.startsWith("video/", ignoreCase = true) }
+        ?: MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)?.takeIf { it.startsWith("video/", ignoreCase = true) }
+        ?: "video/mp4"
     val title = info.title.ifBlank { result.title }.safeDownloadTitle()
     val uploader = info.uploader.ifBlank { result.uploader }
     val mediaId = externalVideoMediaId(result, format)
@@ -75,13 +84,14 @@ fun enqueueMergedExternalVideoDownload(
     // Keep the full request in private app storage and queue only its small reference.
     val parameters = JSONObject(mapOf(
         ExternalVideoDownloadWorker.VIDEO_URL to format.url,
-        ExternalVideoDownloadWorker.AUDIO_URL to audioUrl,
+        ExternalVideoDownloadWorker.AUDIO_URL to format.audioUrl.orEmpty(),
+        ExternalVideoDownloadWorker.ADAPTIVE_MANIFEST to adaptive,
         ExternalVideoDownloadWorker.REFERER to result.url,
         ExternalVideoDownloadWorker.TITLE to title,
         ExternalVideoDownloadWorker.UPLOADER to uploader,
         ExternalVideoDownloadWorker.DESCRIPTION to result.description.orEmpty().take(2000),
         ExternalVideoDownloadWorker.EXTENSION to extension,
-        ExternalVideoDownloadWorker.MIME_TYPE to (format.mimeType ?: "video/$extension"),
+        ExternalVideoDownloadWorker.MIME_TYPE to mimeType,
         ExternalVideoDownloadWorker.AUDIO_EXTENSION to (format.audioExtension ?: "m4a"),
         ExternalVideoDownloadWorker.MEDIA_ID to mediaId,
         ExternalVideoDownloadWorker.SOURCE to result.serviceName,
@@ -169,7 +179,8 @@ class ExternalVideoDownloadWorker(context: Context, params: WorkerParameters) : 
             return@withContext Result.failure(workDataOf("error" to "Could not open the saved video download request: ${error.message}"))
         }
         val videoUrl = requestString(VIDEO_URL) ?: return@withContext Result.failure()
-        val audioUrl = requestString(AUDIO_URL) ?: return@withContext Result.failure()
+        val audioUrl = requestString(AUDIO_URL)
+        val adaptiveManifest = parameters.optBoolean(ADAPTIVE_MANIFEST, false)
         val referer = requestString(REFERER).orEmpty()
         val title = requestString(TITLE).orEmpty().ifBlank { "XAN video" }
         val uploader = requestString(UPLOADER).orEmpty()
@@ -190,38 +201,47 @@ class ExternalVideoDownloadWorker(context: Context, params: WorkerParameters) : 
         try {
             setForeground(getForegroundInfo())
             check(tempDirectory.mkdirs() || tempDirectory.isDirectory) { "Could not prepare temporary storage." }
-            val videoFile = File(tempDirectory, "video.${extension}")
+            val videoFile = File(tempDirectory, "video.$extension")
             val audioExtension = requestString(AUDIO_EXTENSION).orEmpty()
                 .lowercase()
                 .takeIf { it.matches(Regex("[a-z0-9]{1,8}")) }
                 ?: "audio"
             val audioFile = File(tempDirectory, "audio.$audioExtension")
             val outputFile = File(tempDirectory, "finished.$extension")
-            var currentVideoUrl = videoUrl
-            var currentAudioUrl = audioUrl
-            try {
-                download(currentVideoUrl, referer, videoFile, 0)
-                download(currentAudioUrl, referer, audioFile, 1)
-            } catch (expired: VideoHttpStatusException) {
-                if (expired.code !in setOf(401, 403, 410)) throw expired
-                val refreshed = refreshStreams(formatId)
-                currentVideoUrl = refreshed.first
-                currentAudioUrl = refreshed.second
-                videoFile.delete()
-                audioFile.delete()
-                bytesDownloaded = 0L
-                bytesTotal = -1L
-                streamBytes.fill(0L)
-                streamSizes.fill(-1L)
-                download(currentVideoUrl, referer, videoFile, 0)
-                download(currentAudioUrl, referer, audioFile, 1)
-            }
-            if (tempDirectory.usableSpace < videoFile.length() + audioFile.length()) {
-                throw IOException("There is not enough storage to combine the video and audio.")
-            }
             stage = "mux"
             reportProgress(force = true)
-            mux(videoFile, audioFile, outputFile, title, uploader, description, extension)
+            if (adaptiveManifest) {
+                remuxAdaptiveManifest(videoUrl, referer, outputFile, title, uploader, description)
+            } else {
+                var currentVideoUrl = videoUrl
+                var currentAudioUrl = audioUrl
+                try {
+                    download(currentVideoUrl, referer, videoFile, 0)
+                    currentAudioUrl?.let { download(it, referer, audioFile, 1) }
+                } catch (expired: VideoHttpStatusException) {
+                    if (expired.code !in setOf(401, 403, 410)) throw expired
+                    val refreshed = refreshStreams(formatId, requireAudio = currentAudioUrl != null)
+                    currentVideoUrl = refreshed.first
+                    if (currentAudioUrl != null) currentAudioUrl = refreshed.second
+                    videoFile.delete()
+                    audioFile.delete()
+                    bytesDownloaded = 0L
+                    bytesTotal = -1L
+                    streamBytes.fill(0L)
+                    streamSizes.fill(-1L)
+                    download(currentVideoUrl, referer, videoFile, 0)
+                    currentAudioUrl?.let { download(it, referer, audioFile, 1) }
+                }
+                val requiredBytes = videoFile.length() + if (currentAudioUrl != null) audioFile.length() else 0L
+                if (tempDirectory.usableSpace < requiredBytes) {
+                    throw IOException("There is not enough storage to finish this video.")
+                }
+                if (currentAudioUrl != null) {
+                    mux(videoFile, audioFile, outputFile, title, uploader, description, extension)
+                } else {
+                    videoFile.copyTo(outputFile, overwrite = true)
+                }
+            }
             check(outputFile.isFile && outputFile.length() > 0) { "The downloaded video file is empty." }
             val verified = verifyMuxedVideo(outputFile, duration, extension)
             stage = "publish"
@@ -231,7 +251,7 @@ class ExternalVideoDownloadWorker(context: Context, params: WorkerParameters) : 
             registerDownloadedVideo(
                 uri.toString(), mediaId, title, uploader, duration, thumbnail, source, resolution,
                 mimeType, extension, verified.streams.first { it.type == "video" }.codec,
-                verified.streams.first { it.type == "audio" }.codec, outputFile.length(),
+                verified.streams.firstOrNull { it.type == "audio" }?.codec, outputFile.length(),
             )
             publishedUri = null
             removeRequest = true
@@ -241,7 +261,7 @@ class ExternalVideoDownloadWorker(context: Context, params: WorkerParameters) : 
             throw cancelled
         } catch (error: LinkageError) {
             Result.failure(Data.Builder().putAll(inputData)
-                .putString("error", "Video merging is unavailable on this device. Use a video quality with combined audio and video.").build())
+                .putString("error", "This video format is not supported on this device.").build())
         } catch (error: Exception) {
             if (error is IOException && runAttemptCount < 4 &&
                 (error !is VideoHttpStatusException || error.retryable)) {
@@ -271,7 +291,8 @@ class ExternalVideoDownloadWorker(context: Context, params: WorkerParameters) : 
             streamBytes[stream] = downloaded
             streamSizes[stream] = total
             bytesDownloaded = streamBytes.sum()
-            bytesTotal = combinedVideoDownloadSize(streamSizes[0], streamSizes[1])
+            bytesTotal = if (requestString(AUDIO_URL) == null) streamSizes[0]
+                else combinedVideoDownloadSize(streamSizes[0], streamSizes[1])
             reportProgress()
         }
         reportProgress(force = true)
@@ -291,7 +312,7 @@ class ExternalVideoDownloadWorker(context: Context, params: WorkerParameters) : 
         setForeground(getForegroundInfo())
     }
 
-    private fun refreshStreams(formatId: String): Pair<String, String> {
+    private fun refreshStreams(formatId: String, requireAudio: Boolean): Pair<String, String?> {
         val sourceId = requestInt(SERVICE_ID, -1)
         val pageId = requestString(PAGE_ID).orEmpty()
         val referer = requestString(REFERER).orEmpty()
@@ -312,9 +333,11 @@ class ExternalVideoDownloadWorker(context: Context, params: WorkerParameters) : 
         val wantedHeight = requestInt(VIDEO_HEIGHT, -1)
         val refreshed = findCompatibleRefreshedVideoFormat(info.formats, formatId, wantedHeight,
             requestString(EXTENSION).orEmpty(), requestString(AUDIO_EXTENSION),
-            requestString(VIDEO_CODEC), requestString(AUDIO_CODEC))
+            requestString(VIDEO_CODEC), requestString(AUDIO_CODEC), requireAudio)
             ?: throw IOException("The selected video quality is no longer available.")
-        return refreshed.url to (refreshed.audioUrl ?: throw IOException("The refreshed audio stream is unavailable."))
+        return refreshed.url to if (requireAudio) {
+            refreshed.audioUrl ?: throw IOException("The refreshed audio stream is unavailable.")
+        } else null
     }
 
     private fun verifyMuxedVideo(file: File, expectedDuration: Int, extension: String): com.arthenica.ffmpegkit.MediaInformation {
@@ -323,8 +346,8 @@ class ExternalVideoDownloadWorker(context: Context, params: WorkerParameters) : 
             throw IOException("The downloaded video container could not be verified.")
         }
         val tracks = session.mediaInformation?.streams.orEmpty()
-        if (tracks.none { it.type == "video" } || tracks.none { it.type == "audio" }) {
-            throw IOException("The completed file does not contain both video and audio tracks.")
+        if (tracks.none { it.type == "video" }) {
+            throw IOException("The completed file does not contain a video track.")
         }
         val duration = session.mediaInformation?.duration?.toDoubleOrNull()
         if (duration == null || duration <= 0 ||
@@ -460,6 +483,46 @@ class ExternalVideoDownloadWorker(context: Context, params: WorkerParameters) : 
         }
     }
 
+    private suspend fun remuxAdaptiveManifest(
+        manifestUrl: String,
+        referer: String,
+        output: File,
+        title: String,
+        uploader: String,
+        description: String,
+    ) {
+        stage = "download"
+        bytesTotal = -1L
+        val headers = buildString {
+            append("User-Agent: ").append(YouTubeClient.USER_AGENT_WEB).append("\r\n")
+            if (referer.isNotBlank()) append("Referer: ").append(referer).append("\r\n")
+        }
+        val arguments = buildList {
+            addAll(listOf("-y", "-headers", headers, "-i", manifestUrl,
+                "-map", "0:v:0", "-map", "0:a:0?", "-c", "copy", "-movflags", "+faststart"))
+            addAll(listOf("-metadata", "title=$title"))
+            if (uploader.isNotBlank()) addAll(listOf("-metadata", "artist=$uploader"))
+            if (description.isNotBlank()) addAll(listOf("-metadata", "comment=$description"))
+            add(output.absolutePath)
+        }
+        val finished = CompletableDeferred<Unit>()
+        val session = try {
+            FFmpegKit.executeWithArgumentsAsync(arguments.toTypedArray()) { result ->
+                if (ReturnCode.isSuccess(result.returnCode)) finished.complete(Unit)
+                else finished.completeExceptionally(IOException("Could not download this adaptive video stream (${result.returnCode})."))
+            }
+        } catch (error: LinkageError) {
+            throw IOException("Adaptive video downloads are unavailable on this device.", error)
+        }
+        try {
+            finished.await()
+        } catch (cancelled: CancellationException) {
+            FFmpegKit.cancel(session.sessionId)
+            withContext(NonCancellable) { runCatching { finished.await() } }
+            throw cancelled
+        }
+    }
+
     private suspend fun publish(
         source: File,
         title: String,
@@ -470,17 +533,18 @@ class ExternalVideoDownloadWorker(context: Context, params: WorkerParameters) : 
     ): android.net.Uri {
         val name = "XAN - ${title.safeDownloadTitle()}.$extension"
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-            // App-specific external storage works on Android 8 and 9 without a
-            // storage permission, and remains playable from XAN's Downloads list.
-            val downloadsDirectory = applicationContext.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
-                ?: File(applicationContext.filesDir, Environment.DIRECTORY_DOWNLOADS)
-            val xanDirectory = File(downloadsDirectory, "XAN")
+            if (ContextCompat.checkSelfPermission(applicationContext, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                throw IOException("Allow storage access to save videos in the public Movies folder.")
+            }
+            val moviesDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES)
+            val xanDirectory = File(moviesDirectory, "XAN")
             if (!xanDirectory.mkdirs() && !xanDirectory.isDirectory) {
                 throw IOException("Could not prepare the Downloads folder.")
             }
             val destination = File(xanDirectory, name)
             try {
                 destination.outputStream().use { output -> source.inputStream().use { it.copyTo(output) } }
+                MediaScannerConnection.scanFile(applicationContext, arrayOf(destination.absolutePath), arrayOf(mimeType), null)
                 return android.net.Uri.fromFile(destination)
             } catch (error: Exception) {
                 destination.delete()
@@ -495,12 +559,12 @@ class ExternalVideoDownloadWorker(context: Context, params: WorkerParameters) : 
                 put(MediaStore.MediaColumns.AUTHOR, uploader)
                 put(MediaStore.Video.VideoColumns.DESCRIPTION, description)
             }
-            put(MediaStore.MediaColumns.RELATIVE_PATH, "${Environment.DIRECTORY_DOWNLOADS}/XAN")
+            put(MediaStore.MediaColumns.RELATIVE_PATH, "${Environment.DIRECTORY_MOVIES}/XAN")
             put(MediaStore.MediaColumns.IS_PENDING, 1)
         }
         val resolver = applicationContext.contentResolver
-        val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
-            ?: throw IOException("Could not create a file in Downloads.")
+        val uri = resolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values)
+            ?: throw IOException("Could not create a file in Movies.")
         try {
             val destination = resolver.openOutputStream(uri, "w")
                 ?: throw IOException("Could not open the new Downloads file.")
@@ -519,6 +583,7 @@ class ExternalVideoDownloadWorker(context: Context, params: WorkerParameters) : 
         const val REQUEST_FILE = "request_file"
         const val VIDEO_URL = "video_url"
         const val AUDIO_URL = "audio_url"
+        const val ADAPTIVE_MANIFEST = "adaptive_manifest"
         const val AUDIO_EXTENSION = "audio_extension"
         const val REFERER = "referer"
         const val TITLE = "title"
