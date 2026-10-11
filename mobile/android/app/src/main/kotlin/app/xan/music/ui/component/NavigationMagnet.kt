@@ -26,8 +26,6 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -381,24 +379,6 @@ private fun SemicircleMagnetMenu(
         Canvas(Modifier.matchParentSize()) {
             val magnetCenter = Offset(layout.magnet.x.dp.toPx(), layout.magnet.y.dp.toPx())
             val accent = Color(0xFFB58CFF)
-            val glowAlpha = if (open) 0.15f else 0f
-            layout.items.forEach { point ->
-                drawLine(
-                    color = accent.copy(alpha = if (open) 0.28f else 0f),
-                    start = Offset(point.x.dp.toPx(), point.y.dp.toPx()),
-                    end = magnetCenter,
-                    strokeWidth = 1.dp.toPx(),
-                )
-            }
-            drawCircle(
-                color = accent.copy(alpha = glowAlpha),
-                radius = 76.dp.toPx(),
-                center = magnetCenter,
-                style = Stroke(
-                    width = 1.dp.toPx(),
-                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(6.dp.toPx(), 8.dp.toPx())),
-                ),
-            )
             drawCircle(
                 brush = androidx.compose.ui.graphics.Brush.radialGradient(
                     colors = listOf(accent.copy(alpha = if (open) 0.22f else 0f), Color.Transparent),

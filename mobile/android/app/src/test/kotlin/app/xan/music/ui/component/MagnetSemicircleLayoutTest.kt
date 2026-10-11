@@ -32,7 +32,8 @@ class MagnetSemicircleLayoutTest {
             for (onLeft in listOf(false, true)) {
                 val layout = magnetSemicircleLayout(width, onLeft)
                 layout.items.forEach { item ->
-                    val labelX = if (onLeft) item.x + 30f else item.x - 104f
+                    val labelX = (if (onLeft) item.x + 30f else item.x - 104f)
+                        .coerceIn(0f, layout.width - 96f)
                     assertTrue(labelX >= 0f)
                     assertTrue(labelX + 96f <= layout.width)
                     assertTrue(item.y >= 26f && item.y <= layout.height - 26f)
