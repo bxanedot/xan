@@ -331,7 +331,8 @@ jobs:
           else
             chmod +x ./mobile/android/gradlew
             if [[ "$RUNNER_OS" == "Linux" ]]; then
-              xvfb-run -a ./mobile/android/gradlew -p desktop/shared test "$TASK" "-PxanDesktopVersion=$VERSION" --no-daemon --no-configuration-cache --console=plain --warning-mode summary
+              # JavaFX's native GStreamer media worker segfaults on the hosted Linux runner.
+              xvfb-run -a ./mobile/android/gradlew -p desktop/shared test "$TASK" "-PxanDesktopVersion=$VERSION" "-Dxan.skipNativeMediaIntegration=true" --no-daemon --no-configuration-cache --console=plain --warning-mode summary
             else
               ./mobile/android/gradlew -p desktop/shared test "$TASK" "-PxanDesktopVersion=$VERSION" --no-daemon --no-configuration-cache --console=plain --warning-mode summary
             fi

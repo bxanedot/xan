@@ -93,7 +93,8 @@ jobs:
         run: |
           set -euo pipefail
           chmod +x ./mobile/android/gradlew
-          xvfb-run -a ./mobile/android/gradlew -p desktop/shared test packageDeb packageRpm createDistributable --no-daemon --no-configuration-cache --console=plain
+          # JavaFX's native GStreamer media worker segfaults on the hosted Linux runner.
+          xvfb-run -a ./mobile/android/gradlew -p desktop/shared test packageDeb packageRpm createDistributable "-Dxan.skipNativeMediaIntegration=true" --no-daemon --no-configuration-cache --console=plain
 
       - name: Test and build macOS DMG
         if: runner.os == 'macOS'
