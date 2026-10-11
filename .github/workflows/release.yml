@@ -156,7 +156,7 @@ jobs:
           ./gradlew :app:assembleRelease --no-daemon --no-configuration-cache --console=plain --warning-mode summary -x lint -Dorg.gradle.problems.report=false
         working-directory: mobile/android
 
-      - name: Verify and upload Android ABI APKs
+      - name: Verify and upload the single universal Android APK
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ steps.release.outputs.tag }}
@@ -164,8 +164,9 @@ jobs:
         run: |
           set -euo pipefail
           APK_DIR=mobile/android/app/build/outputs/apk/release
-          APK_COUNT=$(find "$APK_DIR" -maxdepth 1 -type f -name '*.apk' | wc -l)
-          [ "$APK_COUNT" -eq 5 ] || { echo "Expected four ABI APKs and one universal APK, found $APK_COUNT." >&2; exit 1; }
+          mapfile -t APK_PATHS < <(find "$APK_DIR" -maxdepth 1 -type f -name '*.apk' | sort)
+          [ "${#APK_PATHS[@]}" -eq 1 ] || { echo "Expected exactly one universal APK, found ${#APK_PATHS[@]}." >&2; exit 1; }
+          APK_PATH="${APK_PATHS[0]}"
 
           APK_SIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n 1)
           [ -n "$APK_SIGNER" ] || { echo "Android apksigner was not found." >&2; exit 1; }
@@ -174,26 +175,23 @@ jobs:
           mkdir -p "$OUTPUT_DIR"
           EXPECTED_CERT="$(tr -d '\r\n ' < mobile/android/signing-certificate.sha256)"
           [[ "$EXPECTED_CERT" =~ ^[0-9a-f]{64}$ ]] || { echo "Invalid Android signing-certificate.sha256." >&2; exit 1; }
-          for APK_PATH in "$APK_DIR"/*.apk; do
-            case "$(basename "$APK_PATH" | tr '[:upper:]' '[:lower:]')" in
-              *universal*) ASSET_NAME=xan.apk ;;
-              *arm64-v8a*) ASSET_NAME=xan-arm64-v8a.apk ;;
-              *armeabi-v7a*) ASSET_NAME=xan-armeabi-v7a.apk ;;
-              *x86_64*) ASSET_NAME=xan-x86_64.apk ;;
-              *x86*) ASSET_NAME=xan-x86.apk ;;
-              *) echo "Unknown ABI APK output: $APK_PATH" >&2; exit 1 ;;
-            esac
-            CERT=$("$APK_SIGNER" verify --print-certs "$APK_PATH" | sed -n 's/^.*certificate SHA-256 digest: //p' | tr '[:upper:]' '[:lower:]')
-            if [ "$CERT" != "$EXPECTED_CERT" ]; then
-              echo "Refusing to publish: signing certificate mismatch in $APK_PATH." >&2
-              exit 1
-            fi
-            cp "$APK_PATH" "$OUTPUT_DIR/$ASSET_NAME"
-          done
-          for ASSET_NAME in xan.apk xan-arm64-v8a.apk xan-armeabi-v7a.apk xan-x86_64.apk xan-x86.apk; do
-            [ -s "$OUTPUT_DIR/$ASSET_NAME" ] || { echo "Missing Android release asset: $ASSET_NAME" >&2; exit 1; }
-          done
-          gh release upload "$TAG" "$OUTPUT_DIR"/*.apk --repo "${{ github.repository }}" --clobber
+          CERT=$("$APK_SIGNER" verify --print-certs "$APK_PATH" | sed -n 's/^.*certificate SHA-256 digest: //p' | tr '[:upper:]' '[:lower:]')
+          if [ "$CERT" != "$EXPECTED_CERT" ]; then
+            echo "Refusing to publish: signing certificate mismatch in $APK_PATH." >&2
+            exit 1
+          fi
+          METADATA="$APK_DIR/output-metadata.json"
+          python3 - "$METADATA" "$VERSION" "$(sed -n 's/^XAN_VERSION_CODE=//p' mobile/android/version.properties | tail -n 1)" <<'PY'
+          import json, pathlib, sys
+          metadata = json.loads(pathlib.Path(sys.argv[1]).read_text())
+          elements = metadata.get("elements", [])
+          expected_version, expected_code = sys.argv[2], int(sys.argv[3])
+          if len(elements) != 1 or elements[0].get("versionName") != expected_version or elements[0].get("versionCode") != expected_code:
+              raise SystemExit(f"APK metadata does not match version {expected_version} code {expected_code}: {elements}")
+          PY
+          cp "$APK_PATH" "$OUTPUT_DIR/xan.apk"
+          [ -s "$OUTPUT_DIR/xan.apk" ] || { echo "Universal APK was not staged." >&2; exit 1; }
+          gh release upload "$TAG" "$OUTPUT_DIR/xan.apk" --repo "${{ github.repository }}" --clobber
 
       - name: Publish manually-created draft release
         if: ${{ github.event_name == 'workflow_dispatch' && steps.release.outputs.was_draft == 'true' }}

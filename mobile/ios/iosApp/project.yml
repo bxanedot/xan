@@ -33,7 +33,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.xan.ios
         PRODUCT_NAME: XAN
-        MARKETING_VERSION: 0.9.7
+        MARKETING_VERSION: 1.0.0
         CURRENT_PROJECT_VERSION: 1
     preBuildScripts:
       - name: Build shared Kotlin framework

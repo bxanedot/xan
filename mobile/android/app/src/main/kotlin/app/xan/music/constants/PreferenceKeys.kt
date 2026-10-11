@@ -556,6 +556,7 @@ val EnableLyricsThumbnailPlayPauseKey = booleanPreferencesKey("enableLyricsThumb
 val LyricsTextPositionKey = stringPreferencesKey("lyricsTextPosition")
 val LyricsClickKey = booleanPreferencesKey("lyricsClick")
 val LyricsScrollKey = booleanPreferencesKey("lyricsScrollKey")
+val LyricsRomanizationEnabledKey = booleanPreferencesKey("lyricsRomanizationEnabled")
 val LyricsRomanizeJapaneseKey = booleanPreferencesKey("lyricsRomanizeJapanese")
 val LyricsRomanizeKoreanKey = booleanPreferencesKey("lyricsRomanizeKorean")
 val LyricsRomanizeChineseKey = booleanPreferencesKey("lyricsRomanizeChinese")

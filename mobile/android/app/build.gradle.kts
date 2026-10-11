@@ -117,14 +117,10 @@ android {
 
     }
 
-    // Produce small per-ABI APKs for direct downloads, plus a universal APK for
-    // browsers that do not expose reliable architecture hints and as a fallback.
+    // Distribute one universal APK for every Android device architecture.
     splits {
         abi {
-            isEnable = true
-            reset()
-            include("arm64-v8a", "armeabi-v7a", "x86_64", "x86")
-            isUniversalApk = true
+            isEnable = false
         }
     }
 

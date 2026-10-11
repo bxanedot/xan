@@ -481,6 +481,8 @@
     <string name="lyrics_romanization_cyrillic">Cyrillic</string>
     <string name="lyrics_romanize_title">Romanization</string>
     <string name="lyrics_romanization">Lyrics romanization</string>
+    <string name="lyrics_romanization_enabled">Enable lyric romanization</string>
+    <string name="lyrics_romanization_enabled_description">Turn off romanized lyrics and Cyrillic transliteration. Language support remains bundled in the APK.</string>
     <string name="romanization">Romanization</string>
     <string name="lyrics_romanize_japanese">Romanize Japanese lyrics</string>
     <string name="lyrics_romanize_korean">Romanize Korean lyrics</string>

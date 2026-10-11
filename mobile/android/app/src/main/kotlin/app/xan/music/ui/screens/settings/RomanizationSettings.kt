@@ -33,6 +33,7 @@ import androidx.navigation.NavController
 import app.xan.music.LocalPlayerAwareWindowInsets
 import app.xan.music.R
 import app.xan.music.constants.LyricsRomanizeAsMainKey
+import app.xan.music.constants.LyricsRomanizationEnabledKey
 import app.xan.music.constants.LyricsRomanizeBelarusianKey
 import app.xan.music.constants.LyricsRomanizeBulgarianKey
 import app.xan.music.constants.LyricsRomanizeChineseKey
@@ -61,6 +62,10 @@ fun RomanizationSettings(
 ) {
     val context = LocalContext.current
 
+    val (lyricsRomanizationEnabled, onLyricsRomanizationEnabledChange) = rememberPreference(
+        LyricsRomanizationEnabledKey,
+        defaultValue = true,
+    )
     val (lyricsRomanizeAsMain, onLyricsRomanizeAsMainChange) = rememberPreference(LyricsRomanizeAsMainKey, defaultValue = false)
     val (lyricsRomanizeJapanese, onLyricsRomanizeJapaneseChange) = rememberPreference(LyricsRomanizeJapaneseKey, defaultValue = true)
     val (lyricsRomanizeKorean, onLyricsRomanizeKoreanChange) = rememberPreference(LyricsRomanizeKoreanKey, defaultValue = true)
@@ -86,6 +91,27 @@ fun RomanizationSettings(
         Material3SettingsGroup(
             title = stringResource(R.string.general),
             items = listOf(
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.xan_icon_lyrics),
+                    title = { Text(stringResource(R.string.lyrics_romanization_enabled)) },
+                    description = { Text(stringResource(R.string.lyrics_romanization_enabled_description)) },
+                    trailingContent = {
+                        Switch(
+                            checked = lyricsRomanizationEnabled,
+                            onCheckedChange = onLyricsRomanizationEnabledChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (lyricsRomanizationEnabled) R.drawable.check else R.drawable.xan_icon_close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onLyricsRomanizationEnabledChange(!lyricsRomanizationEnabled) }
+                ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.xan_icon_lyrics),
                     title = { Text(stringResource(R.string.lyrics_romanize_as_main)) },
