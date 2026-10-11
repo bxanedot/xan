@@ -441,7 +441,7 @@ class DesktopBackendTest {
         val database = directory.resolve("catalogue.sqlite3")
         try {
             val catalogue = CatalogStore(database)
-            assertEquals(10, catalogue.schemaVersion())
+            assertEquals(11, catalogue.schemaVersion())
             val tracks = listOf(
                 CatalogTrack("ytm:song:one", "Patient Zero", "Taylor Swift", "Example Album", 218, source = "youtube_music", videoId = "one"),
                 CatalogTrack("ytm:song:two", "Great Expectation", "SIENNA SPIRO", "Example Album", 194, source = "youtube_music", videoId = "two"),
@@ -562,10 +562,28 @@ class DesktopBackendTest {
         val database = directory.resolve("catalogue.sqlite3")
         try {
             java.sql.DriverManager.getConnection("jdbc:sqlite:${database.toAbsolutePath()}").use { connection ->
-                connection.createStatement().use { it.execute("PRAGMA user_version = 4") }
+                connection.createStatement().use { statement ->
+                    statement.execute("""CREATE TABLE tracks(
+                        id TEXT PRIMARY KEY NOT NULL,title TEXT NOT NULL,artist TEXT NOT NULL DEFAULT '',
+                        source TEXT NOT NULL,source_id TEXT,local_path TEXT
+                    )""")
+                    statement.execute("CREATE INDEX tracks_title_idx ON tracks(lower(title))")
+                    statement.execute("CREATE INDEX tracks_artist_idx ON tracks(lower(artist))")
+                    statement.execute("CREATE INDEX tracks_source_idx ON tracks(source,source_id)")
+                    statement.execute("CREATE INDEX tracks_local_idx ON tracks(local_path)")
+                    statement.execute("""CREATE TABLE playlists(
+                        id TEXT PRIMARY KEY NOT NULL,name TEXT NOT NULL,description TEXT,
+                        source TEXT NOT NULL DEFAULT 'local',created_at INTEGER NOT NULL,updated_at INTEGER NOT NULL
+                    )""")
+                    statement.execute("CREATE TABLE history(id INTEGER PRIMARY KEY AUTOINCREMENT,played_at INTEGER NOT NULL)")
+                    statement.execute("CREATE INDEX history_played_at_idx ON history(played_at DESC)")
+                    statement.execute("CREATE TABLE settings(key TEXT PRIMARY KEY NOT NULL,value TEXT NOT NULL)")
+                    statement.execute("CREATE TABLE library_roots(path TEXT PRIMARY KEY NOT NULL,added_at INTEGER NOT NULL,last_scanned_at INTEGER)")
+                    statement.execute("PRAGMA user_version = 4")
+                }
             }
             val upgraded = CatalogStore(database)
-            assertEquals(10, upgraded.schemaVersion())
+            assertEquals(11, upgraded.schemaVersion())
             upgraded.recordSearch("legacy upgrade")
             assertEquals(listOf("legacy upgrade"), upgraded.recentSearches())
             upgraded.cacheLyrics("video:42", "[00:00.00]line", "test")
