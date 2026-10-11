@@ -59,6 +59,9 @@ import app.xan.music.constants.DefaultOpenTabKey
 import app.xan.music.constants.DensityScale
 import app.xan.music.constants.DensityScaleKey
 import app.xan.music.constants.DynamicThemeKey
+import app.xan.music.constants.DarkModeKey
+import app.xan.music.constants.PureBlackKey
+import app.xan.music.constants.PureBlackMiniPlayerKey
 import app.xan.music.constants.AppIconKey
 import app.xan.music.constants.AppLogo
 import app.xan.music.ui.component.AppLogoPicker
@@ -151,7 +154,19 @@ fun AppearanceSettings(
 ) {
     val (_, _) = rememberPreference(UseNewMiniPlayerDesignKey, defaultValue = true)
     val (miniBarTabStyle, onMiniBarTabStyleChange) = rememberPreference(MiniBarTabStyleKey, defaultValue = false)
-    val (_, _) = rememberPreference(DynamicThemeKey, defaultValue = true)
+    val (dynamicTheme, onDynamicThemeChange) = rememberPreference(DynamicThemeKey, defaultValue = true)
+    val (darkMode, onDarkModeChange) = rememberEnumPreference(DarkModeKey, DarkMode.AUTO)
+    val (pureBlack, onPureBlackChange) = rememberPreference(PureBlackKey, defaultValue = false)
+    val (_, onPureBlackMiniPlayerChange) = rememberPreference(
+        PureBlackMiniPlayerKey,
+        defaultValue = false,
+    )
+    val amoledEnabled = pureBlack
+    val onAmoledChange: (Boolean) -> Unit = { enabled ->
+        if (enabled) onDarkModeChange(DarkMode.ON)
+        onPureBlackChange(enabled)
+        onPureBlackMiniPlayerChange(enabled)
+    }
     val (appLogoValue, onAppLogoChange) = rememberPreference(
         AppIconKey, AppLogo.WHITE.value,
     )
@@ -597,6 +612,52 @@ fun AppearanceSettings(
         Material3SettingsGroup(
             title = stringResource(R.string.appearance),
             items = buildList {
+                add(
+                    Material3SettingsItem(
+                        icon = painterResource(R.drawable.palette),
+                        title = { Text(stringResource(R.string.dynamic_theme)) },
+                        description = { Text(stringResource(R.string.dynamic_theme_desc)) },
+                        trailingContent = {
+                            Switch(
+                                checked = dynamicTheme,
+                                onCheckedChange = onDynamicThemeChange,
+                                thumbContent = {
+                                    Icon(
+                                        painter = painterResource(
+                                            id = if (dynamicTheme) R.drawable.check else R.drawable.xan_icon_close
+                                        ),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(SwitchDefaults.IconSize)
+                                    )
+                                }
+                            )
+                        },
+                        onClick = { onDynamicThemeChange(!dynamicTheme) },
+                    ),
+                )
+                add(
+                    Material3SettingsItem(
+                        icon = painterResource(R.drawable.contrast),
+                        title = { Text(stringResource(R.string.amoled_black)) },
+                        description = { Text(stringResource(R.string.amoled_black_desc)) },
+                        trailingContent = {
+                            Switch(
+                                checked = amoledEnabled,
+                                onCheckedChange = onAmoledChange,
+                                thumbContent = {
+                                    Icon(
+                                        painter = painterResource(
+                                            id = if (amoledEnabled) R.drawable.check else R.drawable.xan_icon_close
+                                        ),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(SwitchDefaults.IconSize)
+                                    )
+                                }
+                            )
+                        },
+                        onClick = { onAmoledChange(!amoledEnabled) },
+                    ),
+                )
                 add(
                     Material3SettingsItem(
                         icon = xanLauncherMarkPainter(appLogo),

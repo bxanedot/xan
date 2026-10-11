@@ -11,8 +11,9 @@ import androidx.compose.runtime.Immutable
 import app.xan.music.R
 
 /**
- * A navigation destination. Downloads is reached through Library and Settings
- * through the top-right shortcut; neither appears in Magnet or legacy bar tabs.
+ * A navigation destination. Downloads is reached through Library, Settings uses
+ * the top-right shortcut, and Recognition lives in Magnet. None appears in legacy
+ * bar tabs.
  *
  * One icon per destination per UI style — deliberately not a selected/unselected
  * pair. iOS ships outline/filled pairs because its tab bar has no selection
@@ -62,6 +63,12 @@ sealed class Screens(
         titleId = R.string.filter_library,
         route = "library",
         icon = R.drawable.accord_library,
+    )
+
+    object Recognition : Screens(
+        titleId = R.string.recognize_music,
+        route = "recognition",
+        icon = R.drawable.mic,
     )
 
     object Downloads : Screens(

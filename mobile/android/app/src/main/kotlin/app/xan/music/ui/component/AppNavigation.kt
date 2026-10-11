@@ -11,7 +11,6 @@ import app.xan.music.constants.AppBackgroundColorKey
 import app.xan.music.constants.AppTextColorKey
 import app.xan.music.utils.rememberPreference
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -40,22 +39,16 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.xan.music.ui.screens.Screens
 import app.xan.music.ui.utils.pressWobble
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collectLatest
 
 @Immutable
 private data class NavItemState(
@@ -102,11 +95,8 @@ fun AppNavigationRail(
     onItemClick: (Screens, Boolean) -> Unit,
     modifier: Modifier = Modifier,
     pureBlack: Boolean = false,
-    onSearchLongClick: (() -> Unit)? = null
 ) {
     val containerColor = if (pureBlack) Color.Black else MaterialTheme.colorScheme.surfaceContainer
-    val haptics = LocalHapticFeedback.current
-    val viewConfiguration = LocalViewConfiguration.current
 
     NavigationRail(
         modifier = modifier,
@@ -120,47 +110,11 @@ fun AppNavigationRail(
             }
             val iconRes = screen.icon
 
-            val isSearchItem = screen == Screens.Search && onSearchLongClick != null
             val interactionSource = remember { MutableInteractionSource() }
-            // LaunchedEffect(interactionSource) only launches once (interactionSource's
-            // identity never changes), so its collectLatest closure would otherwise
-            // freeze isSelected at whatever it was on that first launch — every tap
-            // afterward re-reads that stale value instead of the current route.
-            // rememberUpdatedState keeps it live.
-            val currentIsSelected by rememberUpdatedState(isSelected)
-
-            if (isSearchItem) {
-                LaunchedEffect(interactionSource) {
-                    var isLongClick = false
-                    interactionSource.interactions.collectLatest { interaction ->
-                        when (interaction) {
-                            is PressInteraction.Press -> {
-                                isLongClick = false
-                                delay(viewConfiguration.longPressTimeoutMillis)
-                                isLongClick = true
-                                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                                onSearchLongClick.invoke()
-                            }
-                            is PressInteraction.Release -> {
-                                if (!isLongClick) {
-                                    onItemClick(screen, currentIsSelected)
-                                }
-                            }
-                            is PressInteraction.Cancel -> {
-                                isLongClick = false
-                            }
-                        }
-                    }
-                }
-            }
 
             NavigationRailItem(
                 selected = isSelected,
-                onClick = {
-                    if (!isSearchItem) {
-                        onItemClick(screen, isSelected)
-                    }
-                },
+                onClick = { onItemClick(screen, isSelected) },
                 interactionSource = interactionSource,
                 icon = {
                     Icon(

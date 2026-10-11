@@ -84,11 +84,12 @@ private data class MagnetEntry(
     val action: () -> Unit,
 )
 
-/** Settings, Downloads and player actions have their own entry points. */
+/** Settings and Downloads have their own entry points; Recognition lives in Magnet. */
 internal val MagnetNavigationScreens = listOf(
     Screens.Home,
     Screens.Search,
     Screens.Library,
+    Screens.Recognition,
 )
 
 /** Both layouts stay attached to the Magnet, including every animation variant. */

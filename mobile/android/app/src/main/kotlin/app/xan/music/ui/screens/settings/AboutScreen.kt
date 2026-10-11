@@ -270,7 +270,7 @@ fun AboutScreen(
                         if (displayedGithubStars != null) {
                             Text(
                                 NumberFormat.getIntegerInstance().format(animatedGithubStars),
-                                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+                                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                                 color = MaterialTheme.colorScheme.primary,
                             )
                         } else if (starsLoading) {
@@ -279,7 +279,7 @@ fun AboutScreen(
                                 strokeWidth = 2.dp,
                             )
                         } else {
-                            Text("—", style = MaterialTheme.typography.headlineSmall)
+                            Text("—", style = MaterialTheme.typography.titleLarge)
                         }
                     },
                     onClick = { uriHandler.safeOpenUri(context, ProjectLinks.STAR_REPOSITORY) },

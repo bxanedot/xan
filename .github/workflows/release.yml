@@ -448,15 +448,3 @@ jobs:
           assets=("$output"/XAN-"$VERSION"-"$PLATFORM_ID"-*)
           (("${#assets[@]}" > 0)) || { echo "No native release assets were produced." >&2; exit 1; }
           gh release upload "$TAG" "${assets[@]}" --repo "${{ github.repository }}" --clobber
-
-      - name: Build and publish the optional Japanese romanization pack
-        if: ${{ matrix.platform_id == 'linux' && matrix.output_folder == 'deb' }}
-        env:
-          GH_TOKEN: ${{ github.token }}
-          TAG: ${{ steps.release.outputs.tag }}
-        run: |
-          set -euo pipefail
-          ./mobile/android/gradlew -p desktop/features/japanese-romanization jar --no-daemon --no-configuration-cache --console=plain
-          pack="desktop/features/japanese-romanization/build/libs/xan-feature-japanese-romanization.jar"
-          (cd "$(dirname "$pack")" && sha256sum "$(basename "$pack")" > "$(basename "$pack").sha256")
-          gh release upload "$TAG" "$pack" "$pack.sha256" --repo "${{ github.repository }}" --clobber

@@ -1240,7 +1240,6 @@ class MainActivity : ComponentActivity() {
                         if (hasSearchPlayerAccessory) {
                             bottom += with(density) { searchPlayerHeightPx.toDp() } + 8.dp
                         }
-                        if (!useMagnetNavigation) bottom += 56.dp // Recognition shortcut.
                     }
                     windowsInsets
                         .only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top)
@@ -1519,11 +1518,6 @@ class MainActivity : ComponentActivity() {
                         navController.navigate(Screens.Settings.route) { launchSingleTop = true }
                     }
                 }
-                val openRecognition: () -> Unit = {
-                    closeSearchOverlay()
-                    navController.navigate("recognition") { launchSingleTop = true }
-                }
-
                 // The nav bar (rendered outside/above search_input and search/{query} in
                 // the tree below) owns the actual search text field now â€” both screens
                 // just read this to filter/display results.
@@ -1756,14 +1750,6 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
 
-                            val onSearchLongClick: () -> Unit = remember(navController) {
-                                {
-                                    navController.navigate("recognition") {
-                                        launchSingleTop = true
-                                    }
-                                }
-                            }
-
                             // Pre-calculate values for graphicsLayer to avoid reading state during composition
                             val navBarTotalHeight = bottomInset + NavigationBarHeight
                             // Match the original compact pill's alignment above Magnet.
@@ -1988,14 +1974,6 @@ class MainActivity : ComponentActivity() {
                                                 restoreState = true
                                             }
                                         }
-                                    }
-                                }
-                            }
-
-                            val onRailSearchLongClick: () -> Unit = remember(navController) {
-                                {
-                                    navController.navigate("recognition") {
-                                        launchSingleTop = true
                                     }
                                 }
                             }
@@ -2343,17 +2321,7 @@ class MainActivity : ComponentActivity() {
                                 .windowInsetsPadding(windowsInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal))
                                 .padding(top = 8.dp, end = 16.dp)
                                 .zIndex(2f),
-                            verticalArrangement = Arrangement.spacedBy(4.dp),
                         ) {
-                            if (useMagnetNavigation) {
-                                GlassCircleButton(onClick = openRecognition, size = 48.dp, opaqueInSolidMode = true) {
-                                    Icon(
-                                        painterResource(R.drawable.mic),
-                                        contentDescription = stringResource(R.string.recognize_music),
-                                        modifier = Modifier.size(24.dp),
-                                    )
-                                }
-                            }
                             GlassCircleButton(onClick = openSettings, size = 48.dp, opaqueInSolidMode = true) {
                                 Icon(
                                     painterResource(R.drawable.xan_icon_settings),
@@ -2361,34 +2329,6 @@ class MainActivity : ComponentActivity() {
                                     modifier = Modifier.size(24.dp),
                                 )
                             }
-                        }
-                    }
-
-                    // Legacy exposes recognition above its Search/player instead of
-                    // depending on an undiscoverable long-press action.
-                    if (!useMagnetNavigation && shouldShowNavigationBar && !playerAboveBars &&
-                        !isKeyboardOpen && !searchKeyboardActive && !showSettingDialoge
-                    ) {
-                        val recognitionBottom = maxOf(
-                            bottomInset + NavigationBarHeight,
-                            with(density) { navigationChromeHeightPx.toDp() },
-                        ) + if (hasSearchPlayerAccessory) {
-                            with(density) { searchPlayerHeightPx.toDp() } + 8.dp
-                        } else 0.dp
-                        GlassCircleButton(
-                            onClick = openRecognition,
-                            size = 48.dp,
-                            opaqueInSolidMode = true,
-                            modifier = Modifier
-                                .align(Alignment.BottomEnd)
-                                .windowInsetsPadding(windowsInsets.only(WindowInsetsSides.Horizontal))
-                                .padding(end = 16.dp, bottom = recognitionBottom + 8.dp),
-                        ) {
-                            Icon(
-                                painterResource(R.drawable.mic),
-                                contentDescription = stringResource(R.string.recognize_music),
-                                modifier = Modifier.size(24.dp),
-                            )
                         }
                     }
 
