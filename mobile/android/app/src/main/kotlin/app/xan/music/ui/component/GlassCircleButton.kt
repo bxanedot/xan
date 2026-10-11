@@ -46,6 +46,7 @@ fun GlassCircleButton(
     onLongClick: (() -> Unit)? = null,
     size: Dp = 44.dp,
     opaqueInSolidMode: Boolean = false,
+    pressWobbleEnabled: Boolean = true,
     content: @Composable () -> Unit,
 ) {
     val glassConfig = LocalGlassEffectConfig.current
@@ -79,7 +80,7 @@ fun GlassCircleButton(
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
-            .pressWobble(interactionSource)
+            .then(if (pressWobbleEnabled) Modifier.pressWobble(interactionSource) else Modifier)
             .size(size)
             .clip(GlassCircleShape)
             .then(backgroundModifier)

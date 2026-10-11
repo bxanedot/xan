@@ -243,7 +243,7 @@ fun AboutScreen(
                     title = {
                         Text(
                             stringResource(R.string.github_stars_title),
-                            style = MaterialTheme.typography.titleLarge,
+                            style = MaterialTheme.typography.titleMedium,
                         )
                     },
                     description = if (starsRefreshFailed) {
@@ -270,7 +270,7 @@ fun AboutScreen(
                         if (displayedGithubStars != null) {
                             Text(
                                 NumberFormat.getIntegerInstance().format(animatedGithubStars),
-                                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                                 color = MaterialTheme.colorScheme.primary,
                             )
                         } else if (starsLoading) {
@@ -279,7 +279,7 @@ fun AboutScreen(
                                 strokeWidth = 2.dp,
                             )
                         } else {
-                            Text("—", style = MaterialTheme.typography.titleLarge)
+                            Text("—", style = MaterialTheme.typography.titleMedium)
                         }
                     },
                     onClick = { uriHandler.safeOpenUri(context, ProjectLinks.STAR_REPOSITORY) },

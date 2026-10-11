@@ -5,7 +5,6 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -26,7 +25,6 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalDensity
@@ -128,15 +126,18 @@ fun NavigationMagnet(
     var showing by remember { mutableStateOf(open) }
     var motionVariant by remember { mutableIntStateOf(0) }
     val haptics = LocalHapticFeedback.current
-    val popupOffset = with(LocalDensity.current) { -64.dp.roundToPx() }
+    val density = LocalDensity.current
+    val popupOffset = with(density) { -64.dp.roundToPx() }
+    val pageIconGapDp = with(density) { 3.toDp().value }
     val configuration = LocalConfiguration.current
     val menuMaxHeight = configuration.screenHeightDp.dp * .65f
     val arcWidth = (configuration.screenWidthDp - 32).coerceAtMost(320)
-    val arcLayout = remember(arcWidth, onLeft) {
+    val arcLayout = remember(arcWidth, onLeft, pageIconGapDp) {
         magnetSemicircleLayout(
             arcWidth.coerceAtLeast(240).toFloat(),
             onLeft,
             itemCount = MagnetNavigationScreens.size,
+            pageIconGapDp = pageIconGapDp,
         )
     }
     // Four 52dp circles need a little over 300dp of width to keep the arc airy.
@@ -152,10 +153,6 @@ fun NavigationMagnet(
     val useGlass = glassConfig.isEnabledFor(GlassComponent.NAV_BAR) && isGlassAllowed()
     val rotation by animateFloatAsState(
         if (open && springAnimationsEnabled) 90f else 0f, spring(damping, stiffness), label = "magnetRotation",
-    )
-    val scale by animateFloatAsState(
-        if (open && !useSemicircle && springAnimationsEnabled) 1.06f else 1f,
-        spring(damping, stiffness), label = "magnetPress",
     )
     val expandedDescription = stringResource(
         if (open) R.string.navigation_magnet_expanded else R.string.navigation_magnet_collapsed,
@@ -216,7 +213,6 @@ fun NavigationMagnet(
                         showIconNames = showIconNames,
                         open = open,
                         rotation = rotation,
-                        scale = scale,
                         motion = motion,
                         motionVariant = motionVariant,
                         springAnimationsEnabled = springAnimationsEnabled,
@@ -339,11 +335,12 @@ fun NavigationMagnet(
             onClick = toggle,
             size = 56.dp,
             opaqueInSolidMode = true,
+            pressWobbleEnabled = false,
             modifier = Modifier
                 .semantics { stateDescription = expandedDescription }
                 .graphicsLayer {
                     alpha = if (useSemicircle && showing) 0f else 1f
-                    rotationZ = rotation; scaleX = scale; scaleY = scale
+                    rotationZ = rotation
                 },
         ) {
             Icon(
@@ -365,7 +362,6 @@ private fun SemicircleMagnetMenu(
     showIconNames: Boolean,
     open: Boolean,
     rotation: Float,
-    scale: Float,
     motion: MagnetMotion,
     motionVariant: Int,
     springAnimationsEnabled: Boolean,
@@ -376,19 +372,6 @@ private fun SemicircleMagnetMenu(
         if (open) R.string.navigation_magnet_expanded else R.string.navigation_magnet_collapsed,
     )
     Box(Modifier.size(layout.width.dp, layout.height.dp)) {
-        Canvas(Modifier.matchParentSize()) {
-            val magnetCenter = Offset(layout.magnet.x.dp.toPx(), layout.magnet.y.dp.toPx())
-            val accent = Color(0xFFB58CFF)
-            drawCircle(
-                brush = androidx.compose.ui.graphics.Brush.radialGradient(
-                    colors = listOf(accent.copy(alpha = if (open) 0.22f else 0f), Color.Transparent),
-                    center = magnetCenter,
-                    radius = 68.dp.toPx(),
-                ),
-                radius = 68.dp.toPx(),
-                center = magnetCenter,
-            )
-        }
         entries.forEachIndexed { index, entry ->
             val point = layout.items[index]
             val arrival = remember { Animatable(0f) }
@@ -426,8 +409,7 @@ private fun SemicircleMagnetMenu(
                         scaleX = motion.scaleX + progress * (1f - motion.scaleX)
                         scaleY = motion.scaleY + progress * (1f - motion.scaleY)
                     }
-                    .semantics { this.selected = selected }
-                    .then(if (selected) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(50)) else Modifier),
+                    .semantics { this.selected = selected },
             ) {
                 if (entry.screen == Screens.Home) {
                     Image(xanLogoPainter(inAppTile = false), contentDescription = label, modifier = Modifier.size(20.dp))
@@ -463,13 +445,14 @@ private fun SemicircleMagnetMenu(
             onClick = onToggle,
             size = 56.dp,
             opaqueInSolidMode = true,
+            pressWobbleEnabled = false,
             modifier = Modifier
                 .absoluteOffset((layout.magnet.x - 28f).dp, (layout.magnet.y - 28f).dp)
                 .border(2.dp, Color(0xFFB58CFF).copy(alpha = 0.92f), RoundedCornerShape(50))
                 .semantics {
                     stateDescription = expandedDescription
                 }
-                .graphicsLayer { rotationZ = rotation; scaleX = scale; scaleY = scale },
+                .graphicsLayer { rotationZ = rotation },
         ) {
             Icon(
                 painterResource(if (open) R.drawable.xan_icon_close else R.drawable.xan_icon_modules),
