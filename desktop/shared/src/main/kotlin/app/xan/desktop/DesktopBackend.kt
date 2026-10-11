@@ -135,7 +135,7 @@ internal object DesktopBackend {
     private const val LIBRARY_GRID = "library_grid"
     private const val SONG_CACHE_LIMIT_MB = "song_cache_limit_mb"
     private const val IMAGE_CACHE_LIMIT_MB = "image_cache_limit_mb"
-    private val LIBRARY_SORT_OPTIONS = setOf("Date added", "Name", "Last updated")
+    private val LIBRARY_SORT_OPTIONS = setOf("Date added", "Name", "Last updated", "Playlist order")
     private val FONT_FAMILY_IDS = setOf("system", "google_sans", "sans_flex", "outfit", "plus_jakarta")
     private val preferences = Preferences.userRoot().node("app/xan/desktop")
     private val audioCacheMutex = Mutex()
@@ -478,13 +478,9 @@ internal object DesktopBackend {
     @Synchronized
     fun toggleFavorite(track: MusicTrack): Boolean {
         require(track.videoId != null || track.localPath != null) { "This item cannot be saved to favorites." }
-        val identity = track.videoId ?: track.localPath
-        val current = favoriteTracks().toMutableList()
-        val existing = current.indexOfFirst { (it.videoId ?: it.localPath) == identity }
-        val added = existing < 0
-        if (added) current.add(0, track) else current.removeAt(existing)
+        val (current, added) = updatedDesktopFavorites(favoriteTracks(), track)
         val encode = { value: String -> Base64.getUrlEncoder().withoutPadding().encodeToString(value.toByteArray(Charsets.UTF_8)) }
-        val serialized = current.take(100).joinToString("\n") { item ->
+        val serialized = current.joinToString("\n") { item ->
             listOf(item.title, item.artist, item.album, item.motif, item.videoId.orEmpty(), item.source.orEmpty(), item.artworkUrl.orEmpty(), item.durationSeconds?.toString().orEmpty(), item.localPath.orEmpty(), item.metadataVerified.toString())
                 .joinToString("|") { encode(it) }
         }
@@ -1011,6 +1007,38 @@ internal object DesktopBackend {
         val account = youtubeAccountState()
         val ownerId = account.selectedDataSyncId
             ?: error("Select a YouTube Music channel in Settings → Account before syncing playlists.")
+
+        // Process local playlist deletions only while signed into the account that
+        // owned the link, and only if its remote contents still match the saved
+        // baseline. A remote edit becomes a conflict instead of a silent deletion.
+        catalogue.pendingCloudPlaylistDeletions(ownerId).forEach { deletion ->
+            val baseline = deletion.baseline
+            if (baseline == null) {
+                throw CloudPlaylistConflict("${deletion.name} was deleted locally, but its cloud baseline is missing. The remote playlist was kept.")
+            }
+            val current = readCloudPlaylistSnapshot(deletion.remoteId, baseline.name)
+            if (current == null) {
+                catalogue.completeCloudPlaylistDeletion(ownerId, deletion.remoteId)
+            } else {
+                if (current != baseline) {
+                    throw CloudPlaylistConflict("${deletion.name} changed remotely after it was deleted locally. The cloud playlist was kept.")
+                }
+                verifyCloudPlaylistMutation(
+                    before = baseline,
+                    expected = null,
+                    read = { readCloudPlaylistSnapshot(deletion.remoteId, baseline.name) },
+                    edit = {
+                        cloudPlaylistRequest(readOnly = false) {
+                            YouTube.deletePlaylist(deletion.remoteId).getOrThrow()
+                        }
+                    },
+                    record = { deleted ->
+                        if (deleted == null) catalogue.completeCloudPlaylistDeletion(ownerId, deletion.remoteId)
+                    },
+                )
+            }
+        }
+
         val localPlaylists = catalogue.playlists()
         require(localPlaylists.size <= 200) { "This device has more than 200 playlists; sync fewer playlists at a time." }
         var created = 0
@@ -1021,115 +1049,192 @@ internal object DesktopBackend {
         var unresolved = 0
         var partial = 0
 
-        localPlaylists.forEach { playlist ->
+        localPlaylists.forEach playlistLoop@{ playlist ->
             val localTracks = catalogue.playlistTracks(playlist.id)
             require(localTracks.size <= 2_000) { "${playlist.name} has more than 2,000 songs and cannot be synced in one pass." }
-            unresolved += localTracks.count { it.videoId.isNullOrBlank() }
-            val tracksWithIds = localTracks.mapNotNull { track -> track.videoId?.takeIf(String::isNotBlank)?.let { track to it } }
+            val unresolvedInPlaylist = localTracks.count { it.videoId.isNullOrBlank() }
+            unresolved += unresolvedInPlaylist
+            if (unresolvedInPlaylist > 0) {
+                // A local-only item has no safe YouTube identity. Keep both copies
+                // untouched until every local entry can be matched explicitly.
+                partial++
+                return@playlistLoop
+            }
+            val targetVideoIds = localTracks.map { it.videoId!! }
+            val localSnapshot = CloudPlaylistSnapshot(playlist.name, targetVideoIds)
 
             val existingRemoteId = catalogue.youtubePlaylistId(playlist.id, ownerId)
             val remoteId = if (existingRemoteId == null) {
-                YouTube.createPlaylist(playlist.name).also { id ->
+                cloudPlaylistRequest(readOnly = false) { YouTube.createPlaylist(playlist.name) }.also { id ->
                     require(id.isNotBlank()) { "YouTube Music created a playlist without returning its ID." }
                     catalogue.linkYoutubePlaylist(playlist.id, ownerId, id)
                     created++
                 }
             } else {
-                YouTube.renamePlaylist(existingRemoteId, playlist.name).getOrThrow()
                 updated++
                 existingRemoteId
             }
 
-            val firstPage = YouTube.playlist(remoteId).getOrThrow()
-            require(firstPage.playlist.isEditable) { "${playlist.name} is linked to a YouTube Music playlist this account cannot edit." }
-            var remoteTracks = fetchYoutubePlaylistSongs(remoteId, playlist.name, firstPage.songs, firstPage.songsContinuation)
-            val desiredCounts = tracksWithIds.groupingBy { it.second }.eachCount()
-            val remoteCounts = remoteTracks.groupingBy(SongItem::id).eachCount()
+            var (remoteSnapshot, remoteTracks) = fetchCloudPlaylist(remoteId, playlist.name)
+            var baseline = catalogue.youtubePlaylistSnapshot(playlist.id, ownerId)
+            if (existingRemoteId == null && baseline == null) {
+                // New cloud playlists start from their actual, observed state. If a
+                // create response was lost, a later run will find the local link and
+                // refuse to overwrite an unrecognized remote edit.
+                catalogue.recordYoutubePlaylistSnapshot(playlist.id, ownerId, remoteSnapshot)
+                baseline = remoteSnapshot
+            }
 
-            if (localTracks.all { !it.videoId.isNullOrBlank() }) {
-                // First remove only occurrences that exceed the local target count. If an item
-                // cannot be addressed by its playlist setVideoId, stop rather than silently
-                // leaving cloud state out of sync.
-                val preflightCounts = mutableMapOf<String, Int>()
-                val removals = remoteTracks.filter { song ->
-                    val kept = preflightCounts.getOrDefault(song.id, 0)
-                    val wanted = desiredCounts.getOrDefault(song.id, 0)
-                    if (kept < wanted) {
-                        preflightCounts[song.id] = kept + 1
-                        false
-                    } else true
+            when (cloudPlaylistSyncDecision(baseline, localSnapshot, remoteSnapshot)) {
+                CloudPlaylistSyncDecision.IN_SYNC -> {
+                    catalogue.recordYoutubePlaylistSnapshot(playlist.id, ownerId, remoteSnapshot)
+                    return@playlistLoop
                 }
-                require(removals.all { !it.setVideoId.isNullOrBlank() }) {
-                    "${playlist.name} has a cloud song without a removal token; no cloud changes were made to this playlist."
+                CloudPlaylistSyncDecision.PULL_REMOTE -> {
+                    require(remoteSnapshot.videoIds.distinct().size == remoteSnapshot.videoIds.size) {
+                        "${playlist.name} contains duplicate cloud songs that this local playlist cannot represent. Local data was kept."
+                    }
+                    val remoteCatalogTracks = remoteTracks.mapIndexed { index, song ->
+                        toCatalogTrack(song.toTrack(index))
+                    }
+                    if (!catalogue.applyRemotePlaylistIfUnchanged(
+                            playlist.id,
+                            ownerId,
+                            expectedLocal = localSnapshot,
+                            remote = remoteSnapshot,
+                            tracks = remoteCatalogTracks,
+                        )
+                    ) {
+                        throw CloudPlaylistConflict("${playlist.name} changed locally while its cloud changes were being imported. Both copies were kept.")
+                    }
+                    return@playlistLoop
                 }
-                val keptCounts = mutableMapOf<String, Int>()
-                remoteTracks.forEach { song ->
-                    val kept = keptCounts.getOrDefault(song.id, 0)
-                    val wanted = desiredCounts.getOrDefault(song.id, 0)
-                    if (kept < wanted) keptCounts[song.id] = kept + 1
-                    else {
-                        val setVideoId = song.setVideoId
-                            ?: error("${playlist.name} has a cloud song without a removal token; no cloud changes were made to this playlist.")
-                        YouTube.removeFromPlaylist(remoteId, song.id, setVideoId).getOrThrow()
-                        removed++
-                        delay(100)
+                CloudPlaylistSyncDecision.CONFLICT -> throw CloudPlaylistConflict(
+                    "${playlist.name} changed both locally and in YouTube Music, or has no saved sync baseline. Neither copy was overwritten; import or resolve the conflict first."
+                )
+                CloudPlaylistSyncDecision.PUSH_LOCAL -> Unit
+            }
+
+            suspend fun applyCloudEdit(expected: CloudPlaylistSnapshot, edit: suspend () -> Unit) {
+                var confirmed: CloudPlaylistSnapshot? = null
+                verifyCloudPlaylistMutation(
+                    before = remoteSnapshot,
+                    expected = expected,
+                    read = { readCloudPlaylistSnapshot(remoteId, playlist.name) },
+                    edit = edit,
+                    record = { actual ->
+                        if (actual == null) throw CloudPlaylistConflict("${playlist.name} disappeared while syncing; the local copy was kept.")
+                        catalogue.recordYoutubePlaylistSnapshot(playlist.id, ownerId, actual)
+                        confirmed = actual
+                    },
+                )
+                remoteSnapshot = confirmed
+                    ?: throw CloudPlaylistConflict("${playlist.name} changed while syncing; no confirmed cloud state was saved.")
+            }
+
+            if (remoteSnapshot.name != localSnapshot.name) {
+                val expected = remoteSnapshot.copy(name = localSnapshot.name)
+                applyCloudEdit(expected) {
+                    cloudPlaylistRequest(readOnly = false) {
+                        YouTube.renamePlaylist(remoteId, localSnapshot.name).getOrThrow()
                     }
                 }
+            }
 
-                val encounteredCounts = mutableMapOf<String, Int>()
-                tracksWithIds.forEach { (_, videoId) ->
-                    val occurrence = encounteredCounts.getOrDefault(videoId, 0)
-                    if (occurrence >= remoteCounts.getOrDefault(videoId, 0)) {
-                        YouTube.addToPlaylist(remoteId, videoId).getOrThrow()
-                        added++
-                        delay(100)
+            val desiredCounts = targetVideoIds.groupingBy { it }.eachCount()
+
+            // Remove excess copies from the end so prior position tokens remain valid.
+            while (true) {
+                val (liveSnapshot, liveTracks) = fetchCloudPlaylist(remoteId, playlist.name)
+                if (liveSnapshot != remoteSnapshot) throw CloudPlaylistConflict("${playlist.name} changed remotely while syncing; remaining edits were stopped.")
+                val seen = mutableMapOf<String, Int>()
+                val extraIndex = liveTracks.indices.lastOrNull { index ->
+                    val id = liveTracks[index].id
+                    val occurrence = seen.getOrDefault(id, 0)
+                    seen[id] = occurrence + 1
+                    occurrence >= desiredCounts.getOrDefault(id, 0)
+                } ?: break
+                val song = liveTracks[extraIndex]
+                val token = song.setVideoId
+                    ?: error("${playlist.name} has a cloud song without a removal token; no changes were made to this playlist.")
+                val expected = liveSnapshot.copy(videoIds = liveSnapshot.videoIds.toMutableList().apply { removeAt(extraIndex) })
+                applyCloudEdit(expected) {
+                    cloudPlaylistRequest(readOnly = false) {
+                        YouTube.removeFromPlaylist(remoteId, song.id, token).getOrThrow()
                     }
-                    encounteredCounts[videoId] = occurrence + 1
                 }
+                removed++
+                delay(100)
+            }
 
-                // Adds and deletes change the setVideoId values. Re-read before moving entries.
-                remoteTracks = fetchYoutubePlaylistSongs(remoteId, playlist.name)
-                val targetVideoIds = localTracks.mapNotNull { it.videoId?.takeIf(String::isNotBlank) }
-                val targetCounts = targetVideoIds.groupingBy { it }.eachCount()
-                require(remoteTracks.size == targetVideoIds.size && remoteTracks.groupingBy(SongItem::id).eachCount() == targetCounts) {
-                    "${playlist.name} changed remotely while syncing; retry to finish reconciliation."
-                }
-
-                targetVideoIds.forEachIndexed { targetIndex, targetVideoId ->
-                    if (remoteTracks.getOrNull(targetIndex)?.id == targetVideoId) return@forEachIndexed
-                    val movingIndex = (targetIndex + 1 until remoteTracks.size).firstOrNull { remoteTracks[it].id == targetVideoId }
-                        ?: error("${playlist.name} could not reconcile a duplicate cloud song; retry the sync.")
-                    val moved = remoteTracks[movingIndex]
-                    val successor = remoteTracks.getOrNull(targetIndex)
-                    val setVideoId = moved.setVideoId ?: error("${playlist.name} has a cloud song without an ordering token.")
-                    val successorSetVideoId = successor?.setVideoId
-                        ?: error("${playlist.name} has a cloud song without an ordering token.")
-                    YouTube.moveSongPlaylist(remoteId, setVideoId, successorSetVideoId).getOrThrow()
-                    remoteTracks.removeAt(movingIndex)
-                    remoteTracks.add(targetIndex, moved)
-                    reordered++
+            desiredCounts.forEach { (videoId, desiredCount) ->
+                while (true) {
+                    val (liveSnapshot, liveTracks) = fetchCloudPlaylist(remoteId, playlist.name)
+                    if (liveSnapshot != remoteSnapshot) throw CloudPlaylistConflict("${playlist.name} changed remotely while syncing; remaining edits were stopped.")
+                    if (liveTracks.count { it.id == videoId } >= desiredCount) break
+                    val expected = liveSnapshot.copy(videoIds = liveSnapshot.videoIds + videoId)
+                    applyCloudEdit(expected) {
+                        cloudPlaylistRequest(readOnly = false) {
+                            YouTube.addToPlaylist(remoteId, videoId).getOrThrow()
+                        }
+                    }
+                    added++
                     delay(100)
                 }
-            } else {
-                // A local entry without a YouTube ID has no safe cloud identity. Add the
-                // resolvable entries, but preserve remote-only items and order until resolved.
-                partial++
-                val remoteCounts = remoteTracks.groupingBy(SongItem::id).eachCount()
-                val addedCounts = mutableMapOf<String, Int>()
-                tracksWithIds.forEach { (_, videoId) ->
-                    val occurrence = addedCounts.getOrDefault(videoId, 0)
-                    if (occurrence >= remoteCounts.getOrDefault(videoId, 0)) {
-                        YouTube.addToPlaylist(remoteId, videoId).getOrThrow()
-                        added++
-                        delay(100)
+            }
+
+            targetVideoIds.forEachIndexed { targetIndex, targetVideoId ->
+                val (liveSnapshot, liveTracks) = fetchCloudPlaylist(remoteId, playlist.name)
+                if (liveSnapshot != remoteSnapshot) throw CloudPlaylistConflict("${playlist.name} changed remotely while syncing; remaining edits were stopped.")
+                if (liveTracks.getOrNull(targetIndex)?.id == targetVideoId) return@forEachIndexed
+                val movingIndex = (targetIndex + 1 until liveTracks.size).firstOrNull { liveTracks[it].id == targetVideoId }
+                    ?: throw CloudPlaylistConflict("${playlist.name} could not reconcile a duplicate cloud song; its current order was kept.")
+                val moving = liveTracks[movingIndex]
+                val successor = liveTracks[targetIndex]
+                val movingToken = moving.setVideoId
+                    ?: error("${playlist.name} has a cloud song without an ordering token.")
+                val successorToken = successor.setVideoId
+                    ?: error("${playlist.name} has a cloud song without an ordering token.")
+                val expected = liveSnapshot.copy(videoIds = liveSnapshot.videoIds.toMutableList().apply {
+                    add(targetIndex, removeAt(movingIndex))
+                })
+                applyCloudEdit(expected) {
+                    cloudPlaylistRequest(readOnly = false) {
+                        YouTube.moveSongPlaylist(remoteId, movingToken, successorToken).getOrThrow()
                     }
-                    addedCounts[videoId] = occurrence + 1
                 }
+                reordered++
+                delay(100)
+            }
+
+            if (remoteSnapshot != localSnapshot) {
+                throw CloudPlaylistConflict("${playlist.name} changed while syncing; the last confirmed cloud state was saved for a safe retry.")
             }
             catalogue.linkYoutubePlaylist(playlist.id, ownerId, remoteId)
         }
         YouTubePlaylistSyncResult(created, updated, added, removed, reordered, unresolved, partial)
     }
+
+    private suspend fun fetchCloudPlaylist(
+        remoteId: String,
+        displayName: String,
+    ): Pair<CloudPlaylistSnapshot, MutableList<SongItem>> {
+        val firstPage = cloudPlaylistRequest { YouTube.playlist(remoteId).getOrThrow() }
+        require(firstPage.playlist.isEditable) { "$displayName is linked to a YouTube Music playlist this account cannot edit." }
+        val tracks = fetchYoutubePlaylistSongs(remoteId, displayName, firstPage.songs, firstPage.songsContinuation)
+        val name = firstPage.playlist.title.ifBlank { displayName }
+        return CloudPlaylistSnapshot(name, tracks.map(SongItem::id)) to tracks
+    }
+
+    private suspend fun readCloudPlaylistSnapshot(remoteId: String, displayName: String): CloudPlaylistSnapshot? = try {
+        fetchCloudPlaylist(remoteId, displayName).first
+    } catch (failure: Exception) {
+        if (failure.hasCloudNotFoundCause()) null else throw failure
+    }
+
+    private fun Throwable.hasCloudNotFoundCause(): Boolean = generateSequence(this) { it.cause }
+        .filterIsInstance<io.ktor.client.plugins.ResponseException>()
+        .any { it.response.status.value == 404 }
 
     private suspend fun fetchYoutubePlaylistSongs(
         playlistId: String,
@@ -1151,9 +1256,10 @@ internal object DesktopBackend {
         val seen = mutableSetOf<String>()
         var pageCount = 1
         while (continuation != null) {
-            require(seen.add(continuation)) { "$playlistName repeated a cloud playlist page token; sync stopped." }
+            val pageToken = continuation
+            require(seen.add(pageToken)) { "$playlistName repeated a cloud playlist page token; sync stopped." }
             require(pageCount < 50) { "$playlistName exceeds the 50-page playlist sync limit." }
-            val nextPage = YouTube.playlistContinuation(continuation).getOrThrow()
+            val nextPage = cloudPlaylistRequest { YouTube.playlistContinuation(pageToken).getOrThrow() }
             songs += nextPage.songs
             require(songs.size <= 5_000) { "$playlistName exceeds the 5,000-song playlist sync limit." }
             continuation = nextPage.continuation
@@ -1171,15 +1277,16 @@ internal object DesktopBackend {
             ?: error("Select a YouTube Music channel in Settings → Account before importing playlists.")
         val remoteId = (collection.collectionId ?: collection.browseId)?.takeIf(String::isNotBlank)
             ?: error("This playlist does not have a YouTube Music playlist ID.")
-        val firstPage = YouTube.playlist(remoteId).getOrThrow()
+        val firstPage = cloudPlaylistRequest { YouTube.playlist(remoteId).getOrThrow() }
         val songs = firstPage.songs.toMutableList()
         var continuation = firstPage.songsContinuation
         val seen = mutableSetOf<String>()
         var pageCount = 1
         while (continuation != null) {
-            require(seen.add(continuation)) { "YouTube Music repeated a playlist page token; import stopped to avoid duplicate songs." }
+            val pageToken = continuation
+            require(seen.add(pageToken)) { "YouTube Music repeated a playlist page token; import stopped to avoid duplicate songs." }
             require(pageCount < 50) { "This playlist exceeds the 50-page import limit." }
-            val page = YouTube.playlistContinuation(continuation).getOrThrow()
+            val page = cloudPlaylistRequest { YouTube.playlistContinuation(pageToken).getOrThrow() }
             songs += page.songs
             require(songs.size <= 5_000) { "This playlist exceeds the 5,000-song import limit." }
             continuation = page.continuation
@@ -1192,9 +1299,19 @@ internal object DesktopBackend {
         val local = existing?.also { playlist ->
             if (playlist.name != collection.title) catalogue.updatePlaylistMetadata(playlist.id, collection.title, playlist.description)
         } ?: catalogue.createPlaylist(collection.title, "Imported from YouTube Music", "youtube_music")
-        val tracks = songs.distinctBy(SongItem::id).mapIndexed { index, song -> toCatalogTrack(song.toTrack(index)) }
+        require(songs.all { it.id.isNotBlank() } && songs.map(SongItem::id).distinct().size == songs.size) {
+            "This playlist contains duplicate or missing song IDs that the local playlist format cannot preserve."
+        }
+        val tracks = songs.mapIndexed { index, song -> toCatalogTrack(song.toTrack(index)) }
         catalogue.replacePlaylistTracks(local.id, tracks)
-        if (firstPage.playlist.isEditable) catalogue.linkYoutubePlaylist(local.id, ownerId, remoteId)
+        if (firstPage.playlist.isEditable) {
+            catalogue.linkYoutubePlaylist(local.id, ownerId, remoteId)
+            catalogue.recordYoutubePlaylistSnapshot(
+                local.id,
+                ownerId,
+                CloudPlaylistSnapshot(firstPage.playlist.title.ifBlank { collection.title }, songs.map(SongItem::id)),
+            )
+        }
         catalogue.playlists().first { it.id == local.id }
     }
 
@@ -1274,6 +1391,7 @@ internal object DesktopBackend {
     fun refreshLocalMusicWatcher() = localMusicWatcher.refresh()
     fun stopLocalMusicWatcher() = localMusicWatcher.close()
     fun playlists(): List<CatalogPlaylist> = catalogue.playlists()
+    fun movePlaylist(playlistId: String, to: Int): Boolean = catalogue.movePlaylist(playlistId, to)
     fun createPlaylist(name: String, description: String? = null): CatalogPlaylist = catalogue.createPlaylist(name, description)
     fun updatePlaylistMetadata(playlistId: String, name: String, description: String?) =
         catalogue.updatePlaylistMetadata(playlistId, name, description)

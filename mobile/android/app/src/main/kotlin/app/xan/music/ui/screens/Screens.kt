@@ -11,8 +11,8 @@ import androidx.compose.runtime.Immutable
 import app.xan.music.R
 
 /**
- * A primary-navigation destination. Some destinations (for example Downloads)
- * are reached through Magnet and are intentionally not persistent bar tabs.
+ * A navigation destination. Downloads is reached through Library and Settings
+ * through the top-right shortcut; neither appears in Magnet or legacy bar tabs.
  *
  * One icon per destination per UI style — deliberately not a selected/unselected
  * pair. iOS ships outline/filled pairs because its tab bar has no selection

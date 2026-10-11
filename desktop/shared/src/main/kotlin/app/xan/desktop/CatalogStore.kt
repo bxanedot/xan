@@ -41,6 +41,14 @@ internal data class CatalogPlaylist(
     val updatedAt: Long,
     val trackCount: Int = 0,
     val createdAt: Long = updatedAt,
+    val position: Int = 0,
+)
+
+internal data class PendingCloudPlaylistDeletion(
+    val ownerId: String,
+    val remoteId: String,
+    val name: String,
+    val baseline: CloudPlaylistSnapshot?,
 )
 
 internal data class CatalogPlayEvent(
@@ -375,7 +383,7 @@ internal class CatalogStore(private val databaseFile: Path) {
         val id = "xan-${UUID.randomUUID()}"
         val updatedAt = System.currentTimeMillis()
         connection().use { db ->
-            db.prepareStatement("INSERT INTO playlists(id,name,description,source,created_at,updated_at) VALUES(?,?,?,?,?,?)").use {
+            db.prepareStatement("INSERT INTO playlists(id,name,description,source,created_at,updated_at,position) VALUES(?,?,?,?,?,?,(SELECT COALESCE(MAX(position),-1)+1 FROM playlists))").use {
                 it.setString(1, id)
                 it.setString(2, name.trim())
                 it.setString(3, description)
@@ -390,8 +398,8 @@ internal class CatalogStore(private val databaseFile: Path) {
 
     fun playlists(): List<CatalogPlaylist> = connection().use { db ->
         db.prepareStatement("""SELECT p.id,p.name,p.description,p.source,p.created_at,p.updated_at,
-            (SELECT COUNT(*) FROM playlist_tracks pt WHERE pt.playlist_id=p.id) AS track_count
-            FROM playlists p ORDER BY p.updated_at DESC""").use { statement ->
+            (SELECT COUNT(*) FROM playlist_tracks pt WHERE pt.playlist_id=p.id) AS track_count,
+            p.position FROM playlists p ORDER BY p.position,p.id""").use { statement ->
             statement.executeQuery().use { rs -> buildList { while (rs.next()) add(rs.toPlaylist()) } }
         }
     }
@@ -414,6 +422,97 @@ internal class CatalogStore(private val databaseFile: Path) {
             it.setLong(4, syncedAt)
             it.executeUpdate()
         } }
+        // Importing a deleted cloud playlist again explicitly cancels its queued removal.
+        completeCloudPlaylistDeletion(ownerId, remoteId)
+    }
+
+    fun youtubePlaylistSnapshot(playlistId: String, ownerId: String): CloudPlaylistSnapshot? = connection().use { db ->
+        db.prepareStatement("SELECT snapshot FROM youtube_playlist_links WHERE local_id=? AND owner_id=?").use {
+            it.setString(1, playlistId)
+            it.setString(2, ownerId)
+            it.executeQuery().use { rows -> if (rows.next()) CloudPlaylistSnapshot.decode(rows.getString(1)) else null }
+        }
+    }
+
+    fun recordYoutubePlaylistSnapshot(playlistId: String, ownerId: String, snapshot: CloudPlaylistSnapshot) {
+        connection().use { db -> recordYoutubePlaylistSnapshot(db, playlistId, ownerId, snapshot) }
+    }
+
+    private fun recordYoutubePlaylistSnapshot(db: Connection, playlistId: String, ownerId: String, snapshot: CloudPlaylistSnapshot) {
+        db.prepareStatement("UPDATE youtube_playlist_links SET snapshot=?,synced_at=? WHERE local_id=? AND owner_id=?").use {
+            it.setString(1, snapshot.encode())
+            it.setLong(2, System.currentTimeMillis())
+            it.setString(3, playlistId)
+            it.setString(4, ownerId)
+            check(it.executeUpdate() == 1) { "The cloud playlist link was removed while syncing." }
+        }
+    }
+
+    fun pendingCloudPlaylistDeletions(ownerId: String): List<PendingCloudPlaylistDeletion> = connection().use { db ->
+        db.prepareStatement("SELECT remote_id,name,snapshot FROM cloud_playlist_deletions WHERE owner_id=? ORDER BY deleted_at,remote_id").use {
+            it.setString(1, ownerId)
+            it.executeQuery().use { rows -> buildList {
+                while (rows.next()) add(PendingCloudPlaylistDeletion(ownerId, rows.getString(1), rows.getString(2), CloudPlaylistSnapshot.decode(rows.getString(3))))
+            } }
+        }
+    }
+
+    fun completeCloudPlaylistDeletion(ownerId: String, remoteId: String) {
+        connection().use { db -> db.prepareStatement("DELETE FROM cloud_playlist_deletions WHERE owner_id=? AND remote_id=?").use {
+            it.setString(1, ownerId)
+            it.setString(2, remoteId)
+            it.executeUpdate()
+        } }
+    }
+
+    fun movePlaylist(playlistId: String, to: Int): Boolean = connection().use { db ->
+        db.autoCommit = false
+        try {
+            val ids = db.createStatement().use { statement -> statement.executeQuery("SELECT id FROM playlists ORDER BY position,id").use { rows ->
+                buildList { while (rows.next()) add(rows.getString(1)) }
+            } }
+            val from = ids.indexOf(playlistId)
+            if (from < 0 || to !in ids.indices || from == to) { db.commit(); return@use false }
+            val ordered = ids.toMutableList().apply { add(to, removeAt(from)) }
+            db.prepareStatement("UPDATE playlists SET position=? WHERE id=?").use { update ->
+                ordered.forEachIndexed { index, id -> update.setInt(1, index); update.setString(2, id); update.addBatch() }
+                update.executeBatch()
+            }
+            db.commit()
+            true
+        } catch (failure: Exception) { runCatching { db.rollback() }; throw failure }
+        finally { db.autoCommit = true }
+    }
+
+    /** Pull a remote-only edit atomically, provided the user has not edited locally meanwhile. */
+    fun applyRemotePlaylistIfUnchanged(
+        playlistId: String,
+        ownerId: String,
+        expectedLocal: CloudPlaylistSnapshot,
+        remote: CloudPlaylistSnapshot,
+        tracks: List<CatalogTrack>,
+    ): Boolean = connection().use { db ->
+        require(tracks.map { it.videoId } == remote.videoIds) { "The remote playlist has unresolved or duplicate identities." }
+        db.autoCommit = false
+        try {
+            val name = db.prepareStatement("SELECT name FROM playlists WHERE id=?").use {
+                it.setString(1, playlistId)
+                it.executeQuery().use { rows -> if (rows.next()) rows.getString(1) else null }
+            }
+            val currentIds = db.prepareStatement("SELECT t.video_id FROM playlist_tracks p JOIN tracks t ON t.id=p.track_id WHERE p.playlist_id=? ORDER BY p.position").use {
+                it.setString(1, playlistId)
+                it.executeQuery().use { rows -> buildList { while (rows.next()) add(rows.getString(1)) } }
+            }
+            if (name != expectedLocal.name || currentIds != expectedLocal.videoIds) { db.commit(); return@use false }
+            replacePlaylistTracks(db, playlistId, tracks)
+            db.prepareStatement("UPDATE playlists SET name=? WHERE id=?").use {
+                it.setString(1, remote.name); it.setString(2, playlistId); it.executeUpdate()
+            }
+            recordYoutubePlaylistSnapshot(db, playlistId, ownerId, remote)
+            db.commit()
+            true
+        } catch (failure: Exception) { runCatching { db.rollback() }; throw failure }
+        finally { db.autoCommit = true }
     }
 
     fun updatePlaylistMetadata(playlistId: String, name: String, description: String?) {
@@ -432,16 +531,42 @@ internal class CatalogStore(private val databaseFile: Path) {
     }
 
     fun deletePlaylist(playlistId: String) {
-        connection().use { db -> db.prepareStatement("DELETE FROM playlists WHERE id=?").use {
-            it.setString(1, playlistId)
-            check(it.executeUpdate() == 1) { "Playlist does not exist." }
-        } }
+        connection().use { db ->
+            db.autoCommit = false
+            try {
+                // Preserve the remote identities before ON DELETE CASCADE removes links.
+                db.prepareStatement("""INSERT INTO cloud_playlist_deletions(owner_id,remote_id,name,snapshot,deleted_at)
+                    SELECT l.owner_id,l.remote_id,p.name,l.snapshot,? FROM youtube_playlist_links l JOIN playlists p ON p.id=l.local_id
+                    WHERE p.id=? ON CONFLICT(owner_id,remote_id) DO NOTHING""").use {
+                    it.setLong(1, System.currentTimeMillis()); it.setString(2, playlistId); it.executeUpdate()
+                }
+                db.prepareStatement("DELETE FROM playlists WHERE id=?").use {
+                    it.setString(1, playlistId)
+                    check(it.executeUpdate() == 1) { "Playlist does not exist." }
+                }
+                db.commit()
+            } catch (failure: Exception) { runCatching { db.rollback() }; throw failure }
+            finally { db.autoCommit = true }
+        }
     }
 
     fun replacePlaylistTracks(playlistId: String, tracks: List<CatalogTrack>) {
         connection().use { db ->
             db.autoCommit = false
             try {
+                replacePlaylistTracks(db, playlistId, tracks)
+                db.commit()
+            } catch (failure: Exception) {
+                runCatching { db.rollback() }
+                logger.log(Level.WARNING, "Could not update playlist tracks", failure)
+                throw failure
+            } finally {
+                db.autoCommit = true
+            }
+        }
+    }
+
+    private fun replacePlaylistTracks(db: Connection, playlistId: String, tracks: List<CatalogTrack>) {
                 upsertTracks(db, tracks)
                 db.prepareStatement("DELETE FROM playlist_tracks WHERE playlist_id=?").use {
                     it.setString(1, playlistId)
@@ -463,15 +588,6 @@ internal class CatalogStore(private val databaseFile: Path) {
                     it.setString(2, playlistId)
                     check(it.executeUpdate() == 1) { "Playlist does not exist." }
                 }
-                db.commit()
-            } catch (failure: Exception) {
-                runCatching { db.rollback() }
-                logger.log(Level.WARNING, "Could not update playlist tracks", failure)
-                throw failure
-            } finally {
-                db.autoCommit = true
-            }
-        }
     }
 
     fun playlistTracks(playlistId: String): List<CatalogTrack> = queryTracks(
@@ -965,11 +1081,11 @@ internal class CatalogStore(private val databaseFile: Path) {
     )
 
     private fun ResultSet.toPlaylist() = CatalogPlaylist(
-        getString("id"), getString("name"), getString("description"), getString("source"), getLong("updated_at"), getInt("track_count"), getLong("created_at"),
+        getString("id"), getString("name"), getString("description"), getString("source"), getLong("updated_at"), getInt("track_count"), getLong("created_at"), getInt("position"),
     )
 
     companion object {
-        private const val SCHEMA_VERSION = 10
+        private const val SCHEMA_VERSION = 11
         private val migrations = mapOf(
             1 to listOf(
                 """CREATE TABLE tracks(
@@ -1035,6 +1151,16 @@ internal class CatalogStore(private val databaseFile: Path) {
                 local_id TEXT NOT NULL REFERENCES playlists(id) ON DELETE CASCADE,owner_id TEXT NOT NULL,
                 remote_id TEXT NOT NULL,synced_at INTEGER NOT NULL,PRIMARY KEY(local_id,owner_id)
             )""", "CREATE UNIQUE INDEX youtube_playlist_links_remote_idx ON youtube_playlist_links(owner_id,remote_id)"),
+            11 to listOf(
+                "ALTER TABLE playlists ADD COLUMN position INTEGER NOT NULL DEFAULT 0",
+                """UPDATE playlists SET position=(SELECT COUNT(*) FROM playlists other WHERE other.updated_at>playlists.updated_at
+                    OR (other.updated_at=playlists.updated_at AND other.id<playlists.id))""",
+                "ALTER TABLE youtube_playlist_links ADD COLUMN snapshot TEXT",
+                """CREATE TABLE cloud_playlist_deletions(
+                    owner_id TEXT NOT NULL,remote_id TEXT NOT NULL,name TEXT NOT NULL,snapshot TEXT,deleted_at INTEGER NOT NULL,
+                    PRIMARY KEY(owner_id,remote_id)
+                )""",
+            ),
         )
     }
 }

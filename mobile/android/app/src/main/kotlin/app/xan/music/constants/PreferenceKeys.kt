@@ -24,6 +24,8 @@ val MusicCopyStatusKey = stringPreferencesKey("musicCopyStatus")
 /** Set once, the first time the app ever runs — gates the donation prompt on "used for
  *  a while" rather than showing it to a brand new install. */
 val FirstLaunchTimestampKey = longPreferencesKey("firstLaunchTimestamp")
+val GitHubStarsCacheKey = intPreferencesKey("githubStarsCache")
+val GitHubStarsCachedAtKey = longPreferencesKey("githubStarsCachedAt")
 val DonationPromptLastShownKey = longPreferencesKey("donationPromptLastShown")
 val DonationPromptDismissedKey = booleanPreferencesKey("donationPromptDismissed")
 val AppIconKey = stringPreferencesKey("appIcon")
@@ -86,7 +88,9 @@ val SlimNavBarKey = booleanPreferencesKey("slimNavBar")
 val MagnetOnLeftKey = booleanPreferencesKey("magnetOnLeft")
 /** True uses the Magnet navigation; false restores the legacy floating navigation buttons. */
 val UseMagnetNavigationKey = booleanPreferencesKey("useMagnetNavigation")
-/** Original labeled Magnet by default; true opts into the semicircle layout. */
+/** Names are hidden unless the user explicitly enables them, in either Magnet layout. */
+val MagnetShowIconNamesKey = booleanPreferencesKey("magnetShowIconNames")
+/** True opts into the semicircle layout; false uses the anchored stack. */
 val MagnetSemicircleKey = booleanPreferencesKey("magnetSemicircle")
 val GridItemsSizeKey = stringPreferencesKey("gridItemSize")
 /** 0 = auto (GridColumnMinWidth-driven), else a fixed column count for every adaptive grid. */

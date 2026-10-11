@@ -90,6 +90,7 @@ import app.xan.music.constants.PureBlackHeroBackgroundKey
 import app.xan.music.constants.HideHomeFavoriteIconKey
 import app.xan.music.constants.MagnetOnLeftKey
 import app.xan.music.constants.MagnetSemicircleKey
+import app.xan.music.constants.MagnetShowIconNamesKey
 import app.xan.music.constants.UseMagnetNavigationKey
 import app.xan.music.ui.utils.GridColumnChoices
 import app.xan.music.ui.utils.GridSpacingChoices
@@ -275,6 +276,7 @@ fun AppearanceSettings(
     val (speedDialColumnsOverride, onSpeedDialColumnsOverrideChange) = rememberPreference(SpeedDialColumnsOverrideKey, 0)
     val (pureBlackHeroBackground, onPureBlackHeroBackgroundChange) = rememberPreference(PureBlackHeroBackgroundKey, false)
     val (useMagnetNavigation, onUseMagnetNavigationChange) = rememberPreference(UseMagnetNavigationKey, defaultValue = true)
+    val (magnetShowIconNames, onMagnetShowIconNamesChange) = rememberPreference(MagnetShowIconNamesKey, defaultValue = false)
     val (magnetOnLeft, onMagnetOnLeftChange) = rememberPreference(MagnetOnLeftKey, defaultValue = false)
     val (magnetSemicircle, onMagnetSemicircleChange) = rememberPreference(MagnetSemicircleKey, defaultValue = false)
     val (hideHomeFavoriteIcon, onHideHomeFavoriteIconChange) = rememberPreference(
@@ -1230,6 +1232,18 @@ fun AppearanceSettings(
                         )
                     },
                     onClick = { onUseMagnetNavigationChange(!useMagnetNavigation) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.xan_icon_modules),
+                    title = { Text(stringResource(R.string.magnet_show_icon_names)) },
+                    description = { Text(stringResource(R.string.magnet_show_icon_names_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = magnetShowIconNames,
+                            onCheckedChange = onMagnetShowIconNamesChange,
+                        )
+                    },
+                    onClick = { onMagnetShowIconNamesChange(!magnetShowIconNames) }
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.xan_icon_modules),

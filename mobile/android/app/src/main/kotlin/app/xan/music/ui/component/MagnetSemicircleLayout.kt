@@ -14,11 +14,16 @@ internal data class MagnetSemicircleLayout(
     val items: List<MagnetMenuPoint>,
 )
 
-internal fun magnetSemicircleLayout(width: Float, onLeft: Boolean, itemCount: Int = 6): MagnetSemicircleLayout {
+internal fun magnetSemicircleLayout(
+    width: Float,
+    onLeft: Boolean,
+    itemCount: Int = 3,
+    labelSpace: Float = 0f,
+): MagnetSemicircleLayout {
     require(width >= 240f)
     require(itemCount > 1)
     val radius = (width - 56f) / 2f
-    val height = radius + 124f
+    val height = radius + 124f + labelSpace
     val points = List(itemCount) { index ->
         val fraction = index.toDouble() / (itemCount - 1)
         val angle = PI * if (onLeft) 1.0 - fraction else fraction

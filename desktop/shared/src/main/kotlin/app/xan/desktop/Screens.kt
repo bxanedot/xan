@@ -901,12 +901,14 @@ internal fun LibraryScreen(initialView: String, onTrackSelected: (MusicTrack) ->
         val ordered = when (sort) {
             "Name" -> playlists.sortedBy { it.name.lowercase() }
             "Last updated" -> playlists.sortedBy { it.updatedAt }
+            "Playlist order" -> playlists.sortedBy { it.position }
             else -> playlists.sortedBy { it.createdAt }
         }
         if (descending) ordered.reversed() else ordered
     }
     fun sortTracks(items: List<MusicTrack>): List<MusicTrack> = when (sort) {
         "Name" -> if (descending) items.sortedByDescending { it.title.lowercase() } else items.sortedBy { it.title.lowercase() }
+        "Playlist order" -> items
         else -> if (descending) items else items.reversed()
     }
     LaunchedEffect(initialView) {
@@ -930,6 +932,7 @@ internal fun LibraryScreen(initialView: String, onTrackSelected: (MusicTrack) ->
     }
     openedPlaylist?.let { playlist ->
         val tracks = remember(playlist, playlists) { DesktopBackend.playlistTracks(playlist.id) }
+        val playlistPosition = playlists.sortedBy { it.position }.indexOfFirst { it.id == playlist.id }
         Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(start = 32.dp, end = 32.dp, bottom = 32.dp)) {
             TextButton(onClick = { openedPlaylist = null; playlists = DesktopBackend.playlists() }) {
                 Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = null)
@@ -946,6 +949,26 @@ internal fun LibraryScreen(initialView: String, onTrackSelected: (MusicTrack) ->
                     editPlaylistDescription = playlist.description.orEmpty()
                     showEditPlaylist = true
                 }) { Text("Edit details") }
+                OutlinedButton(enabled = playlistPosition > 0, onClick = {
+                    runCatching { DesktopBackend.movePlaylist(playlist.id, playlistPosition - 1) }
+                        .onSuccess {
+                            playlists = DesktopBackend.playlists()
+                            openedPlaylist = playlists.firstOrNull { it.id == playlist.id }
+                            sort = "Playlist order"
+                            DesktopBackend.setLibrarySort(sort)
+                        }
+                        .onFailure { libraryStatus = it.message ?: "Could not reorder playlists." }
+                }) { Icon(Icons.Rounded.ArrowUpward, contentDescription = "Move playlist up") }
+                OutlinedButton(enabled = playlistPosition >= 0 && playlistPosition < playlists.size - 1, onClick = {
+                    runCatching { DesktopBackend.movePlaylist(playlist.id, playlistPosition + 1) }
+                        .onSuccess {
+                            playlists = DesktopBackend.playlists()
+                            openedPlaylist = playlists.firstOrNull { it.id == playlist.id }
+                            sort = "Playlist order"
+                            DesktopBackend.setLibrarySort(sort)
+                        }
+                        .onFailure { libraryStatus = it.message ?: "Could not reorder playlists." }
+                }) { Icon(Icons.Rounded.ArrowDownward, contentDescription = "Move playlist down") }
                 OutlinedButton(onClick = {
                     runCatching { DesktopBackend.addLocalLibraryToPlaylist(playlist.id); playlists = DesktopBackend.playlists() }
                         .onSuccess { libraryStatus = "Added indexed local songs to ${playlist.name}." }
@@ -1311,7 +1334,7 @@ private fun LibraryToolbar(
                 Icon(Icons.Rounded.ArrowDropDown, contentDescription = null)
             }
             DropdownMenu(expanded = sortMenuOpen, onDismissRequest = { sortMenuOpen = false }) {
-                listOf("Date added", "Name", "Last updated").forEach { option ->
+                listOf("Date added", "Name", "Last updated", "Playlist order").forEach { option ->
                     DropdownMenuItem(text = { Text(option) }, onClick = { onSort(option); sortMenuOpen = false })
                 }
             }

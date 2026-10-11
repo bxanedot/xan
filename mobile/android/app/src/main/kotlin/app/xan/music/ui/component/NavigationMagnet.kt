@@ -31,12 +31,16 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupPositionProvider
 import androidx.compose.ui.window.PopupProperties
@@ -57,7 +61,6 @@ private data class MagnetMotion(
     val scaleY: Float,
     val reverseOrder: Boolean = false,
     val alternateSides: Boolean = false,
-    val middleLayout: Boolean = false,
     val scatter: Boolean = false,
 )
 
@@ -68,10 +71,10 @@ private val MagnetMotions = listOf(
     MagnetMotion("Elastic fan", .48f, 440f, 40, 48f, 20f, -14f, .68f, .84f),
     MagnetMotion("Ripple", .80f, 580f, 54, 22f, 36f, -12f, .78f, .78f, alternateSides = true, scatter = true),
     MagnetMotion("Side sweep", .75f, 470f, 24, -110f, 0f, -7f, .92f, 1f),
-    MagnetMotion("Corkscrew", .56f, 420f, 38, 52f, 58f, 66f, .35f, .35f, middleLayout = true),
+    MagnetMotion("Corkscrew", .56f, 420f, 38, 52f, 58f, 66f, .35f, .35f),
     MagnetMotion("Raindrop", .72f, 510f, 48, 0f, -95f, 0f, .82f, 1.18f, reverseOrder = true),
-    MagnetMotion("Bloom", .62f, 385f, 27, 90f, 48f, 24f, .20f, .20f, alternateSides = true, middleLayout = true, scatter = true),
-    MagnetMotion("Accordion", .54f, 630f, 58, 0f, 16f, 0f, .58f, 1.40f, reverseOrder = true, middleLayout = true),
+    MagnetMotion("Bloom", .62f, 385f, 27, 90f, 48f, 24f, .20f, .20f, alternateSides = true, scatter = true),
+    MagnetMotion("Accordion", .54f, 630f, 58, 0f, 16f, 0f, .58f, 1.40f, reverseOrder = true),
 )
 
 private data class MagnetEntry(
@@ -81,13 +84,25 @@ private data class MagnetEntry(
     val action: () -> Unit,
 )
 
-/** Magnet is the five-destination navigation surface; actions belong in their feature screens. */
+/** Settings, Downloads and player actions have their own entry points. */
 internal val MagnetNavigationScreens = listOf(
     Screens.Home,
     Screens.Search,
     Screens.Library,
-    Screens.Downloads,
-    Screens.Settings,
+)
+
+/** Both layouts stay attached to the Magnet, including every animation variant. */
+internal fun magnetPopupPosition(
+    anchorBounds: IntRect,
+    windowSize: IntSize,
+    popupContentSize: IntSize,
+    onLeft: Boolean,
+    verticalOffset: Int,
+): IntOffset = IntOffset(
+    (if (onLeft) anchorBounds.left else anchorBounds.right - popupContentSize.width)
+        .coerceIn(0, (windowSize.width - popupContentSize.width).coerceAtLeast(0)),
+    (anchorBounds.bottom - popupContentSize.height + verticalOffset)
+        .coerceIn(0, (windowSize.height - popupContentSize.height).coerceAtLeast(0)),
 )
 
 /** A single, thumb-reachable entry to primary navigation on every screen. */
@@ -97,6 +112,7 @@ fun NavigationMagnet(
     onLeft: Boolean,
     onNavigate: (Screens) -> Unit,
     semicircle: Boolean = false,
+    showIconNames: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     var open by rememberSaveable { mutableStateOf(false) }
@@ -107,11 +123,17 @@ fun NavigationMagnet(
     val configuration = LocalConfiguration.current
     val menuMaxHeight = configuration.screenHeightDp.dp * .65f
     val arcWidth = (configuration.screenWidthDp - 32).coerceAtMost(320)
-    // Keep the scrolling stack available in very small split-screen windows.
-    val useSemicircle = semicircle && arcWidth >= 240 && configuration.screenHeightDp >= 360
-    val arcLayout = remember(arcWidth, onLeft) {
-        magnetSemicircleLayout(arcWidth.coerceAtLeast(240).toFloat(), onLeft, itemCount = 5)
+    val arcLayout = remember(arcWidth, onLeft, showIconNames, configuration.fontScale) {
+        magnetSemicircleLayout(
+            arcWidth.coerceAtLeast(240).toFloat(),
+            onLeft,
+            itemCount = MagnetNavigationScreens.size,
+            labelSpace = if (showIconNames) 56f * configuration.fontScale else 0f,
+        )
     }
+    // Fall back to a scrolling stack when the arc and optional enlarged names cannot fit.
+    val useSemicircle = semicircle && arcWidth >= 240 &&
+        configuration.screenHeightDp >= maxOf(360f, arcLayout.height + 32f)
     // Cycle through eight distinct spring gestures, including five new paths.
     // Compose's animation clock honours the system animator duration scale.
     val motion = MagnetMotions[motionVariant]
@@ -130,7 +152,7 @@ fun NavigationMagnet(
         if (open) R.string.navigation_magnet_expanded else R.string.navigation_magnet_collapsed,
     )
     BackHandler(enabled = open) { open = false }
-    LaunchedEffect(currentRoute, semicircle, onLeft) { open = false }
+    LaunchedEffect(currentRoute, semicircle, onLeft, showIconNames) { open = false }
     LaunchedEffect(open) {
         if (open) showing = true else {
             delay(400)
@@ -143,8 +165,6 @@ fun NavigationMagnet(
             Screens.Home -> R.drawable.xan_icon_modules
             Screens.Search -> R.drawable.xan_icon_search
             Screens.Library -> R.drawable.xan_icon_library
-            Screens.Downloads -> R.drawable.xan_icon_download
-            Screens.Settings -> R.drawable.xan_icon_settings
             else -> screen.icon
         }
         MagnetEntry(screen, iconId, screen.titleId) { onNavigate(screen) }
@@ -158,7 +178,7 @@ fun NavigationMagnet(
     Box(modifier) {
         if (showing) {
             Popup(
-                popupPositionProvider = remember(useSemicircle, motion.middleLayout, onLeft, popupOffset) {
+                popupPositionProvider = remember(useSemicircle, onLeft, popupOffset) {
                     object : PopupPositionProvider {
                         override fun calculatePosition(
                             anchorBounds: IntRect,
@@ -166,26 +186,13 @@ fun NavigationMagnet(
                             layoutDirection: LayoutDirection,
                             popupContentSize: IntSize,
                         ): IntOffset {
-                            return if (useSemicircle) {
-                                IntOffset(
-                                    (if (onLeft) anchorBounds.left else anchorBounds.right - popupContentSize.width)
-                                        .coerceIn(0, (windowSize.width - popupContentSize.width).coerceAtLeast(0)),
-                                    (anchorBounds.bottom - popupContentSize.height)
-                                        .coerceIn(0, (windowSize.height - popupContentSize.height).coerceAtLeast(0)),
-                                )
-                            } else if (motion.middleLayout) {
-                                IntOffset(
-                                    (windowSize.width - popupContentSize.width) / 2,
-                                    (windowSize.height - popupContentSize.height) / 2,
-                                )
-                            } else {
-                                IntOffset(
-                                    (if (onLeft) anchorBounds.left else anchorBounds.right - popupContentSize.width)
-                                        .coerceIn(0, (windowSize.width - popupContentSize.width).coerceAtLeast(0)),
-                                    (anchorBounds.bottom - popupContentSize.height + popupOffset)
-                                        .coerceIn(0, (windowSize.height - popupContentSize.height).coerceAtLeast(0)),
-                                )
-                            }
+                            return magnetPopupPosition(
+                                anchorBounds = anchorBounds,
+                                windowSize = windowSize,
+                                popupContentSize = popupContentSize,
+                                onLeft = onLeft,
+                                verticalOffset = if (useSemicircle) 0 else popupOffset,
+                            )
                         }
                     }
                 },
@@ -197,6 +204,7 @@ fun NavigationMagnet(
                         layout = arcLayout,
                         entries = entries,
                         currentRoute = currentRoute,
+                        showIconNames = showIconNames,
                         open = open,
                         rotation = rotation,
                         scale = scale,
@@ -211,14 +219,15 @@ fun NavigationMagnet(
                     )
                 } else {
                     Column(
-                        Modifier.widthIn(min = 172.dp, max = 260.dp)
+                        (if (showIconNames) Modifier.widthIn(min = 172.dp, max = 260.dp) else Modifier.width(68.dp))
                             .heightIn(max = menuMaxHeight)
                             .verticalScroll(rememberScrollState())
                             .padding(8.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp),
-                        horizontalAlignment = if (motion.middleLayout) Alignment.CenterHorizontally else if (onLeft) Alignment.Start else Alignment.End,
+                        horizontalAlignment = if (onLeft) Alignment.Start else Alignment.End,
                     ) {
                         entries.forEachIndexed { index, entry ->
+                            val label = stringResource(entry.titleId)
                             val arrival = remember { Animatable(0f) }
                             LaunchedEffect(open, motionVariant) {
                                 if (open) {
@@ -259,8 +268,8 @@ fun NavigationMagnet(
                                         val direction = if (motion.alternateSides && index % 2 == 1) -1f else 1f
                                         val scatterX = if (motion.scatter) intArrayOf(-28, 23, -17, 30, -25, 19)[index] else 0
                                         val scatterY = if (motion.scatter) intArrayOf(-6, 7, -9, 8, -4, 6)[index] else 0
-                                        translationY = (1f - progress) * (motion.startY + index * 7f).dp.toPx() + progress * scatterY
-                                        translationX = (1f - progress) * motion.startX.dp.toPx() * direction + progress * scatterX
+                                        translationY = (1f - progress) * ((motion.startY + index * 7f).dp.toPx() + scatterY)
+                                        translationX = (1f - progress) * (motion.startX.dp.toPx() * direction + scatterX)
                                         rotationZ = (1f - progress) * motion.rotation * direction
                                         scaleX = (motion.scaleX + progress * (1f - motion.scaleX)) * compression
                                         scaleY = (motion.scaleY + progress * (1f - motion.scaleY)) * compression
@@ -275,12 +284,17 @@ fun NavigationMagnet(
                                             entry.action()
                                         }
                                     }
-                                    .semantics { role = Role.Button },
+                                    .semantics {
+                                        role = Role.Button
+                                        contentDescription = label
+                                        this.selected = selected
+                                    },
                             ) {
                                 Row(
-                                    Modifier.defaultMinSize(minHeight = 52.dp).padding(horizontal = 18.dp),
+                                    if (showIconNames) Modifier.defaultMinSize(minHeight = 52.dp).padding(horizontal = 18.dp)
+                                        else Modifier.size(52.dp),
                                     verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                    horizontalArrangement = if (showIconNames) Arrangement.spacedBy(12.dp) else Arrangement.Center,
                                 ) {
                                     if (entry.screen == Screens.Home) {
                                         Image(xanLogoPainter(inAppTile = false), contentDescription = null, modifier = Modifier.size(26.dp))
@@ -292,7 +306,14 @@ fun NavigationMagnet(
                                             tint = itemColor,
                                         )
                                     }
-                                    Text(stringResource(entry.titleId), style = MaterialTheme.typography.labelLarge, color = itemColor)
+                                    if (showIconNames) {
+                                        Text(
+                                            label,
+                                            style = MaterialTheme.typography.labelLarge,
+                                            color = itemColor,
+                                            modifier = Modifier.clearAndSetSemantics { },
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -327,6 +348,7 @@ private fun SemicircleMagnetMenu(
     layout: MagnetSemicircleLayout,
     entries: List<MagnetEntry>,
     currentRoute: String?,
+    showIconNames: Boolean,
     open: Boolean,
     rotation: Float,
     scale: Float,
@@ -370,6 +392,28 @@ private fun SemicircleMagnetMenu(
                 } else {
                     Icon(painterResource(entry.iconId), contentDescription = label, modifier = Modifier.size(18.dp))
                 }
+            }
+            if (showIconNames) {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    textAlign = TextAlign.Center,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier
+                        .absoluteOffset((point.x - 48f).coerceIn(0f, layout.width - 96f).dp, (point.y + 32f).dp)
+                        .width(96.dp)
+                        .graphicsLayer {
+                            val progress = arrival.value.coerceIn(0f, 1f)
+                            alpha = progress
+                            translationX = (layout.magnet.x - point.x).dp.toPx() * (1f - progress)
+                            translationY = (layout.magnet.y - point.y).dp.toPx() * (1f - progress)
+                        }
+                        .background(MaterialTheme.colorScheme.surfaceContainerHigh, RoundedCornerShape(50))
+                        .padding(horizontal = 6.dp, vertical = 4.dp)
+                        .clearAndSetSemantics { },
+                )
             }
         }
         GlassCircleButton(

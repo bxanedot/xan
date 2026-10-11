@@ -29,6 +29,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -49,16 +50,20 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import app.xan.music.BuildConfig
 import app.xan.music.LocalPlayerAwareWindowInsets
 import app.xan.music.R
 import app.xan.music.platform.ProjectLinks
+import app.xan.music.constants.GitHubStarsCacheKey
+import app.xan.music.constants.GitHubStarsCachedAtKey
+import app.xan.music.utils.rememberPreference
 import app.xan.music.ui.component.IconButton
 import app.xan.music.ui.component.Material3SettingsGroup
 import app.xan.music.ui.component.Material3SettingsItem
@@ -88,10 +93,30 @@ fun AboutScreen(
     }
     var discordUrl by remember { mutableStateOf(ProjectLinks.DISCORD_FALLBACK) }
     var githubStars by remember { mutableStateOf<Int?>(null) }
+    val (cachedGithubStars, onCachedGithubStarsChange) = rememberPreference(GitHubStarsCacheKey, -1)
+    val (cachedGithubStarsAt, onCachedGithubStarsAtChange) = rememberPreference(GitHubStarsCachedAtKey, 0L)
+    var starsRefresh by remember { mutableStateOf(0) }
+    var starsLoading by remember { mutableStateOf(true) }
+    var starsRefreshFailed by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { discordUrl = ProjectLinks.discordUrl() }
-    LaunchedEffect(Unit) { githubStars = ProjectLinks.githubStars() }
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { starsRefresh++ }
+    LaunchedEffect(starsRefresh) {
+        if (starsRefresh == 0) return@LaunchedEffect
+        starsLoading = true
+        starsRefreshFailed = false
+        val refreshedStars = ProjectLinks.githubStars()
+        if (refreshedStars != null) {
+            githubStars = refreshedStars
+            onCachedGithubStarsChange(refreshedStars)
+            onCachedGithubStarsAtChange(System.currentTimeMillis())
+        } else {
+            starsRefreshFailed = true
+        }
+        starsLoading = false
+    }
+    val displayedGithubStars = githubStars ?: cachedGithubStars.takeIf { it >= 0 }
     val animatedGithubStars by animateIntAsState(
-        targetValue = githubStars ?: 0,
+        targetValue = displayedGithubStars ?: 0,
         animationSpec = tween(durationMillis = 1_100),
         label = "githubStarCount",
     )
@@ -207,20 +232,54 @@ fun AboutScreen(
             title = stringResource(R.string.community_section),
             items = listOf(
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.star_border),
-                    title = { Text(stringResource(R.string.star_xan_github)) },
-                    description = { Text(stringResource(R.string.star_xan_github_desc)) },
-                    trailingContent = githubStars?.let { starCount ->
+                    leadingContent = {
+                        Icon(
+                            painter = painterResource(R.drawable.star_filled_liked),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(36.dp),
+                        )
+                    },
+                    title = {
+                        Text(
+                            stringResource(R.string.github_stars_title),
+                            style = MaterialTheme.typography.titleLarge,
+                        )
+                    },
+                    description = if (starsRefreshFailed) {
                         {
+                            androidx.compose.material3.TextButton(
+                                onClick = { starsRefresh++ },
+                            ) {
+                                Text(
+                                    if (displayedGithubStars != null && cachedGithubStarsAt > 0) {
+                                        stringResource(
+                                            R.string.github_stars_cached_retry,
+                                            SimpleDateFormat("MMM d, HH:mm", Locale.getDefault())
+                                                .format(Date(cachedGithubStarsAt)),
+                                        )
+                                    } else {
+                                        stringResource(R.string.github_stars_unavailable_retry)
+                                    },
+                                    style = MaterialTheme.typography.bodySmall,
+                                )
+                            }
+                        }
+                    } else null,
+                    trailingContent = {
+                        if (displayedGithubStars != null) {
                             Text(
-                                pluralStringResource(
-                                    R.plurals.github_star_count,
-                                    starCount,
-                                    NumberFormat.getIntegerInstance().format(animatedGithubStars),
-                                ),
-                                style = MaterialTheme.typography.labelLarge,
+                                NumberFormat.getIntegerInstance().format(animatedGithubStars),
+                                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                                 color = MaterialTheme.colorScheme.primary,
                             )
+                        } else if (starsLoading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                strokeWidth = 2.dp,
+                            )
+                        } else {
+                            Text("—", style = MaterialTheme.typography.headlineSmall)
                         }
                     },
                     onClick = { uriHandler.safeOpenUri(context, ProjectLinks.STAR_REPOSITORY) },

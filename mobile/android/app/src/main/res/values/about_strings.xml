@@ -1,0 +1,5 @@
+<resources>
+    <string name="github_stars_title">GitHub Stars</string>
+    <string name="github_stars_unavailable_retry">Could not load stars · Retry</string>
+    <string name="github_stars_cached_retry">Saved %1$s · Retry</string>
+</resources>

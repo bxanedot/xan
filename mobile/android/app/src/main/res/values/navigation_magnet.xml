@@ -11,5 +11,7 @@
     <string name="magnet_bottom_right">Bottom right</string>
     <string name="magnet_layout">Magnet layout</string>
     <string name="magnet_layout_semicircle">Semicircle around the Magnet</string>
-    <string name="magnet_layout_stacked">Original Magnet with labeled buttons</string>
+    <string name="magnet_layout_stacked">Stacked above the Magnet</string>
+    <string name="magnet_show_icon_names">Show icon names</string>
+    <string name="magnet_show_icon_names_desc">Show names alongside Magnet icons. Off by default.</string>
 </resources>

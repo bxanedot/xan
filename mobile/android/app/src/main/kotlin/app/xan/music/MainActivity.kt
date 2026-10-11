@@ -20,6 +20,7 @@ import android.os.SystemClock
 import android.view.View
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
@@ -42,6 +43,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -109,6 +111,7 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
@@ -179,9 +182,6 @@ import app.xan.music.constants.LocalOnlyModeKey
 import app.xan.music.constants.SearchSourceKey
 import app.xan.music.constants.EnableHighRefreshRateKey
 import app.xan.music.constants.EnableSettingsPopupKey
-import app.xan.music.constants.MiniPlayerBottomSpacing
-import app.xan.music.constants.MiniPlayerHeight
-import app.xan.music.constants.DockedAccessoryHeight
 import app.xan.music.constants.NavigationBarAnimationSpec
 import app.xan.music.constants.NavigationBarHeight
 import app.xan.music.constants.OverlayMenuStyleKey
@@ -228,6 +228,7 @@ import app.xan.music.constants.ForceTabletLayoutKey
 import app.xan.music.constants.PlaylistSortType
 import app.xan.music.constants.SlimNavBarKey
 import app.xan.music.constants.UseMagnetNavigationKey
+import app.xan.music.constants.MagnetShowIconNamesKey
 import app.xan.music.constants.UseNewMiniPlayerDesignKey
 import app.xan.music.db.MusicDatabase
 import app.xan.music.db.entities.SearchHistory
@@ -241,6 +242,9 @@ import app.xan.music.playback.PlayerConnection
 import app.xan.music.playback.queues.YouTubeQueue
 import app.xan.music.playback.queues.ListQueue
 import app.xan.music.ui.component.AppFloatingNavBar
+import app.xan.music.ui.component.AppFloatingNowPlayingPill
+import app.xan.music.ui.component.isPlayerChromeRoute
+import app.xan.music.ui.component.shouldShowPlayerAccessory
 import app.xan.music.ui.component.LocalDownloads
 import app.xan.music.ui.component.LocalItemPrefs
 import app.xan.music.ui.component.LocalNavSearchState
@@ -318,6 +322,7 @@ import app.xan.music.platform.updater.saveUpdateAvailableState
 import com.valentinilk.shimmer.LocalShimmerTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -858,15 +863,13 @@ class MainActivity : ComponentActivity() {
                 val (magnetOnLeft) = rememberPreference(app.xan.music.constants.MagnetOnLeftKey, false)
                 val (magnetSemicircle) = rememberPreference(app.xan.music.constants.MagnetSemicircleKey, false)
                 val (useMagnetNavigation) = rememberPreference(UseMagnetNavigationKey, defaultValue = true)
+                val (magnetShowIconNames) = rememberPreference(MagnetShowIconNamesKey, defaultValue = false)
                 // Local-only mode adds the flat all-songs tab after Home.
                 val navigationItems = remember(localOnlyMode) { Screens.mainScreens(localOnlyMode) }
                 val (slimNav) = rememberPreference(SlimNavBarKey, defaultValue = false)
                 val (appleMusicUi) = rememberPreference(AppleMusicUiKey, defaultValue = true)
-                // The Settings tab is exclusive to the floating (iOS-style) tab bar â€”
-                // the classic nav bar keeps settings behind the top bar icon.
-                val floatingNavigationItems = remember(navigationItems) {
-                    navigationItems + Screens.Settings
-                }
+                // Settings has one top-right entry in both navigation styles.
+                val floatingNavigationItems = navigationItems
                 val floatingNavBarScrollConnection = rememberFloatingTabBarScrollConnection()
                 val (liquidGlassPreferenceEnabled) = rememberPreference(LiquidGlassGlobalEnabledKey, defaultValue = true)
                 val (solidUi) = rememberPreference(SolidUiKey, defaultValue = true)
@@ -1061,6 +1064,7 @@ class MainActivity : ComponentActivity() {
                 // visual state, so the shrink/expand animation plays out before the
                 // actual navigation call lands (see enterSearch/exitSearch below).
                 var searchVisualOverride by remember { mutableStateOf<Boolean?>(null) }
+                var searchTransitionJob by remember { mutableStateOf<Job?>(null) }
 
                 val onSearch: (String) -> Unit = remember(localOnlyMode) {
                     { searchQuery ->
@@ -1139,28 +1143,8 @@ class MainActivity : ComponentActivity() {
                 LaunchedEffect(inSearchScreen) {
                     if (!inSearchScreen) searchKeyboardActive = false
                 }
-                // The floating nav bar keeps Settings as one of its own tabs (see
-                // floatingNavigationItems above), so it should stay visible there too â€”
-                // only the classic nav bar treats Settings as a top-bar-only destination.
-                val navigationItemRoutes = remember(floatingNavigationItems) {
-                    floatingNavigationItems.map { it.route }.toSet()
-                }
-
                 val isKeyboardOpen = WindowInsets.isImeVisible
-                val isSettingsSubpage = currentRoute?.startsWith("settings/") == true
-                val shouldShowNavigationBar = remember(currentRoute) {
-                    when {
-                        // By design: nav bar shows only at Settings root ("settings"
-                        // bare route); every drilled-in sub-page ("settings/...") is a
-                        // focused detail/editor context and hides it, same as the other
-                        // full-screen flows below. Reaching Home from a sub-page is via
-                        // one back-tap to root (where the bar reappears) or the back
-                        // arrow's long-press (backToMain()) shortcut.
-                        isSettingsSubpage -> false
-                        currentRoute in setOf("login", "channel_picker", "equalizer", "wrapped", "update") -> false
-                        else -> true
-                    }
-                }
+                val shouldShowNavigationBar = isPlayerChromeRoute(currentRoute)
 
                 val isLandscape = configuration.containerDpSize.width > configuration.containerDpSize.height
 
@@ -1197,13 +1181,19 @@ class MainActivity : ComponentActivity() {
 
                 val playerMediaMetadata by playerConnection?.mediaMetadata?.collectAsStateWithLifecycle()
                     ?: remember { mutableStateOf(null) }
-                // The original compact player belongs to the Home and Library navigation
-                // chrome. It stays out of Settings, Search, and other focused screens.
-                val showMiniPlayer = effectiveRoute == Screens.Home.route ||
-                    effectiveRoute == Screens.Library.route
                 var playerAccessoryDismissed by remember(playerMediaMetadata?.id) {
                     mutableStateOf(false)
                 }
+                // Browse/detail routes share the same active player. Query entry temporarily
+                // uses its space for the keyboard; Settings and focused flows use their own UI.
+                val showMiniPlayer = shouldShowPlayerAccessory(
+                    route = effectiveRoute,
+                    hasActiveMedia = playerMediaMetadata != null,
+                    dismissed = playerAccessoryDismissed,
+                    keyboardActive = isKeyboardOpen || searchKeyboardActive,
+                )
+                var navigationChromeHeightPx by remember { mutableIntStateOf(0) }
+                var searchPlayerHeightPx by remember { mutableIntStateOf(0) }
                 val playerBottomSheetState = rememberBottomSheetState(
                     dismissedBound = 0.dp,
                     // The compact pill is rendered by the navigation bar; the sheet
@@ -1213,8 +1203,9 @@ class MainActivity : ComponentActivity() {
                 )
 
                 val hasDockedPlayerAccessory =
-                    playerMediaMetadata != null && !playerAccessoryDismissed &&
-                        showMiniPlayer && shouldShowNavigationBar && !showRail && !inSearchScreen
+                    showMiniPlayer && shouldShowNavigationBar && !showRail && !inSearchScreen
+                val hasSearchPlayerAccessory =
+                    showMiniPlayer && shouldShowNavigationBar && !showRail && inSearchScreen
 
                 // Keep the player transition layers above the navigation chrome so they
                 // remain available to explicit player expansion actions.
@@ -1228,18 +1219,29 @@ class MainActivity : ComponentActivity() {
                 val playerAwareWindowInsets = remember(
                     bottomInset,
                     shouldShowNavigationBar,
-                    playerBottomSheetState.isDismissed,
                     showRail,
                     hasDockedPlayerAccessory,
+                    hasSearchPlayerAccessory,
+                    useMagnetNavigation,
+                    navigationChromeHeightPx,
+                    searchPlayerHeightPx,
+                    density,
                     sideBarContentInset,
-                    inSearchInputScreen,
                 ) {
-                    // Reserve a thumb target on detail/settings screens as well as roots.
-                    var bottom = bottomInset + NavigationBarHeight
-                    if (!playerBottomSheetState.isDismissed && !inSearchInputScreen) {
-                        bottom += MiniPlayerHeight
+                    // Reserve the chrome that is actually drawn. Settings has no bottom
+                    // controls; playlist lists get the same measured player space as Home.
+                    var bottom = bottomInset
+                    if (shouldShowNavigationBar && !showRail) {
+                        val launcherHeight = if (useMagnetNavigation) 72.dp else NavigationBarHeight
+                        bottom = maxOf(
+                            bottomInset + launcherHeight,
+                            with(density) { navigationChromeHeightPx.toDp() },
+                        ) + 8.dp
+                        if (hasSearchPlayerAccessory) {
+                            bottom += with(density) { searchPlayerHeightPx.toDp() } + 8.dp
+                        }
+                        if (!useMagnetNavigation) bottom += 56.dp // Recognition shortcut.
                     }
-                    if (hasDockedPlayerAccessory) bottom += DockedAccessoryHeight
                     windowsInsets
                         .only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top)
                         .add(WindowInsets(top = AppBarHeight, bottom = bottom))
@@ -1462,8 +1464,9 @@ class MainActivity : ComponentActivity() {
                 // out first instead of racing the route's own screen transition.
                 val enterSearch: () -> Unit = remember(navController, coroutineScope) {
                     {
+                        searchTransitionJob?.cancel()
                         searchVisualOverride = true
-                        coroutineScope.launch {
+                        searchTransitionJob = coroutineScope.launch {
                             delay(SearchNavTransitionDelayMs)
                             // Search opens over whatever tab is showing. Drilled into a
                             // detail screen, pop back to the tab root first so the overlay
@@ -1480,9 +1483,10 @@ class MainActivity : ComponentActivity() {
                 }
                 val exitSearch: () -> Unit = remember(navController, coroutineScope) {
                     {
+                        searchTransitionJob?.cancel()
                         searchKeyboardActive = false
                         searchVisualOverride = false
-                        coroutineScope.launch {
+                        searchTransitionJob = coroutineScope.launch {
                             delay(SearchNavTransitionDelayMs)
                             // search/{query} (the results screen) is still a real pushed
                             // NavHost destination -- leave it the normal way. The input
@@ -1495,6 +1499,29 @@ class MainActivity : ComponentActivity() {
                             searchVisualOverride = null
                         }
                     }
+                }
+                val closeSearchOverlay: () -> Unit = {
+                    searchTransitionJob?.cancel()
+                    searchTransitionJob = null
+                    searchOverlayOpen = false
+                    searchKeyboardActive = false
+                    searchVisualOverride = null
+                    focusManager.clearFocus()
+                }
+                BackHandler(enabled = searchOverlayOpen && !searchKeyboardActive && !playerAboveBars) {
+                    exitSearch()
+                }
+                val openSettings: () -> Unit = {
+                    closeSearchOverlay()
+                    if (enableSettingsPopup) {
+                        showSettingDialoge = true
+                    } else {
+                        navController.navigate(Screens.Settings.route) { launchSingleTop = true }
+                    }
+                }
+                val openRecognition: () -> Unit = {
+                    closeSearchOverlay()
+                    navController.navigate("recognition") { launchSingleTop = true }
                 }
 
                 // The nav bar (rendered outside/above search_input and search/{query} in
@@ -1695,6 +1722,7 @@ class MainActivity : ComponentActivity() {
                                             topAppBarScrollBehavior.state.resetHeightOffset()
                                         }
                                     } else {
+                                        closeSearchOverlay()
                                         val now = SystemClock.elapsedRealtime()
                                         // The debounce below only suppresses a genuine duplicate
                                         // fire for a tab we are still sitting on. Once the user
@@ -1742,7 +1770,7 @@ class MainActivity : ComponentActivity() {
                             val navigationBottomPadding =
                                 if (useMagnetNavigation && hasDockedPlayerAccessory) 12.dp else 8.dp
 
-                            if (!showRail && !showSettingDialoge && currentRoute?.startsWith("settings/") != true && currentRoute !in setOf("wrapped", "update", "login", "equalizer", "ambient_mode")) {
+                            if (!showRail && !showSettingDialoge && shouldShowNavigationBar) {
                                 Box {
                                     // Apple Music-style progressive scrim: content fades out under
                                     // the floating glass bar instead of hard-clipping, so the bar
@@ -1830,6 +1858,7 @@ class MainActivity : ComponentActivity() {
                                         // left in place, unused, rather than torn out.
                                         modifier = Modifier
                                             .align(Alignment.BottomCenter)
+                                            .onSizeChanged { navigationChromeHeightPx = it.height }
                                             // Keep the bar compact/portrait-width in landscape
                                             // instead of stretching across the wide screen.
                                             .widthIn(max = 500.dp)
@@ -1851,6 +1880,47 @@ class MainActivity : ComponentActivity() {
                                                 }
                                             }
                                     )
+
+                                    // Search keeps its composer and player as separate rows.
+                                    // Query keyboard entry hides the player through the shared policy.
+                                    if (hasSearchPlayerAccessory && !playerAboveBars) {
+                                        BoxWithConstraints(
+                                            Modifier
+                                                .align(Alignment.BottomCenter)
+                                                .widthIn(max = 500.dp)
+                                                .padding(horizontal = 16.dp)
+                                                .padding(bottom = maxOf(
+                                                    bottomInset + 64.dp,
+                                                    with(density) { navigationChromeHeightPx.toDp() } + 8.dp,
+                                                )),
+                                        ) {
+                                            BoxWithConstraints(
+                                                Modifier.fillMaxWidth().padding(
+                                                    start = if (useMagnetNavigation && magnetOnLeft) 60.dp else 0.dp,
+                                                    end = if (useMagnetNavigation && !magnetOnLeft) 60.dp else 0.dp,
+                                                ),
+                                            ) {
+                                                AppFloatingNowPlayingPill(
+                                                    onClick = { playerBottomSheetState.expandSoft() },
+                                                    widthFraction = 1f,
+                                                    pureBlack = pureBlack,
+                                                    onDismissDown = {
+                                                        playerAccessoryDismissed = true
+                                                        playerBottomSheetState.dismiss()
+                                                    },
+                                                    onLyricsClick = {
+                                                        playerBottomSheetState.expandSoft()
+                                                        playerConnection?.requestShowLyrics?.value = true
+                                                    },
+                                                    onQueueClick = {
+                                                        playerBottomSheetState.expandSoft()
+                                                        playerConnection?.requestShowQueue?.value = true
+                                                    },
+                                                    modifier = Modifier.onSizeChanged { searchPlayerHeightPx = it.height },
+                                                )
+                                            }
+                                        }
+                                    }
 
 
                                 }
@@ -1903,6 +1973,7 @@ class MainActivity : ComponentActivity() {
                                             topAppBarScrollBehavior.state.resetHeightOffset()
                                         }
                                     } else {
+                                        closeSearchOverlay()
                                         val now = SystemClock.elapsedRealtime()
                                         if (screen.route != lastNavRoute || now - lastNavTimeMs >= NavDebounceMs) {
                                             lastNavRoute = screen.route
@@ -2263,9 +2334,69 @@ class MainActivity : ComponentActivity() {
                         }
                     }
 
+                    // A shared top-right entry is drawn above Search's overlay as well as
+                    // the root pages. Close the overlay before opening its destination.
+                    if (!playerAboveBars && !showSettingDialoge && effectiveRoute in Screens.MainRoutes) {
+                        Column(
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .windowInsetsPadding(windowsInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal))
+                                .padding(top = 8.dp, end = 16.dp)
+                                .zIndex(2f),
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            if (useMagnetNavigation) {
+                                GlassCircleButton(onClick = openRecognition, size = 48.dp, opaqueInSolidMode = true) {
+                                    Icon(
+                                        painterResource(R.drawable.mic),
+                                        contentDescription = stringResource(R.string.recognize_music),
+                                        modifier = Modifier.size(24.dp),
+                                    )
+                                }
+                            }
+                            GlassCircleButton(onClick = openSettings, size = 48.dp, opaqueInSolidMode = true) {
+                                Icon(
+                                    painterResource(R.drawable.xan_icon_settings),
+                                    contentDescription = stringResource(R.string.settings),
+                                    modifier = Modifier.size(24.dp),
+                                )
+                            }
+                        }
+                    }
+
+                    // Legacy exposes recognition above its Search/player instead of
+                    // depending on an undiscoverable long-press action.
+                    if (!useMagnetNavigation && shouldShowNavigationBar && !playerAboveBars &&
+                        !isKeyboardOpen && !searchKeyboardActive && !showSettingDialoge
+                    ) {
+                        val recognitionBottom = maxOf(
+                            bottomInset + NavigationBarHeight,
+                            with(density) { navigationChromeHeightPx.toDp() },
+                        ) + if (hasSearchPlayerAccessory) {
+                            with(density) { searchPlayerHeightPx.toDp() } + 8.dp
+                        } else 0.dp
+                        GlassCircleButton(
+                            onClick = openRecognition,
+                            size = 48.dp,
+                            opaqueInSolidMode = true,
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .windowInsetsPadding(windowsInsets.only(WindowInsetsSides.Horizontal))
+                                .padding(end = 16.dp, bottom = recognitionBottom + 8.dp),
+                        ) {
+                            Icon(
+                                painterResource(R.drawable.mic),
+                                contentDescription = stringResource(R.string.recognize_music),
+                                modifier = Modifier.size(24.dp),
+                            )
+                        }
+                    }
+
                     // The player expands over the navigation chrome. Do not leave
                     // the separately hosted Magnet on top of the full-screen player.
-                    if (useMagnetNavigation && !playerAboveBars && !isSettingsSubpage) {
+                    if (useMagnetNavigation && shouldShowNavigationBar && !playerAboveBars &&
+                        !isKeyboardOpen && !searchKeyboardActive && !showSettingDialoge
+                    ) {
                         app.xan.music.ui.component.NavigationMagnet(
                         currentRoute = if (
                             navBackStackEntry?.destination?.route == "auto_playlist/{playlist}" &&
@@ -2273,14 +2404,13 @@ class MainActivity : ComponentActivity() {
                         ) Screens.Downloads.route else effectiveRoute,
                         onLeft = magnetOnLeft,
                         semicircle = magnetSemicircle,
+                        showIconNames = magnetShowIconNames,
                         onNavigate = { screen ->
                             if (playerBottomSheetState.isExpanded) playerBottomSheetState.collapseSoft()
                             if (screen == Screens.Search) {
                                 enterSearch()
                             } else {
-                                searchOverlayOpen = false
-                                searchKeyboardActive = false
-                                searchVisualOverride = null
+                                closeSearchOverlay()
                                 navController.navigate(screen.route) {
                                     popUpTo(navController.graph.startDestinationId) { saveState = true }
                                     launchSingleTop = true

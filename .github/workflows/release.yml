@@ -360,7 +360,7 @@ jobs:
             fi
             RENAMED+=("$target")
           done
-          CHECKSUMS="$OUTPUT_DIR/XAN-$VERSION-$PLATFORM_ID-$ARCH-$OUTPUT_FOLDER-SHA256SUMS.txt"
+          CHECKSUMS="$OUTPUT_DIR/XAN-$VERSION-$PLATFORM_ID-$ARCH-$OUTPUT_FOLDER-SHA256SUMS.sha256"
           python desktop/shared/packaging/write_checksums.py "$CHECKSUMS" "${RENAMED[@]}"
 
       - name: Check Apple signing configuration
@@ -408,7 +408,7 @@ jobs:
             *) echo "Unsupported macOS signing architecture: $machine" >&2; exit 1 ;;
           esac
           dmg="desktop/shared/build/compose/binaries/main/dmg/XAN-$VERSION-macos-$architecture.dmg"
-          checksums="desktop/shared/build/compose/binaries/main/dmg/XAN-$VERSION-macos-$architecture-dmg-SHA256SUMS.txt"
+          checksums="desktop/shared/build/compose/binaries/main/dmg/XAN-$VERSION-macos-$architecture-dmg-SHA256SUMS.sha256"
           printf '%s' "$CERTIFICATE_P12_BASE64" | base64 --decode > "$certificate"
           security create-keychain -p "$keychain_password" "$keychain"
           security set-keychain-settings -lut 21600 "$keychain"

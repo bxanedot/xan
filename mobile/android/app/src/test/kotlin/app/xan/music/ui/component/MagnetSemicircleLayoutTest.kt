@@ -7,11 +7,11 @@ import org.junit.Test
 
 class MagnetSemicircleLayoutTest {
     @Test
-    fun `all five destination targets fit and do not overlap at supported widths`() {
+    fun `all three destination targets fit and do not overlap at supported widths`() {
         for (width in listOf(240f, 280f, 320f)) {
             for (onLeft in listOf(false, true)) {
-                val layout = magnetSemicircleLayout(width, onLeft, itemCount = 5)
-                assertEquals(5, layout.items.size)
+                val layout = magnetSemicircleLayout(width, onLeft)
+                assertEquals(3, layout.items.size)
                 layout.items.forEach { item ->
                     assertTrue(item.x >= 26f && item.x <= layout.width - 26f)
                     assertTrue(item.y >= 26f && item.y <= layout.height - 26f)
@@ -21,6 +21,19 @@ class MagnetSemicircleLayoutTest {
                     layout.items.drop(index + 1).forEach { other ->
                         assertTrue(hypot(item.x - other.x, item.y - other.y) >= 52f)
                     }
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `optional names have room below the icons before the Magnet button`() {
+        for (width in listOf(240f, 280f, 320f)) {
+            for (onLeft in listOf(false, true)) {
+                for (fontScale in listOf(1f, 1.5f, 2f)) {
+                    val layout = magnetSemicircleLayout(width, onLeft, labelSpace = 56f * fontScale)
+                    val lowestLabelBottom = layout.items.maxOf { it.y } + 32f + 32f * fontScale + 8f
+                    assertTrue(lowestLabelBottom < layout.magnet.y - 28f)
                 }
             }
         }
