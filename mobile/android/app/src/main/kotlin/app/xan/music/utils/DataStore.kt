@@ -31,7 +31,7 @@ import kotlin.properties.ReadOnlyProperty
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(
     name = "settings",
-    produceMigrations = { listOf(OriginalMagnetMigration, MagnetArcDefaultMigration) },
+    produceMigrations = { listOf(OriginalMagnetMigration, MagnetStraightDefaultMigration) },
 )
 
 /**

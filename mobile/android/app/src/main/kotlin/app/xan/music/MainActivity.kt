@@ -861,7 +861,7 @@ class MainActivity : ComponentActivity() {
 
                 val (localOnlyMode) = rememberPreference(LocalOnlyModeKey, false)
                 val (magnetOnLeft) = rememberPreference(app.xan.music.constants.MagnetOnLeftKey, false)
-                val (magnetSemicircle) = rememberPreference(app.xan.music.constants.MagnetSemicircleKey, true)
+                val (magnetSemicircle) = rememberPreference(app.xan.music.constants.MagnetSemicircleKey, false)
                 val (magnetSpringAnimations) = rememberPreference(app.xan.music.constants.MagnetSpringAnimationsKey, true)
                 val (useMagnetNavigation) = rememberPreference(UseMagnetNavigationKey, defaultValue = true)
                 val (magnetShowIconNames) = rememberPreference(MagnetShowIconNamesKey, defaultValue = false)

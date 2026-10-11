@@ -5,16 +5,16 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import app.xan.music.constants.MagnetSemicircleKey
 
-/** Move upgraded installs to the inward-facing arc used by the new Magnet design. */
-internal object MagnetArcDefaultMigration : DataMigration<Preferences> {
-    private val appliedKey = booleanPreferencesKey("magnetScreenshotArcDefaultApplied")
+/** Move upgraded installs to the straight Magnet layout once. */
+internal object MagnetStraightDefaultMigration : DataMigration<Preferences> {
+    private val appliedKey = booleanPreferencesKey("magnetStraightDefaultApplied")
 
     override suspend fun shouldMigrate(currentData: Preferences): Boolean =
         currentData[appliedKey] != true
 
     override suspend fun migrate(currentData: Preferences): Preferences =
         currentData.toMutablePreferences().apply {
-            this[MagnetSemicircleKey] = true
+            this[MagnetSemicircleKey] = false
             this[appliedKey] = true
         }
 

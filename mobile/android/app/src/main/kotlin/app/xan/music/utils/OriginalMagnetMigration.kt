@@ -5,7 +5,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import app.xan.music.constants.MagnetSemicircleKey
 
-/** Seed the screenshot-matching arc layout once, before settings are read. */
+/** Seed the original Magnet layout choice once, before settings are read. */
 internal object OriginalMagnetMigration : DataMigration<Preferences> {
     private val restoredKey = booleanPreferencesKey("originalMagnetRestored")
 
@@ -14,7 +14,7 @@ internal object OriginalMagnetMigration : DataMigration<Preferences> {
 
     override suspend fun migrate(currentData: Preferences): Preferences =
         currentData.toMutablePreferences().apply {
-            this[MagnetSemicircleKey] = true
+            this[MagnetSemicircleKey] = false
             this[restoredKey] = true
         }
 

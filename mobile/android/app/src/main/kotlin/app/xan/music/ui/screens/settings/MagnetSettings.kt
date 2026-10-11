@@ -41,7 +41,7 @@ fun MagnetSettingsScreen(
     scrollBehavior: TopAppBarScrollBehavior,
 ) {
     val (onLeft, onOnLeftChange) = rememberPreference(MagnetOnLeftKey, defaultValue = false)
-    val (semicircle, onSemicircleChange) = rememberPreference(MagnetSemicircleKey, defaultValue = true)
+    val (semicircle, onSemicircleChange) = rememberPreference(MagnetSemicircleKey, defaultValue = false)
     val (showNames, onShowNamesChange) = rememberPreference(MagnetShowIconNamesKey, defaultValue = false)
     val (springAnimations, onSpringAnimationsChange) = rememberPreference(MagnetSpringAnimationsKey, defaultValue = true)
 
