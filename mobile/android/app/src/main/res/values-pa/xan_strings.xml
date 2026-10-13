@@ -180,7 +180,7 @@
     <string name="done">ਟੈਟੂ</string>
     <string name="audio_devices">ਆਟੋਮੈਟਿਕ ਸੰਦ</string>
     <string name="bluetooth_headphones">Bluetooth ਹਿੱਸੇ</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">ਸਟੀਲ Lyrics Blur</string>
     <string name="listen_together_smart_resync">Smart ਨੈੱਟ Resync</string>
     <string name="listen_together_smart_resync_desc">ਆਟੋਮੈਟਿਕ ਹਾਰਡਵੇਅਰ ਦੇ ਨਾਲ ਹਾਰਡਵੇਅਰ ਦੇ ਨਾਲ ਹਾਰਡਵੇਅਰ ਦੇ ਨਾਲ ਹਾਰਡਵੇਅਰ ਦੇ ਨਾਲ ਹਾਰਡਵੇਅਰ ਦੇ ਨਾਲ ਹਾਰਡਵੇਅਰ ਦੇ ਨਾਲ ਹਾਰਡਵੇਅਰ</string>
@@ -1350,7 +1350,7 @@
     <string name="feat_update_title">ਡਾਈਨਮੀਸ਼ਨ</string>
     <string name="feat_update_desc">ਸਾਡਾ ਇੰਸਟਾਲੇਸ਼ਨ Updater ਨਾਲ ਹਮੇਸ਼ਾ ਅੱਪਡੇਟ ਕਰੋ.</string>
     <string name="feat_license_title">ਲੰਬਾਈ</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GITHUB</string>
     <string name="feat_github_desc">ਪ੍ਰਾਜੈਕਟ Open Source</string>
     <string name="join_telegram">ਸਾਡੇ Telegram ਨੈੱਟਵਰਕ</string>
@@ -1571,7 +1571,7 @@
     <string name="support_bxane">bxane ਦਾ ਸਮਰਥਨ ਕਰੋ</string>
     <string name="open_supporter_page">ਸੁਪਰਕ ਪੰਨਾ ਨੂੰ ਸ਼ੁਰੂ ਕਰੋ</string>
     <string name="release_label">ਵਿਲੱਖਣ</string>
-    <string name="open_source_license_desc">GPL-3.0-only • ਮੁਫਤ ਓਪਨ ਸੋਰਸ ਸਾਫਟਵੇਅਰ</string>
+    <string name="open_source_license_desc">GPL 3.0 • ਮੁਫਤ ਓਪਨ ਸੋਰਸ ਸਾਫਟਵੇਅਰ</string>
     <string name="sponsorblock_desc">ਸਬੂਤ, self-promo ਅਤੇ non-music segments ਆਟੋਮੈਟਿਕ</string>
     <string name="ok">OK</string>
     <string name="import_from_local_file">ਫਾਇਲ ਨੂੰ ਸਥਾਪਨਾ</string>

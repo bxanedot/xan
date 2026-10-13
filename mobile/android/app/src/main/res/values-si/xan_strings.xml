@@ -373,7 +373,7 @@
     <string name="done">ඩොන්</string>
     <string name="audio_devices">Audio උපකරණ</string>
     <string name="bluetooth_headphones">Bluetooth ඇඳුම</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">ස්ථාවර ලින්ක්ස් Blur</string>
     <string name="listen_together_smart_resync">Smart Network Resync පර්යේෂණ</string>
     <string name="listen_together_smart_resync_desc">ස්වයංක්රියාත්මකව සන්නිවේදනය කඩා වැටුණු පසු Host එක සමඟ අල්ලන්න</string>
@@ -1543,7 +1543,7 @@
     <string name="feat_update_title">Dynamic Updates</string>
     <string name="feat_update_desc">අපි හැමදාම අපේ පදිංචි පරිගණකය සමඟ අළුත් කරමු.</string>
     <string name="feat_license_title">අවසරය</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GitHub</string>
     <string name="feat_github_desc">Open Source ව් යාපෘතිය</string>
     <string name="join_telegram">අපේ Telegram චැනල් එකට</string>
@@ -1764,7 +1764,7 @@
     <string name="support_bxane">සහන bxane</string>
     <string name="open_supporter_page">ප්රධාන පිටුව විවෘත කිරීම</string>
     <string name="release_label">නිදහස් කිරීම</string>
-    <string name="open_source_license_desc">GPL-3.0-only • නිදහස් විවෘත මූලාශ්‍ර මෘදුකාංග</string>
+    <string name="open_source_license_desc">GPL 3.0 • නිදහස් විවෘත මූලාශ්‍ර මෘදුකාංග</string>
     <string name="sponsorblock_desc">ස්පෝන්ස්, ස්වාධීන ප්රමාණය සහ සංගීත නොමිලේ ප්රමාණය ස්වයංක්රීය</string>
     <string name="ok">ඔක්</string>
     <string name="import_from_local_file">දේශීය දර්ශනය</string>

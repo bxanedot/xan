@@ -373,7 +373,7 @@
     <string name="done">የንግድ</string>
     <string name="audio_devices">የኦዲዮ መሣሪያዎች</string>
     <string name="bluetooth_headphones">Bluetooth ፎቶዎች</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">ብረት ብረት ብረት</string>
     <string name="listen_together_smart_resync">የ Smart Network Resync መሣሪያ</string>
     <string name="listen_together_smart_resync_desc">የኮንኮር አቅርቦት በኋላ የኮንኮር አቅርቦት ይሆናል</string>
@@ -1543,7 +1543,7 @@
     <string name="feat_update_title">የኃይል አቅርቦት</string>
     <string name="feat_update_desc">የእኛን የተመሠረተ Updater ጋር የተመሠረተ ይሆናል.</string>
     <string name="feat_license_title">ማረጋገጫ</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">የ GitHub</string>
     <string name="feat_github_desc">የ Open Source ፕሮጀክት</string>
     <string name="join_telegram">የእኛ Telegram ቻይና</string>
@@ -1764,7 +1764,7 @@
     <string name="support_bxane">bxane ማረጋገጫ</string>
     <string name="open_supporter_page">መተግበሪያ ገበያ መተግበሪያ</string>
     <string name="release_label">የፈጠራ</string>
-    <string name="open_source_license_desc">GPL-3.0-only • ነፃ ክፍት ምንጭ ሶፍትዌር</string>
+    <string name="open_source_license_desc">GPL 3.0 • ነፃ ክፍት ምንጭ ሶፍትዌር</string>
     <string name="sponsorblock_desc">የሞክሮ, የሞክሮ, የሞክሮ, የሞክሮ, የሞክሮ, የሞክሮ, የሞክሮ, የሞክሮ, የሞክሮ</string>
     <string name="ok">አግኝት</string>
     <string name="import_from_local_file">የቤት ፋይሎች ውስጥ መግዛት</string>

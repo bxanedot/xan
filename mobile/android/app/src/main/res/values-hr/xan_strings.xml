@@ -308,7 +308,7 @@
     <string name="done">Gotovo</string>
     <string name="audio_devices">Audio uređaji</string>
     <string name="bluetooth_headphones">Bluetooth slušalice</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">Standardno zamućenje pjesama</string>
     <string name="listen_together_smart_resync">Pametna ponovna sinkronizacija mreže</string>
     <string name="listen_together_smart_resync_desc">Automatski uhvati korak s domaćinom nakon prekida veze</string>
@@ -1261,7 +1261,7 @@
     <string name="feat_update_title">Dinamička ažuriranja</string>
     <string name="feat_update_desc">Uvijek budite ažurirani uz naš ugrađeni program za ažuriranje.</string>
     <string name="feat_license_title">Licenca</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GitHub</string>
     <string name="feat_github_desc">Projekt otvorenog koda</string>
     <string name="join_telegram">Pridružite se našem Telegram kanalu</string>
@@ -1482,7 +1482,7 @@
     <string name="support_bxane">Podrška bxane</string>
     <string name="open_supporter_page">Otvorite stranicu za podršku</string>
     <string name="release_label">Otpuštanje</string>
-    <string name="open_source_license_desc">GPL-3.0-only • Besplatni softver otvorenog koda</string>
+    <string name="open_source_license_desc">GPL 3.0 • Besplatni softver otvorenog koda</string>
     <string name="sponsorblock_desc">Automatski preskoči sponzorske, samopromotivne i neglazbene segmente</string>
     <string name="ok">OK</string>
     <string name="import_from_local_file">Uvoz iz lokalne datoteke</string>

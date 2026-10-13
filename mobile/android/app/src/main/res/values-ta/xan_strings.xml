@@ -153,7 +153,7 @@
     <string name="done">டோன்</string>
     <string name="audio_devices">Audio சாதனங்கள்</string>
     <string name="bluetooth_headphones">Bluetooth தொலைபேசி</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">வடிவமைப்பு BLUR</string>
     <string name="listen_together_smart_resync">ஸ்மார்ட்போன் Network Resync</string>
     <string name="listen_together_smart_resync_desc">Automatically catch up with the host after a connection drop ஒரு இணைப்பு இழப்பு பின்னர்</string>
@@ -1300,7 +1300,7 @@
     <string name="feat_update_title">Dynamic புதுப்பிக்க</string>
     <string name="feat_update_desc">எப்போதும் நமது உள்ளடக்கமான மேம்படுத்தல் மூலம் புதுப்பிக்கப்படும்.</string>
     <string name="feat_license_title">உரிமம்</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GitHub</string>
     <string name="feat_github_desc">open source திட்டம்</string>
     <string name="join_telegram">எங்கள் Telegram சேனல்</string>
@@ -1521,7 +1521,7 @@
     <string name="support_bxane">உதவி bxane</string>
     <string name="open_supporter_page">ஆதரவு பக்கம் திறக்க</string>
     <string name="release_label">வெளியீடு</string>
-    <string name="open_source_license_desc">GPL-3.0-only • Free Open Source Software</string>
+    <string name="open_source_license_desc">GPL 3.0 • Free Open Source Software</string>
     <string name="sponsorblock_desc">ஸ்கிரிப்ட் ஸ்பான்ஸ், self-promo and non-music segments</string>
     <string name="ok">சரி</string>
     <string name="import_from_local_file">உள்ளூர் கோப்பு இருந்து Import</string>

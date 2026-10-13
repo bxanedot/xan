@@ -303,7 +303,7 @@
     <string name="done">Tehtud</string>
     <string name="audio_devices">Heliseadmed</string>
     <string name="bluetooth_headphones">Bluetoothi kõrvaklapid</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">Tavalised laulusõnad on hägusad</string>
     <string name="listen_together_smart_resync">Nutikas võrgu taassünkroonimine</string>
     <string name="listen_together_smart_resync_desc">Võtke pärast ühenduse katkemist hostile automaatselt järele</string>
@@ -1259,7 +1259,7 @@
     <string name="feat_update_title">Dünaamilised värskendused</string>
     <string name="feat_update_desc">Olge meie sisseehitatud värskendajaga alati kursis.</string>
     <string name="feat_license_title">Litsents</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GitHub</string>
     <string name="feat_github_desc">Avatud lähtekoodiga projekt</string>
     <string name="join_telegram">Liituge meie Telegrami kanaliga</string>
@@ -1480,7 +1480,7 @@
     <string name="support_bxane">Toetage bxane\'i</string>
     <string name="open_supporter_page">Ava toetajate leht</string>
     <string name="release_label">Vabastamine</string>
-    <string name="open_source_license_desc">GPL-3.0-only • Tasuta avatud lähtekoodiga tarkvara</string>
+    <string name="open_source_license_desc">GPL 3.0 • Tasuta avatud lähtekoodiga tarkvara</string>
     <string name="sponsorblock_desc">Jäta sponsori, enesereklaami ja muusikavälised lõigud automaatselt vahele</string>
     <string name="ok">OK</string>
     <string name="import_from_local_file">Import kohalikust failist</string>

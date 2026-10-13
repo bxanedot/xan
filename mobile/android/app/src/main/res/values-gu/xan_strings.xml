@@ -373,7 +373,7 @@
     <string name="done">ટ્રાફિક</string>
     <string name="audio_devices">Audio સાધનો</string>
     <string name="bluetooth_headphones">Bluetooth કૉંગ્રેસ</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">ટ્રાફિક ટ્રાફિક Blur</string>
     <string name="listen_together_smart_resync">Smart Network Resync પર પ્રવેશ</string>
     <string name="listen_together_smart_resync_desc">automatically catch up with the host after a connection drop (સંપડની પ્રક્રિયા)</string>
@@ -1543,7 +1543,7 @@
     <string name="feat_update_title">ઓસ્ટ્રેલિયા</string>
     <string name="feat_update_desc">આ ઉપરાંત, અમારા built-in updater સાથે અમારા પ્રદર્શન માટે અમારા પ્રદર્શન માટે અમારા પ્રદર્શન માટે.</string>
     <string name="feat_license_title">એરપોર્ટ</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GITHUB</string>
     <string name="feat_github_desc">Open Source પ્રોજેક્ટ</string>
     <string name="join_telegram">આટલું જ નહીં, આટલું જ નહીં Telegram Channel</string>
@@ -1764,7 +1764,7 @@
     <string name="support_bxane">bxane ને સપોર્ટ કરો</string>
     <string name="open_supporter_page">support page પ્રકાશિત કરો</string>
     <string name="release_label">સત્તાવાર</string>
-    <string name="open_source_license_desc">GPL-3.0-only • ફ્રી ઓપન સોર્સ સોફ્ટવેર</string>
+    <string name="open_source_license_desc">GPL 3.0 • ફ્રી ઓપન સોર્સ સોફ્ટવેર</string>
     <string name="sponsorblock_desc">Sponsor, self-promo and non-music segments પરથી સ્કૂટર</string>
     <string name="ok">સપ્તાહ</string>
     <string name="import_from_local_file">Home » Local File » Local File » Local File</string>

@@ -1079,6 +1079,9 @@
     <string name="speed_dial">Speed dial</string>
     <string name="pin_to_speed_dial">Pin to Speed dial</string>
     <string name="unpin_from_speed_dial">Unpin from Speed dial</string>
+    <string name="randomize_home_music">Random music discovery</string>
+    <string name="randomize_home_music_desc">Show shuffled public music instead of recommendations based on your listening</string>
+    <string name="home_youtube_history">From your YouTube Music history</string>
     <string name="randomize_home_order">Randomize Home Screen Order</string>
     <string name="randomize_home_order_desc">Randomly reorder home screen sections with weighted priorities</string>
     <string name="show_home_fab">Show sound search + shuffle button</string>
@@ -1166,7 +1169,7 @@
     <string name="feat_update_desc">Always stay updated with our built-in updater.</string>
 
     <string name="feat_license_title">License</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GitHub</string>
     <string name="feat_github_desc">Open source project</string>
 
@@ -1420,7 +1423,7 @@
     <string name="support_bxane">Support bxane</string>
     <string name="open_supporter_page">Open the supporter page</string>
     <string name="release_label">Release</string>
-    <string name="open_source_license_desc">GPL-3.0-only • Free Open Source Software</string>
+    <string name="open_source_license_desc">GPL 3.0 • Free Open Source Software</string>
     <string name="sponsorblock_desc">Skip sponsor, self-promo and non-music segments automatically</string>
     <string name="ok">OK</string>
     <string name="import_from_local_file">Import from local file</string>

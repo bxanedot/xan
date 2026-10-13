@@ -373,7 +373,7 @@
     <string name="done">ಕನಸು</string>
     <string name="audio_devices">ಇನ್ಫೋಸಿಸ್ Audio</string>
     <string name="bluetooth_headphones">Bluetooth ಕ್ಯಾಮರಾ</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">ಕ್ಯಾಮೆರಾ ಕ್ಯಾಮೆರಾ</string>
     <string name="listen_together_smart_resync">ಔಷಧಿ ಔಷಧಿ ಔಷಧಿ</string>
     <string name="listen_together_smart_resync_desc">Subscribe to the host after a connection drop (ಇನ್ಸೂಚನೆ)</string>
@@ -1543,7 +1543,7 @@
     <string name="feat_update_title">Updates ಕಳಪೆ</string>
     <string name="feat_update_desc">ಅಂದರೆ, ನೀವು ನಮ್ಮ Inbound Updater ಅನ್ನು ಅಪ್ಲಿಕೇಶನ್ ಮಾಡಬಹುದು.</string>
     <string name="feat_license_title">ಅಮೆರಿಕದ</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GITHUB</string>
     <string name="feat_github_desc">Open Source ಅಪ್ಲಿಕೇಶನ್</string>
     <string name="join_telegram">Subscribe to ಅಮೆರಿಕದ Telegram Channel</string>
@@ -1764,7 +1764,7 @@
     <string name="support_bxane">Bxane ಸೇವನೆ</string>
     <string name="open_supporter_page">Subscribe to Subscribe to Subscribe to Subscribe</string>
     <string name="release_label">ನೂರಾರು</string>
-    <string name="open_source_license_desc">GPL-3.0-only • ಉಚಿತ ಓಪನ್ ಸೋರ್ಸ್ ಸಾಫ್ಟ್‌ವೇರ್</string>
+    <string name="open_source_license_desc">GPL 3.0 • ಉಚಿತ ಓಪನ್ ಸೋರ್ಸ್ ಸಾಫ್ಟ್‌ವೇರ್</string>
     <string name="sponsorblock_desc">Subscribe, self-promo and non-music segments ಟ್ವೀಟ್ ಮಾಡಿ ಟ್ವೀಟ್ ಮಾಡಿ</string>
     <string name="ok">ಸೊಸೈಟಿ</string>
     <string name="import_from_local_file">Local File ಗಳನ್ನು ಪರಿಶೀಲಿಸಿ</string>

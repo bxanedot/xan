@@ -542,7 +542,7 @@
     <string name="done">Done</string>
     <string name="audio_devices">Thiết bị âm thanh</string>
     <string name="bluetooth_headphones">Điện thoại Bluetooth</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">Tiêu chuẩn lyrics blur</string>
     <string name="listen_together_smart_resync">Mạng thông minh Resync</string>
     <string name="listen_together_smart_resync_desc">Tự động bắt đầu với host sau khi kết nối giảm</string>
@@ -1310,7 +1310,7 @@
     <string name="feat_update_title">Cập nhật năng động</string>
     <string name="feat_update_desc">Luôn luôn cập nhật với bản cập nhật tích hợp của chúng tôi.</string>
     <string name="feat_license_title">Giấy phép</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GitHub</string>
     <string name="feat_github_desc">Dự án Open Source</string>
     <string name="join_telegram">Tham gia kênh Telegram của chúng tôi</string>
@@ -1531,7 +1531,7 @@
     <string name="support_bxane">Hỗ trợ bxane</string>
     <string name="open_supporter_page">Mở trang hỗ trợ</string>
     <string name="release_label">Giải phóng</string>
-    <string name="open_source_license_desc">GPL-3.0-only • Phần mềm mã nguồn mở miễn phí</string>
+    <string name="open_source_license_desc">GPL 3.0 • Phần mềm mã nguồn mở miễn phí</string>
     <string name="sponsorblock_desc">Tự động nhảy sponsor, self-promo và non-music segments</string>
     <string name="ok">OK</string>
     <string name="import_from_local_file">nhập khẩu từ file địa phương</string>

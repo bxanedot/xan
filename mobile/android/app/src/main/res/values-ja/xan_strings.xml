@@ -745,7 +745,7 @@
     <string name="done">ドン</string>
     <string name="audio_devices">オーディオデバイス</string>
     <string name="bluetooth_headphones">Bluetooth ヘッドフォン</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">スタンダード・リリース BLUR</string>
     <string name="listen_together_smart_resync">スマートネットワークリサイクル</string>
     <string name="listen_together_smart_resync_desc">自動的に接続停止後にホストと接続する</string>
@@ -1316,7 +1316,7 @@
     <string name="feat_update_title">ダイナミックアップデート</string>
     <string name="feat_update_desc">常に私たちのインストールアップデートで更新してください。</string>
     <string name="feat_license_title">ライセンス</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GITHUB</string>
     <string name="feat_github_desc">オープンソースプロジェクト</string>
     <string name="join_telegram">テレグラムチャンネルに参加する</string>
@@ -1537,7 +1537,7 @@
     <string name="support_bxane">サポートbxane</string>
     <string name="open_supporter_page">サポーターページを開く</string>
     <string name="release_label">リリース</string>
-    <string name="open_source_license_desc">GPL-3.0-only • 無料のオープンソース ソフトウェア</string>
+    <string name="open_source_license_desc">GPL 3.0 • 無料のオープンソース ソフトウェア</string>
     <string name="sponsorblock_desc">スポンサー、自己プロモ、非音楽セグメントを自動的にスキーする</string>
     <string name="ok">OK</string>
     <string name="import_from_local_file">地元のファイルから輸入</string>

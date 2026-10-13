@@ -373,7 +373,7 @@
     <string name="done">डॅन</string>
     <string name="audio_devices">ऑडिओ डिवाइस</string>
     <string name="bluetooth_headphones">ब्लूटूथ हेडफोन</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">मानक लिमिक्स ब्लेर</string>
     <string name="listen_together_smart_resync">स्मार्ट नेटवर्क पुनरावृत्ती</string>
     <string name="listen_together_smart_resync_desc">स्वचालितपणे एक कनेक्शन बंद केल्यानंतर मेजबानवर पकडणे</string>
@@ -1543,7 +1543,7 @@
     <string name="feat_update_title">डायनामिक अद्यतन</string>
     <string name="feat_update_desc">आपण नेहमी आपल्या अंतर्निहित अद्यतनवर अद्यतन ठेवू.</string>
     <string name="feat_license_title">लाइसेंस</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GitHub</string>
     <string name="feat_github_desc">Open Source योजना</string>
     <string name="join_telegram">आमच्या टेलीग्राम चॅनलमध्ये प्रवेश करा</string>
@@ -1764,7 +1764,7 @@
     <string name="support_bxane">bxane ला सपोर्ट करा</string>
     <string name="open_supporter_page">समर्थक पृष्ठ खोल</string>
     <string name="release_label">रिलीज</string>
-    <string name="open_source_license_desc">GPL-3.0-only • मोफत मुक्त स्रोत सॉफ्टवेअर</string>
+    <string name="open_source_license_desc">GPL 3.0 • मोफत मुक्त स्रोत सॉफ्टवेअर</string>
     <string name="sponsorblock_desc">स्पायर, स्व-प्रोमो आणि गैर-संगीत segment स्पायर स्वचालितपणे</string>
     <string name="ok">ठीक</string>
     <string name="import_from_local_file">स्थानिक फ़ाइलातून आयात</string>

@@ -373,7 +373,7 @@
     <string name="done">ପଢନ୍ତୁ</string>
     <string name="audio_devices">ପଢନ୍ତୁ Audio</string>
     <string name="bluetooth_headphones">BLUETOOTH ଋଣ</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">Straight to the Point କାମ ଦେଉନି ସଚେତନତା</string>
     <string name="listen_together_smart_resync">ଋଣ ପାଇବାରୁ ଋଣ ପାଇବାରୁ</string>
     <string name="listen_together_smart_resync_desc">କିନ୍ତୁ ସେ କହିଲେ yemiti huye 1st 1st.</string>
@@ -1543,7 +1543,7 @@
     <string name="feat_update_title">ପଢନ୍ତୁ: Dynamic Update</string>
     <string name="feat_update_desc">କିନ୍ତୁ ସେ କହିଲେ yemiti huye 1st 1st.</string>
     <string name="feat_license_title">ପଢନ୍ତୁ</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GITHUB</string>
     <string name="feat_github_desc">କିନ୍ତୁ ସେ କହିଲେ yemiti huye 1st 1st.</string>
     <string name="join_telegram">ପଢନ୍ତୁ Telegram Channel</string>
@@ -1764,7 +1764,7 @@
     <string name="support_bxane">ପଢନ୍ତୁ Bxane</string>
     <string name="open_supporter_page">କିନ୍ତୁ ସେ କହିଲେ yemiti huye 1st 1st.</string>
     <string name="release_label">ପଢନ୍ତୁ</string>
-    <string name="open_source_license_desc">GPL-3.0-only • ମାଗଣା ମୁକ୍ତ ଉତ୍ସ ସଫ୍ଟୱେର୍ |</string>
+    <string name="open_source_license_desc">GPL 3.0 • ମାଗଣା ମୁକ୍ତ ଉତ୍ସ ସଫ୍ଟୱେର୍ |</string>
     <string name="sponsorblock_desc">Sponsor, self-promo, and non-music segments  ଆପଣଙ୍କ ନଖ ହଳଦିଆ ଦେଖାଯାଉଛି</string>
     <string name="ok">ପଢନ୍ତୁ</string>
     <string name="import_from_local_file">କିନ୍ତୁ ସେ କହିଲେ yemiti huye 1st 1st.</string>

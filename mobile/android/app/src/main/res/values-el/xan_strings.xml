@@ -518,7 +518,7 @@
     <string name="done">Δομ</string>
     <string name="audio_devices">ΑΥΤΟΓΡΑΦΙΕΣ</string>
     <string name="bluetooth_headphones">Bluetooth ακουστικά</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">Ετικέτες Blur</string>
     <string name="listen_together_smart_resync">Σύνδεση Smart Network Resync</string>
     <string name="listen_together_smart_resync_desc">Αυτόματη συλλογή με τον φιλοξενό μετά από ένα πτώμα σύνδεσης</string>
@@ -1323,7 +1323,7 @@
     <string name="feat_update_title">Δυναμικές ενημερώσεις</string>
     <string name="feat_update_desc">Να είστε πάντα ενημερωμένοι με το ενσωματωμένο updater μας.</string>
     <string name="feat_license_title">Αδειοδότηση</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GitHub</string>
     <string name="feat_github_desc">ΠΡΟΓΡΑΜΜΑ Ανοιχτής Πηγής</string>
     <string name="join_telegram">Συνδεθείτε με το κανάλι Telegram</string>
@@ -1544,7 +1544,7 @@
     <string name="support_bxane">Υποστήριξη bxane</string>
     <string name="open_supporter_page">Ανοίξτε τη σελίδα υποστηρικτών</string>
     <string name="release_label">Απελευθέρωση</string>
-    <string name="open_source_license_desc">GPL-3.0-only • Δωρεάν λογισμικό ανοιχτού κώδικα</string>
+    <string name="open_source_license_desc">GPL 3.0 • Δωρεάν λογισμικό ανοιχτού κώδικα</string>
     <string name="sponsorblock_desc">Αποκτήστε αυτόματα το σπόνδυλο, το αυτο-προωθητικό και το μη μουσικό τμήμα</string>
     <string name="ok">ΟΚ</string>
     <string name="import_from_local_file">Εισαγωγή από το τοπικό αρχείο</string>

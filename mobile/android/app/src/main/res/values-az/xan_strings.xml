@@ -476,7 +476,7 @@
     <string name="support_bxane">bxane dəstəyi</string>
     <string name="open_supporter_page">Dəstəkçi səhifəsini açın</string>
     <string name="release_label">Buraxılış</string>
-    <string name="open_source_license_desc">GPL-3.0-only • Pulsuz Açıq Mənbə Proqramı</string>
+    <string name="open_source_license_desc">GPL 3.0 • Pulsuz Açıq Mənbə Proqramı</string>
     <string name="sponsorblock_desc">Sponsor, özünü reklam və qeyri-musiqi seqmentlərini avtomatik keçin</string>
     <string name="ok">OK</string>
     <string name="import_from_local_file">Lokal fayldan idxal edin</string>

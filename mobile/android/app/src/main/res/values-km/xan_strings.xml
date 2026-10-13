@@ -393,7 +393,7 @@
     <string name="done">សាកលវិទ្យាល័យ</string>
     <string name="audio_devices">ឧបករណ៍អេក្រង់</string>
     <string name="bluetooth_headphones">ប្រព័ន្ធ ប្រតិបត្តិការ Bluetooth</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">ប្រព័ន្ធ ប្រព័ន្ធ ប្រព័ន្ធ ប្រព័ន្ធ ប្រព័ន្ធ ប្រព័ន្ធ ប្រព័ន្ធ ប្រព័ន្ធ</string>
     <string name="listen_together_smart_resync">ស្ម័នស្ម័នស្ម័ន</string>
     <string name="listen_together_smart_resync_desc">ប្រព័ន្ធ ប្រព័ន្ធ ប្រព័ន្ធ ប្រព័ន្ធ ប្រព័ន្ធ ប្រព័ន្ធ ប្រព័ន្ធ ប្រព័ន្ធ ប្រព័ន្ធ ប្រព័ន្ធ ប្រព័ន្ធ ប្រព័ន្ធ ប្រព័ន្ធ ប្រព័ន្ធ ប្រព័ន្ធ ប្រព័ន្ធ ប្រព័ន្ធ</string>
@@ -1543,7 +1543,7 @@
     <string name="feat_update_title">ការអភិវឌ្ឍន៍ Dynamic</string>
     <string name="feat_update_desc">សាកលវិទ្យាល័យរបស់យើងនៅពេលវេលាជាច្រើនទៀតនៅលើការបច្ចុប្បន្ននេះ។</string>
     <string name="feat_license_title">អាកាសធាតុ</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GITHUB</string>
     <string name="feat_github_desc">កម្មវិធី Open Source</string>
     <string name="join_telegram">ទូរស័ព្ទដៃរបស់យើង</string>
@@ -1764,7 +1764,7 @@
     <string name="support_bxane">ការគាំទ្រ BXANE</string>
     <string name="open_supporter_page">បិទកំណត់ផែនការ</string>
     <string name="release_label">អាក្រក់</string>
-    <string name="open_source_license_desc">GPL-3.0-only • កម្មវិធីប្រភពបើកចំហឥតគិតថ្លៃ</string>
+    <string name="open_source_license_desc">GPL 3.0 • កម្មវិធីប្រភពបើកចំហឥតគិតថ្លៃ</string>
     <string name="sponsorblock_desc">ការកំណត់ផ្គត់ផ្គង់, ការកំណត់ផ្គត់ផ្គង់ និង ការកំណត់ផ្គង់មិនមែនជាមែនជាមែនជាមែនដោយស្វ័យប្រវត្តិ</string>
     <string name="ok">អាកាស</string>
     <string name="import_from_local_file">ទិន្នន័យទិន្នន័យទិន្នន័យទិន្នន័យទិន្នន័យ</string>

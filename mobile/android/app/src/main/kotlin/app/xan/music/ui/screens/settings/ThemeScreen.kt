@@ -52,6 +52,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.ripple
@@ -76,6 +77,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.NavController
 import com.materialkolor.PaletteStyle
 import com.materialkolor.rememberDynamicColorScheme
@@ -115,7 +117,7 @@ fun ThemeScreen(
         SelectedThemeColorKey,
         DefaultThemeColor.toArgb()
     )
-    val (_, onDynamicThemeChange) = rememberPreference(DynamicThemeKey, defaultValue = true)
+    val (dynamicTheme, onDynamicThemeChange) = rememberPreference(DynamicThemeKey, defaultValue = true)
 
     val selectedThemeColor = Color(selectedThemeColorInt)
     val configuration = LocalConfiguration.current
@@ -146,6 +148,7 @@ fun ThemeScreen(
             onDarkModeChange = onDarkModeChange,
             pureBlack = pureBlack,
             onPureBlackChange = onPureBlackChange,
+            dynamicTheme = dynamicTheme,
             selectedThemeColor = selectedThemeColor,
             onSelectedThemeColorChange = handleColorSelection,
             onReset = onReset,
@@ -156,6 +159,7 @@ fun ThemeScreen(
             onDarkModeChange = onDarkModeChange,
             pureBlack = pureBlack,
             onPureBlackChange = onPureBlackChange,
+            dynamicTheme = dynamicTheme,
             selectedThemeColor = selectedThemeColor,
             onSelectedThemeColorChange = handleColorSelection,
             onReset = onReset,
@@ -164,6 +168,10 @@ fun ThemeScreen(
 
     TopAppBar(
             windowInsets = appTopBarWindowInsets(),
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.background,
+            scrolledContainerColor = MaterialTheme.colorScheme.background,
+        ),
         title = { Text(stringResource(R.string.theme_colors)) },
         navigationIcon = {
             IconButton(onClick = { navController.navigateUp() }) {
@@ -182,6 +190,7 @@ fun PortraitThemeLayout(
     onDarkModeChange: (DarkMode) -> Unit,
     pureBlack: Boolean,
     onPureBlackChange: (Boolean) -> Unit,
+    dynamicTheme: Boolean,
     selectedThemeColor: Color,
     onSelectedThemeColorChange: (Color) -> Unit,
     onReset: () -> Unit,
@@ -220,6 +229,9 @@ fun PortraitThemeLayout(
             onDarkModeChange = onDarkModeChange,
             pureBlack = pureBlack,
             onPureBlackChange = onPureBlackChange,
+            dynamicTheme = dynamicTheme,
+            selectedThemeColor = selectedThemeColor,
+            onSelectedThemeColorChange = onSelectedThemeColorChange,
             onReset = onReset,
         )
 
@@ -238,6 +250,7 @@ fun LandscapeThemeLayout(
     onDarkModeChange: (DarkMode) -> Unit,
     pureBlack: Boolean,
     onPureBlackChange: (Boolean) -> Unit,
+    dynamicTheme: Boolean,
     selectedThemeColor: Color,
     onSelectedThemeColorChange: (Color) -> Unit,
     onReset: () -> Unit,
@@ -282,6 +295,9 @@ fun LandscapeThemeLayout(
                 onDarkModeChange = onDarkModeChange,
                 pureBlack = pureBlack,
                 onPureBlackChange = onPureBlackChange,
+                dynamicTheme = dynamicTheme,
+                selectedThemeColor = selectedThemeColor,
+                onSelectedThemeColorChange = onSelectedThemeColorChange,
                 onReset = onReset,
             )
 
@@ -301,8 +317,23 @@ fun ThemeControls(
     onDarkModeChange: (DarkMode) -> Unit,
     pureBlack: Boolean,
     onPureBlackChange: (Boolean) -> Unit,
+    dynamicTheme: Boolean,
+    selectedThemeColor: Color,
+    onSelectedThemeColorChange: (Color) -> Unit,
     onReset: () -> Unit,
 ) {
+    var showCustomPicker by remember { mutableStateOf(false) }
+    val presets = listOf(
+        R.string.dynamic_theme to DefaultThemeColor,
+        R.string.theme_color_coral to Color(0xFFFF6B6B),
+        R.string.theme_color_amber to Color(0xFFFFB347),
+        R.string.theme_color_mint to Color(0xFF5AC8A8),
+        R.string.theme_color_ocean to Color(0xFF4D9DE0),
+        R.string.theme_color_violet to Color(0xFF9B7DE3),
+        R.string.theme_color_rose to Color(0xFFE86A9A),
+        R.string.theme_color_slate to Color(0xFF78909C),
+        R.string.theme_color_lime to Color(0xFF9BC53D),
+    )
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -388,6 +419,48 @@ fun ThemeControls(
                 }
             }
 
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(
+                    text = stringResource(R.string.color_palette),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    items(presets) { (labelRes, color) ->
+                        val isSelected = if (labelRes == R.string.dynamic_theme) dynamicTheme
+                            else !dynamicTheme && selectedThemeColor == color
+                        Column(
+                            modifier = Modifier.width(72.dp).clickable {
+                                onSelectedThemeColorChange(color)
+                            },
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(6.dp),
+                        ) {
+                            Box(
+                                modifier = Modifier.size(48.dp).clip(CircleShape)
+                                    .background(color)
+                                    .border(
+                                        if (isSelected) 3.dp else 1.dp,
+                                        if (isSelected) MaterialTheme.colorScheme.onSurface
+                                        else MaterialTheme.colorScheme.outline,
+                                        CircleShape,
+                                    ),
+                            )
+                            Text(
+                                text = stringResource(labelRes),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                maxLines = 1,
+                                textAlign = TextAlign.Center,
+                            )
+                        }
+                    }
+                }
+                TextButton(onClick = { showCustomPicker = true }) {
+                    Text(stringResource(R.string.theme_custom_color))
+                }
+            }
+
             AppBackgroundTextColorSection()
 
             TextButton(
@@ -398,14 +471,23 @@ fun ThemeControls(
             }
         }
     }
+    if (showCustomPicker) {
+        ColorPickerDialog(
+            initialColor = selectedThemeColor,
+            title = stringResource(R.string.theme_custom_color),
+            onDismiss = { showCustomPicker = false },
+            onConfirm = {
+                onSelectedThemeColorChange(it)
+                showCustomPicker = false
+            },
+        )
+    }
 }
 
 /**
- * App-wide background/text color, independent of Liquid Glass. Replaces the
- * old accent-color palette picker in this screen — the seed-color mechanism
- * it wrote to ([SelectedThemeColorKey]/[DynamicThemeKey]) is untouched and
- * still drives the app's Material color scheme, this just removes its picker
- * UI here in favor of direct background/text color control.
+ * App-wide background/text color, independent of Liquid Glass. The accent
+ * palette above changes the Material seed color; these two pickers set explicit
+ * background and text colors.
  *
  * Both preferences default to 0 ("unset"): every call site that reads them
  * (Home's plain background, the shared nav chrome's non-glass fallback)

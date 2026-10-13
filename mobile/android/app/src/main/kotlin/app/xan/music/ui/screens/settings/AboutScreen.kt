@@ -376,6 +376,10 @@ fun AboutScreen(
     }
 
     TopAppBar(
+        colors = androidx.compose.material3.TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.background,
+            scrolledContainerColor = MaterialTheme.colorScheme.background,
+        ),
         windowInsets = appTopBarWindowInsets(),
         title = { Text(stringResource(R.string.about)) },
         navigationIcon = {

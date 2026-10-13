@@ -372,5 +372,5 @@
     <string name="done">Bitti</string>
     <string name="audio_devices">Ses cihazları</string>
     <string name="bluetooth_headphones">Bluetooth kulaklık</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
 </resources>

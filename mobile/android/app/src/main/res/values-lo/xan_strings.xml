@@ -373,7 +373,7 @@
     <string name="done">ການຝຶກອົບຮົມ</string>
     <string name="audio_devices">ເຄື່ອງມືອາຊີບ</string>
     <string name="bluetooth_headphones">ຊື່ຫຍໍ້ຂອງ : Bluetooth</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">ປັດສະດຸ Lyrics</string>
     <string name="listen_together_smart_resync">ຊື່ຫຍໍ້ຂອງ : Smart Network Resync</string>
     <string name="listen_together_smart_resync_desc">ປົກກະຕິການປິ່ນປົວກັບ host ໃນເວລາທີ່ການປິ່ນປົວ</string>
@@ -1543,7 +1543,7 @@
     <string name="feat_update_title">ທີ່ດີທີ່ສຸດ</string>
     <string name="feat_update_desc">ໃນປັດຈຸບັນ, ພວກເຮົາຈະໄດ້ຮັບການປັບປຸງໃນປັດຈຸບັນ.</string>
     <string name="feat_license_title">ຄວາມຄິດເຫັນ</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GitHub</string>
     <string name="feat_github_desc">ການອອກແບບ Open Source</string>
     <string name="join_telegram">ໂທລະສັບມືຖື Telegram</string>
@@ -1764,7 +1764,7 @@
     <string name="support_bxane">ຊື່ຫຍໍ້ຂອງ : Bxane</string>
     <string name="open_supporter_page">ປັດຈຸບັນ, ປັດຈຸບັນ!</string>
     <string name="release_label">ຄວາມຄິດເຫັນ</string>
-    <string name="open_source_license_desc">GPL-3.0-only • ຊອບແວໂອເພນຊອດຟຣີ</string>
+    <string name="open_source_license_desc">GPL 3.0 • ຊອບແວໂອເພນຊອດຟຣີ</string>
     <string name="sponsorblock_desc">ສະຫນັບສະຫນູນ, Self-Promo ແລະສະຫນັບສະຫນູນ non-Music ອອນໄລນ໌</string>
     <string name="ok">ຄວາມຄິດເຫັນ</string>
     <string name="import_from_local_file">ສະພາບອາກາດໃນສະພາບອາກາດ</string>

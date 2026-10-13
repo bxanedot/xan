@@ -211,7 +211,7 @@
     <string name="done">పూర్తయింది</string>
     <string name="audio_devices">ఆడియో పరికరాలు</string>
     <string name="bluetooth_headphones">బ్లూటూత్ హెడ్ఫోన్లు</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">ప్రామాణిక సాహిత్యం అస్పష్టంగా</string>
     <string name="listen_together_smart_resync">స్మార్ట్ నెట్వర్క్ రెసిన్సింగ్</string>
     <string name="listen_together_smart_resync_desc">కనెక్షన్ పడిపోయిన తర్వాత స్వయంచాలకంగా హోస్ట్ను చేరుకోండి</string>
@@ -1309,7 +1309,7 @@
     <string name="feat_update_title">డైనమిక్ నవీకరణలు</string>
     <string name="feat_update_desc">ఎల్లప్పుడూ మా అంతర్నిర్మిత నవీకరణతో నవీకరించబడింది ఉండండి.</string>
     <string name="feat_license_title">లైసెన్స్</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GitHub</string>
     <string name="feat_github_desc">ఓపెన్ సోర్స్ ప్రాజెక్టు</string>
     <string name="join_telegram">మా టెలిగ్రామ్ ఛానెల్లో చేరండి</string>
@@ -1533,7 +1533,7 @@
     <string name="support_bxane">మద్దతు bxane</string>
     <string name="open_supporter_page">మద్దతుదారు పేజీని తెరవండి</string>
     <string name="release_label">విడుదల</string>
-    <string name="open_source_license_desc">GPL-3.0-only • ఉచిత ఓపెన్ సోర్స్ సాఫ్ట్‌వేర్</string>
+    <string name="open_source_license_desc">GPL 3.0 • ఉచిత ఓపెన్ సోర్స్ సాఫ్ట్‌వేర్</string>
     <string name="sponsorblock_desc">స్కిప్ స్పాన్సర్, స్వీయ ప్రమోషన్ మరియు సంగీతం కాని విభాగాలు స్వయంచాలకంగా</string>
     <string name="ok">సరే.</string>
     <string name="import_from_local_file">స్థానిక ఫైల్ నుండి దిగుమతి</string>

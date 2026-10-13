@@ -775,7 +775,7 @@
     <string name="done">دوني</string>
     <string name="audio_devices">أجهزة الصوت</string>
     <string name="bluetooth_headphones">سماعات Bluetooth</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">كلمات متعلقة Blur</string>
     <string name="listen_together_smart_resync">الشبكة الذكية Resync</string>
     <string name="listen_together_smart_resync_desc">التقاط تلقائيًا مع المضيف بعد انقطاع الاتصال</string>
@@ -1341,7 +1341,7 @@
     <string name="feat_update_title">تحديثات ديناميكية</string>
     <string name="feat_update_desc">كن دائمًا محدثًا مع تحديثنا المدمج.</string>
     <string name="feat_license_title">الترخيص</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GitHub</string>
     <string name="feat_github_desc">مشروع المصدر المفتوح</string>
     <string name="join_telegram">انضم إلى قناة Telegram</string>
@@ -1562,7 +1562,7 @@
     <string name="support_bxane">دعم bxane</string>
     <string name="open_supporter_page">افتح صفحة المؤيدين</string>
     <string name="release_label">إطلاق</string>
-    <string name="open_source_license_desc">GPL-3.0-only • Free Open Source Software</string>
+    <string name="open_source_license_desc">GPL 3.0 • Free Open Source Software</string>
     <string name="sponsorblock_desc">ركوب رعاية، الترويج الذاتي وغير الموسيقية تلقائيا</string>
     <string name="ok">OK</string>
     <string name="import_from_local_file">استيراد من الملفات المحلية</string>

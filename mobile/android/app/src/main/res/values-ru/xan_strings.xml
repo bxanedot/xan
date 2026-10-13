@@ -760,7 +760,7 @@
     <string name="done">Доно</string>
     <string name="audio_devices">Аудио устройства</string>
     <string name="bluetooth_headphones">Bluetooth слушалки</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">Стандартная лирика Blur</string>
     <string name="listen_together_smart_resync">Смарт-сеть Resync</string>
     <string name="listen_together_smart_resync_desc">Автоматически подбирается с хостом после отключения соединения</string>
@@ -1331,7 +1331,7 @@
     <string name="feat_update_title">Динамические обновления</string>
     <string name="feat_update_desc">Всегда оставайтесь обновленным с нашим встроенным обновлением.</string>
     <string name="feat_license_title">Лицензия</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GitHub</string>
     <string name="feat_github_desc">Проект открытого источника</string>
     <string name="join_telegram">Присоединяйтесь к нашим телеграммным каналам</string>
@@ -1552,7 +1552,7 @@
     <string name="support_bxane">Поддержка bxane</string>
     <string name="open_supporter_page">Откройте страницу поддержки</string>
     <string name="release_label">Освобождение</string>
-    <string name="open_source_license_desc">GPL-3.0-only • Бесплатное программное обеспечение с открытым исходным кодом</string>
+    <string name="open_source_license_desc">GPL 3.0 • Бесплатное программное обеспечение с открытым исходным кодом</string>
     <string name="sponsorblock_desc">Скачать спонсорские, самопромо- и не-музыкальные сегменты автоматически</string>
     <string name="ok">ОК</string>
     <string name="import_from_local_file">Импорт из локальных файлов</string>

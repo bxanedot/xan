@@ -2,7 +2,7 @@
 
 ## XAN source
 
-Original XAN source code is licensed under **GNU GPL version 3 only** (`GPL-3.0-only`). The repository's `LICENCE` file contains the complete license text. The license shown in **Settings → About** identifies the XAN-authored source.
+Original XAN source code is licensed under **GNU GPL version 3**. SPDX metadata retains the canonical `GPL-3.0-only` identifier for machine-readable compatibility. The repository's `LICENSE` file contains the complete license text. The license shown in **Settings → About** identifies the XAN-authored source.
 
 Third-party code, artwork, and libraries keep their own licenses and notices. The XAN license does not replace those terms.
 

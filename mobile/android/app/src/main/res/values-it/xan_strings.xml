@@ -755,7 +755,7 @@
     <string name="done">Fatto</string>
     <string name="audio_devices">Dispositivi audio</string>
     <string name="bluetooth_headphones">Cuffie Bluetooth</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">I testi standard sono sfocati</string>
     <string name="listen_together_smart_resync">Risincronizzazione rete intelligente</string>
     <string name="listen_together_smart_resync_desc">Raggiunge automaticamente l\'host dopo un\'interruzione della connessione</string>
@@ -1271,7 +1271,7 @@
     <string name="feat_update_title">Aggiornamenti dinamici</string>
     <string name="feat_update_desc">Rimani sempre aggiornato con il nostro programma di aggiornamento integrato.</string>
     <string name="feat_license_title">Licenza</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GitHub</string>
     <string name="feat_github_desc">Progetto open source</string>
     <string name="join_telegram">Unisciti al nostro canale Telegram</string>
@@ -1492,7 +1492,7 @@
     <string name="support_bxane">Supporta bxane</string>
     <string name="open_supporter_page">Apri la pagina del sostenitore</string>
     <string name="release_label">Rilascio</string>
-    <string name="open_source_license_desc">GPL-3.0-only • Software open source gratuito</string>
+    <string name="open_source_license_desc">GPL 3.0 • Software open source gratuito</string>
     <string name="sponsorblock_desc">Salta automaticamente i segmenti di sponsor, autopromozione e non musicali</string>
     <string name="ok">Va bene</string>
     <string name="import_from_local_file">Importa da file locale</string>

@@ -526,7 +526,7 @@
     <string name="done">Доно</string>
     <string name="audio_devices">Аудіопристрої</string>
     <string name="bluetooth_headphones">Bluetooth слухові телефони</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">Стандартні лірики Blur</string>
     <string name="listen_together_smart_resync">Інтелектуальна мережа Resync</string>
     <string name="listen_together_smart_resync_desc">Автоматично захоплюється з хостом після відключення зв\'язку</string>
@@ -1331,7 +1331,7 @@
     <string name="feat_update_title">Динамічні оновлення</string>
     <string name="feat_update_desc">Залишайтеся постійно оновленими з нашою вбудованою оновленою.</string>
     <string name="feat_license_title">Ліцензія</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GitHub</string>
     <string name="feat_github_desc">Проект відкритого коду</string>
     <string name="join_telegram">Приєднуйтесь до нашого телеграмного каналу</string>
@@ -1552,7 +1552,7 @@
     <string name="support_bxane">Підтримка bxane</string>
     <string name="open_supporter_page">Відкрийте сторінку підтримувача</string>
     <string name="release_label">звільнення</string>
-    <string name="open_source_license_desc">GPL-3.0-only • Безкоштовне програмне забезпечення з відкритим кодом</string>
+    <string name="open_source_license_desc">GPL 3.0 • Безкоштовне програмне забезпечення з відкритим кодом</string>
     <string name="sponsorblock_desc">Скачати спонсорські, самопромо- і немузичні сегменти автоматично</string>
     <string name="ok">ОК</string>
     <string name="import_from_local_file">Ввезення з місцевих файлів</string>

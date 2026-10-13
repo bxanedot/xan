@@ -1246,7 +1246,7 @@ est irréversible.
     <string name="feat_update_title">Mises à jour dynamiques</string>
     <string name="feat_update_desc">Restez toujours à jour grâce à notre programme de mise à jour intégré.</string>
     <string name="feat_license_title">Licence</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GitHub</string>
     <string name="feat_github_desc">Projet open source</string>
     <string name="welcome_update_check">Rester</string>
@@ -1459,7 +1459,7 @@ est irréversible.
     <string name="support_bxane">Support bxane</string>
     <string name="open_supporter_page">Ouvrir la page des supporters</string>
     <string name="release_label">Sortie</string>
-    <string name="open_source_license_desc">GPL-3.0-only • Logiciel open source gratuit</string>
+    <string name="open_source_license_desc">GPL 3.0 • Logiciel open source gratuit</string>
     <string name="sponsorblock_desc">Ignorer automatiquement les segments sponsorisés, autopromotionnels et non musicaux</string>
     <string name="ok">OK</string>
     <string name="import_from_local_file">Importer à partir d\'un fichier local</string>

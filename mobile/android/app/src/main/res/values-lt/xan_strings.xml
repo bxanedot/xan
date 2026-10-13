@@ -709,7 +709,7 @@
     <string name="done">Done</string>
     <string name="audio_devices">Audio įrenginiai</string>
     <string name="bluetooth_headphones">„Bluetooth“ ausinės</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">Standartinė lyrics blur</string>
     <string name="listen_together_smart_resync">„Smart Network“ atnaujinimas</string>
     <string name="listen_together_smart_resync_desc">Automatiškai užfiksuoti su šeimininku po ryšio kritimo</string>
@@ -1573,7 +1573,7 @@
     <string name="feat_update_title">Dinaminiai atnaujinimai</string>
     <string name="feat_update_desc">Visada būkite atnaujinti su mūsų įdiegtą atnaujinimą.</string>
     <string name="feat_license_title">Licencija</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GitHub</string>
     <string name="feat_github_desc">Atvirojo kodo projektas</string>
     <string name="join_telegram">Prisijunkite prie mūsų „Telegram“ kanalo</string>
@@ -1794,7 +1794,7 @@
     <string name="support_bxane">Pagalba bxane</string>
     <string name="open_supporter_page">Atidarykite rėmėjų puslapį</string>
     <string name="release_label">Išlaisvinimas</string>
-    <string name="open_source_license_desc">GPL-3.0-only • Nemokama atvirojo kodo programinė įranga</string>
+    <string name="open_source_license_desc">GPL 3.0 • Nemokama atvirojo kodo programinė įranga</string>
     <string name="sponsorblock_desc">Sponsorų, savarankiškų ir ne muzikos segmentų automatinis atkūrimas</string>
     <string name="ok">OK</string>
     <string name="import_from_local_file">Importuoti iš vietos failo</string>

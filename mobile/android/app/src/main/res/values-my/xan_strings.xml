@@ -373,7 +373,7 @@
     <string name="done">နေအိမ်</string>
     <string name="audio_devices">အဆိုပါ Audio ကို</string>
     <string name="bluetooth_headphones">Bluetooth အဆိုပါ Headset ကို</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">အဆိုပါ Lyrics ကို Blur</string>
     <string name="listen_together_smart_resync">နေအိမ်: Smart Network Resync</string>
     <string name="listen_together_smart_resync_desc">အဆိုပါ Connection drop အဆိုပါ Connection drop အဆိုပါ Connection drop အဆိုပါ Connection drop အဆိုပါ Connection drop</string>
@@ -1543,7 +1543,7 @@
     <string name="feat_update_title">နေအိမ်</string>
     <string name="feat_update_desc">သင်တို့သည်သင်တို့သည်သင်တို့သည်သင်တို့သည်သင်တို့သည်သင်တို့သည်သင်တို့သည်သင်တို့သည်သင်တို့သည်သင်တို့သည်သင်တို့သည်သင်တို့သည်သင်တို့သည်သင်တို့သည်သင်တို့သည်သင်တို့သည်သင်တို့သည်သင်တို့သည်သင်တို့သည်သင်တို့သည်သင်တို့သည်သင်တို့သည်သင်တို့သည်သင်တို့သည်သင်တို့သည်သင်တို့သည်သင်တို့သည်.</string>
     <string name="feat_license_title">လက်မှတ်</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">အဆိုပါ GitHub</string>
     <string name="feat_github_desc">Open Source အစီအစဉ်</string>
     <string name="join_telegram">အဆိုပါ Telegram Channel ကို</string>
@@ -1764,7 +1764,7 @@
     <string name="support_bxane">အဆိုပါ bxane</string>
     <string name="open_supporter_page">အဆိုပါ Support Page ကို</string>
     <string name="release_label">အဆိုပါ</string>
-    <string name="open_source_license_desc">GPL-3.0-only • အခမဲ့ Open Source Software</string>
+    <string name="open_source_license_desc">GPL 3.0 • အခမဲ့ Open Source Software</string>
     <string name="sponsorblock_desc">အဆိုပါ Sponsor, Self-Promo နှင့် Non-Music အတွက်အခြားအခြားအခြားအခြားအခြားအခြားအခြားအခြားအခြားအခြားအခြားအခြားအခြား</string>
     <string name="ok">အကောင်း</string>
     <string name="import_from_local_file">အဆိုပါ Local File ကို</string>

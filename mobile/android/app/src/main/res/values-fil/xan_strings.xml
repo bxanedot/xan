@@ -425,7 +425,7 @@
     <string name="done">Tapos na</string>
     <string name="audio_devices">Mga audio device</string>
     <string name="bluetooth_headphones">Bluetooth headphones</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">Malabo ang karaniwang lyrics</string>
     <string name="listen_together_smart_resync">Resync ng Smart Network</string>
     <string name="listen_together_smart_resync_desc">Awtomatikong humahabol sa host pagkatapos ng pagbaba ng koneksyon</string>
@@ -1488,7 +1488,7 @@
     <string name="feat_update_title">Mga Dynamic na Update</string>
     <string name="feat_update_desc">Palaging manatiling updated sa aming built-in na updater.</string>
     <string name="feat_license_title">Lisensya</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GitHub</string>
     <string name="feat_github_desc">Open source na proyekto</string>
     <string name="join_telegram">Sumali sa aming Telegram channel</string>
@@ -1709,7 +1709,7 @@
     <string name="support_bxane">Suportahan ang bxane</string>
     <string name="open_supporter_page">Buksan ang pahina ng tagasuporta</string>
     <string name="release_label">Bitawan</string>
-    <string name="open_source_license_desc">GPL-3.0-only • Libreng Open Source Software</string>
+    <string name="open_source_license_desc">GPL 3.0 • Libreng Open Source Software</string>
     <string name="sponsorblock_desc">Awtomatikong laktawan ang mga segment ng sponsor, self-promo at hindi musika</string>
     <string name="ok">OK</string>
     <string name="import_from_local_file">Mag-import mula sa lokal na file</string>

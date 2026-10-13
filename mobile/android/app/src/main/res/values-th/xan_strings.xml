@@ -987,7 +987,7 @@
     <string name="done">โดน</string>
     <string name="audio_devices">อุปกรณ์เสียง</string>
     <string name="bluetooth_headphones">บลูทู ธ</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">บลอนด์ บลอนด์</string>
     <string name="listen_together_smart_resync">ไฟฉายเครือข่ายอัจฉริยะ</string>
     <string name="listen_together_smart_resync_desc">ระยําโดยอัตโนมัติกับโฮสต์หลังจากที่การเชื่อมต่อลดลง</string>
@@ -1558,7 +1558,7 @@
     <string name="feat_update_title">ปรับปรุงแบบไดนามิก</string>
     <string name="feat_update_desc">ปรับปรุงอย่างต่อเนื่องกับอัปเดตที่สร้างขึ้นของเรา</string>
     <string name="feat_license_title">ใบอนุญาต</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GitHub</string>
     <string name="feat_github_desc">โครงการ Open Source</string>
     <string name="join_telegram">เข้าร่วมช่องทาง Telegram ของเรา</string>
@@ -1779,7 +1779,7 @@
     <string name="support_bxane">สนับสนุน bxane</string>
     <string name="open_supporter_page">เปิดหน้าผู้สนับสนุน</string>
     <string name="release_label">การปล่อย</string>
-    <string name="open_source_license_desc">GPL-3.0-only • ซอฟต์แวร์โอเพ่นซอร์สฟรี</string>
+    <string name="open_source_license_desc">GPL 3.0 • ซอฟต์แวร์โอเพ่นซอร์สฟรี</string>
     <string name="sponsorblock_desc">Skip sponsors, self-promo และ non-music segments โดยอัตโนมัติ</string>
     <string name="ok">หมายเหตุ</string>
     <string name="import_from_local_file">นําเข้าจากไฟล์ท้องถิ่น</string>

@@ -373,7 +373,7 @@
     <string name="done">戴恩</string>
     <string name="audio_devices">音频设备</string>
     <string name="bluetooth_headphones">Bluetooth 耳机</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">標準 字母 Blur</string>
     <string name="listen_together_smart_resync">智能网络重新启动</string>
     <string name="listen_together_smart_resync_desc">连接下降后自动与主机接收</string>
@@ -1543,7 +1543,7 @@
     <string name="feat_update_title">动态更新</string>
     <string name="feat_update_desc">始终保持更新与我们的内置更新。</string>
     <string name="feat_license_title">许可证</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GitHub</string>
     <string name="feat_github_desc">开源项目</string>
     <string name="join_telegram">加入我们的Telegram频道</string>
@@ -1764,7 +1764,7 @@
     <string name="support_bxane">支持 bxane</string>
     <string name="open_supporter_page">打开支持者页面</string>
     <string name="release_label">释放</string>
-    <string name="open_source_license_desc">GPL-3.0-only • Free Open Source Software</string>
+    <string name="open_source_license_desc">GPL 3.0 • Free Open Source Software</string>
     <string name="sponsorblock_desc">自动滑动赞助商、自我宣传和非音乐分区</string>
     <string name="ok">好</string>
     <string name="import_from_local_file">从本地文件进口</string>

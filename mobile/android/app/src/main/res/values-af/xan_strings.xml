@@ -373,7 +373,7 @@
     <string name="done">Klaar</string>
     <string name="audio_devices">Oudiotoestelle</string>
     <string name="bluetooth_headphones">Bluetooth-oorfone</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">Standaard lirieke vervaag</string>
     <string name="listen_together_smart_resync">Slimnetwerk Hersinkroniseer</string>
     <string name="listen_together_smart_resync_desc">Haal die gasheer outomaties in nadat \'n verbinding verval het</string>
@@ -1488,7 +1488,7 @@
     <string name="feat_update_title">Dinamiese opdaterings</string>
     <string name="feat_update_desc">Bly altyd op hoogte met ons ingeboude bywerker.</string>
     <string name="feat_license_title">Lisensie</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GitHub</string>
     <string name="feat_github_desc">Oopbronprojek</string>
     <string name="join_telegram">Sluit aan by ons Telegram-kanaal</string>
@@ -1709,7 +1709,7 @@
     <string name="support_bxane">Ondersteun bxane</string>
     <string name="open_supporter_page">Maak die ondersteunerbladsy oop</string>
     <string name="release_label">Vrystelling</string>
-    <string name="open_source_license_desc">GPL-3.0-only • Gratis oopbronsagteware</string>
+    <string name="open_source_license_desc">GPL 3.0 • Gratis oopbronsagteware</string>
     <string name="sponsorblock_desc">Slaan outomaties borg-, selfpromosie- en nie-musieksegmente oor</string>
     <string name="ok">OK</string>
     <string name="import_from_local_file">Voer in vanaf plaaslike lêer</string>

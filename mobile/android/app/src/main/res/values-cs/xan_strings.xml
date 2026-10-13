@@ -760,7 +760,7 @@
     <string name="done">Hotovo</string>
     <string name="audio_devices">Zvuková zařízení</string>
     <string name="bluetooth_headphones">Bluetooth sluchátka</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">Standardní rozmazání textu</string>
     <string name="listen_together_smart_resync">Smart Network Resync</string>
     <string name="listen_together_smart_resync_desc">Automaticky dohnat hostitele po přerušení připojení</string>
@@ -1276,7 +1276,7 @@
     <string name="feat_update_title">Dynamické aktualizace</string>
     <string name="feat_update_desc">Vždy zůstaňte v obraze díky našemu vestavěnému aktualizačnímu programu.</string>
     <string name="feat_license_title">Licence</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GitHub</string>
     <string name="feat_github_desc">Open source projekt</string>
     <string name="join_telegram">Připojte se k našemu kanálu Telegram</string>
@@ -1497,7 +1497,7 @@
     <string name="support_bxane">Podpora bxane</string>
     <string name="open_supporter_page">Otevřete stránku podpory</string>
     <string name="release_label">Vydání</string>
-    <string name="open_source_license_desc">GPL-3.0-only • Volný software s otevřeným zdrojovým kódem</string>
+    <string name="open_source_license_desc">GPL 3.0 • Volný software s otevřeným zdrojovým kódem</string>
     <string name="sponsorblock_desc">Automaticky přeskakovat segmenty sponzorů, self-promo a nehudebních segmentů</string>
     <string name="ok">OK</string>
     <string name="import_from_local_file">Import z místního souboru</string>

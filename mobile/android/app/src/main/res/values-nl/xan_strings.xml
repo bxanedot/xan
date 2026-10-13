@@ -403,7 +403,7 @@
     <string name="done">Done</string>
     <string name="audio_devices">Audio apparaten</string>
     <string name="bluetooth_headphones">Bluetooth luidspreker</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">Standaard lyrics blur</string>
     <string name="listen_together_smart_resync">Smart netwerk resync</string>
     <string name="listen_together_smart_resync_desc">Automatisch opnemen met de host na een verbinding</string>
@@ -1313,7 +1313,7 @@
     <string name="feat_update_title">Dynamische updates</string>
     <string name="feat_update_desc">Blijf altijd bijgewerkt met onze ingebouwde updater.</string>
     <string name="feat_license_title">Licentie</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GitHub</string>
     <string name="feat_github_desc">Open source project</string>
     <string name="join_telegram">Bezoek ons Telegram kanaal</string>
@@ -1534,7 +1534,7 @@
     <string name="support_bxane">Ondersteuning bxane</string>
     <string name="open_supporter_page">Open de ondersteunende pagina</string>
     <string name="release_label">vrijlating</string>
-    <string name="open_source_license_desc">GPL-3.0-only • Gratis open source-software</string>
+    <string name="open_source_license_desc">GPL 3.0 • Gratis open source-software</string>
     <string name="sponsorblock_desc">Skip sponsor, self-promo en niet-muziek segmenten automatisch</string>
     <string name="ok">OK</string>
     <string name="import_from_local_file">Import van lokale bestanden</string>

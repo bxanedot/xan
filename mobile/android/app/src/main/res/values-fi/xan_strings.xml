@@ -132,7 +132,7 @@
     <string name="done">Done</string>
     <string name="audio_devices">Audio laitteet</string>
     <string name="bluetooth_headphones">Bluetooth kuulokkeet</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">Tyylikäs lyrics blur</string>
     <string name="listen_together_smart_resync">Smart Network Resync -järjestelmä</string>
     <string name="listen_together_smart_resync_desc">Automaattisesti otetaan vastaanottajan kanssa yhteyden poistamisen jälkeen</string>
@@ -1302,7 +1302,7 @@
     <string name="feat_update_title">dynaaminen päivitys</string>
     <string name="feat_update_desc">Pidä aina ajan tasalla sisäänrakennetun päivityksen kanssa.</string>
     <string name="feat_license_title">Lisenssi</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GitHub</string>
     <string name="feat_github_desc">Avoimen lähdekoodin projekti</string>
     <string name="join_telegram">Liity Telegram-kanavaamme</string>
@@ -1523,7 +1523,7 @@
     <string name="support_bxane">tuki bxane</string>
     <string name="open_supporter_page">Avaa tukija sivu</string>
     <string name="release_label">vapauttaminen</string>
-    <string name="open_source_license_desc">GPL-3.0-only • Ilmainen avoimen lähdekoodin ohjelmisto</string>
+    <string name="open_source_license_desc">GPL 3.0 • Ilmainen avoimen lähdekoodin ohjelmisto</string>
     <string name="sponsorblock_desc">Skip sponsori, itsetukea ja ei-musiikkia segmentit automaattisesti</string>
     <string name="ok">OK</string>
     <string name="import_from_local_file">Tuonti paikallisesta tiedostosta</string>

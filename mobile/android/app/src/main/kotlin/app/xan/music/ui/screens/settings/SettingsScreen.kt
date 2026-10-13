@@ -310,6 +310,10 @@ fun SettingsScreen(
     }
 
     TopAppBar(
+        colors = androidx.compose.material3.TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.background,
+            scrolledContainerColor = MaterialTheme.colorScheme.background,
+        ),
         title = {},
         navigationIcon = {
             IconButton(

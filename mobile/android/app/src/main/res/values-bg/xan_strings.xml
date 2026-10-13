@@ -363,7 +363,7 @@
     <string name="done">Дано</string>
     <string name="audio_devices">аудио устройства</string>
     <string name="bluetooth_headphones">Bluetooth слушалки</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">Стандартни текстове Blur</string>
     <string name="listen_together_smart_resync">Смарт мрежа Resync</string>
     <string name="listen_together_smart_resync_desc">Автоматично улавяне с хоста след изтичане на връзка</string>
@@ -1313,7 +1313,7 @@
     <string name="feat_update_title">Динамични новини</string>
     <string name="feat_update_desc">Винаги бъдете актуализирани с нашия вграден актуализатор.</string>
     <string name="feat_license_title">Лицензия</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GitHub</string>
     <string name="feat_github_desc">Проекти с отворен код</string>
     <string name="join_telegram">Присъединете се към нашия Telegram канал</string>
@@ -1534,7 +1534,7 @@
     <string name="support_bxane">Поддръжка на bxane</string>
     <string name="open_supporter_page">Отворете страницата на поддръжниците</string>
     <string name="release_label">освобождаване</string>
-    <string name="open_source_license_desc">GPL-3.0-only • Безплатен софтуер с отворен код</string>
+    <string name="open_source_license_desc">GPL 3.0 • Безплатен софтуер с отворен код</string>
     <string name="sponsorblock_desc">Скачане спонсори, самопромо и не-музика сегменти автоматично</string>
     <string name="ok">ОК</string>
     <string name="import_from_local_file">Внос от локален файл</string>

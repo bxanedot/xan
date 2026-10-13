@@ -373,7 +373,7 @@
     <string name="done">Dona</string>
     <string name="audio_devices">Audio aparati</string>
     <string name="bluetooth_headphones">Bluetooth qozga</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">Standardi lyrics blur</string>
     <string name="listen_together_smart_resync">Smart Network Resync</string>
     <string name="listen_together_smart_resync_desc">Automatizmi bir bağlantı boʻyadi.</string>
@@ -1543,7 +1543,7 @@
     <string name="feat_update_title">Dinamiq günahlar</string>
     <string name="feat_update_desc">U‘z-i‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z u‘z</string>
     <string name="feat_license_title">Licenti</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GitHub</string>
     <string name="feat_github_desc">Open Source projekt</string>
     <string name="join_telegram">Telegram kanalimizga qaytadi.</string>
@@ -1764,7 +1764,7 @@
     <string name="support_bxane">bxane</string>
     <string name="open_supporter_page">U‘qotlar sayadi</string>
     <string name="release_label">Uluq</string>
-    <string name="open_source_license_desc">GPL-3.0-only • Bepul ochiq kodli dasturiy ta\'minot</string>
+    <string name="open_source_license_desc">GPL 3.0 • Bepul ochiq kodli dasturiy ta\'minot</string>
     <string name="sponsorblock_desc">Sponsor, self-promo, non-muzik segmentlar automatik o‘shayni.</string>
     <string name="ok">Ok</string>
     <string name="import_from_local_file">Lokalizmi faili</string>

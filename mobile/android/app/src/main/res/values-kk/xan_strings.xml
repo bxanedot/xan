@@ -373,7 +373,7 @@
     <string name="done">Өткен</string>
     <string name="audio_devices">Аудио техникасы</string>
     <string name="bluetooth_headphones">Блуетоу телефон</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">Өткен қазір</string>
     <string name="listen_together_smart_resync">Меткелік резинк</string>
     <string name="listen_together_smart_resync_desc">Автоматикалық қосылды және қосылды.</string>
@@ -1543,7 +1543,7 @@
     <string name="feat_update_title">Динамикалық айналысы</string>
     <string name="feat_update_desc">Өзі сүйікті жарысы, балаларынан тұрады.</string>
     <string name="feat_license_title">Лицензиялық</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GitHub</string>
     <string name="feat_github_desc">Ауыз іші шыққан</string>
     <string name="join_telegram">Телеграм телеграм телеграм телеграм</string>
@@ -1764,7 +1764,7 @@
     <string name="support_bxane">bxane қолдауы</string>
     <string name="open_supporter_page">субъектілер арасында фирмааралық өндірістік кооперацияға</string>
     <string name="release_label">Құрметта</string>
-    <string name="open_source_license_desc">GPL-3.0-only • Тегін бастапқы бастапқы бағдарламалық құрал</string>
+    <string name="open_source_license_desc">GPL 3.0 • Тегін бастапқы бастапқы бағдарламалық құрал</string>
     <string name="sponsorblock_desc">Аустрияның ірі қалаларыӨңдеу, Аустрияның ірі қалаларыӨңдеу, Аустрияның ірі қалаларыӨңдеу</string>
     <string name="ok">Оңтүстік</string>
     <string name="import_from_local_file">Ауыз іші шырышты қабығы мен қабығы</string>

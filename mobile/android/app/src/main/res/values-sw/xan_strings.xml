@@ -373,7 +373,7 @@
     <string name="done">Wazo la</string>
     <string name="audio_devices">Usafiri wa Audio</string>
     <string name="bluetooth_headphones">Maoni ya Bluetooth</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">Kazi ya kawaida ya bluu</string>
     <string name="listen_together_smart_resync">Mazoezi ya Smart Network</string>
     <string name="listen_together_smart_resync_desc">Kuanzisha moja kwa moja na mwenyeji baada ya kuanguka</string>
@@ -1543,7 +1543,7 @@
     <string name="feat_update_title">Siku ya Dynamic</string>
     <string name="feat_update_desc">Tunaendelea kuwa na update na updater yetu.</string>
     <string name="feat_license_title">Tarehe ya Leseni</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GitHub</string>
     <string name="feat_github_desc">Mkakati wa Open Source</string>
     <string name="join_telegram">Kuingia kwenye kanuni yetu ya Telegram</string>
@@ -1764,7 +1764,7 @@
     <string name="support_bxane">Msaada wa bxane</string>
     <string name="open_supporter_page">Kuanzisha ukurasa wa msaada</string>
     <string name="release_label">Kuondolewa</string>
-    <string name="open_source_license_desc">GPL-3.0-only • Programu Huria Bila Malipo</string>
+    <string name="open_source_license_desc">GPL 3.0 • Programu Huria Bila Malipo</string>
     <string name="sponsorblock_desc">Kupata sponsors, self-promo na si muziki segments moja kwa moja</string>
     <string name="ok">ya OK</string>
     <string name="import_from_local_file">Uwekezaji kutoka kwa faili ya ndani</string>

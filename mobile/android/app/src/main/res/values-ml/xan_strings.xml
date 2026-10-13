@@ -131,7 +131,7 @@
     <string name="done">ഡോൻ</string>
     <string name="audio_devices">ഓഡിയോ ഉപകരണങ്ങൾ</string>
     <string name="bluetooth_headphones">Bluetooth കേൾക്കുകൾ</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">ലീഡ് blur</string>
     <string name="listen_together_smart_resync">SMART NETWORK RESINC</string>
     <string name="listen_together_smart_resync_desc">ഓട്ടോമാറ്റം ഒരു ബന്ധം കുറിച്ചാൽ ഹോസ്റ്റർക്ക് എടുത്തു</string>
@@ -1301,7 +1301,7 @@
     <string name="feat_update_title">ഡൈനാമിക് 업데이트</string>
     <string name="feat_update_desc">ഞങ്ങളുടെ ഇൻഡ്രൈഡ് 업데이트 ഉപയോഗിച്ച് എപ്പോഴും 업데이트 ചെയ്യും.</string>
     <string name="feat_license_title">അനുവദനം</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GitHub</string>
     <string name="feat_github_desc">Open Source പദ്ധതി</string>
     <string name="join_telegram">ഞങ്ങളുടെ ടെലിഫോര് ഡ് ചാനലുകൾ</string>
@@ -1522,7 +1522,7 @@
     <string name="support_bxane">സഹായം bxane</string>
     <string name="open_supporter_page">സഹകരണത്തിന്റെ പേജ് തുറന്നു</string>
     <string name="release_label">വിസ്മയനം</string>
-    <string name="open_source_license_desc">GPL-3.0-only • സ്വതന്ത്ര ഓപ്പൺ സോഴ്സ് സോഫ്റ്റ്‌വെയർ</string>
+    <string name="open_source_license_desc">GPL 3.0 • സ്വതന്ത്ര ഓപ്പൺ സോഴ്സ് സോഫ്റ്റ്‌വെയർ</string>
     <string name="sponsorblock_desc">സ്വയം പ്രോമനവും സംഗീതവിരുദ്ധമായ വിഭാഗങ്ങളും സ്വയം വികസിപ്പിക്കും</string>
     <string name="ok">OK</string>
     <string name="import_from_local_file">lokal file ൽ നിന്ന് വാങ്ങുക</string>

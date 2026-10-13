@@ -88,6 +88,10 @@ import kotlin.random.Random
  */
 object YouTube {
     private val innerTube = InnerTube()
+    // Public discovery must never inherit the account cookie or browse-login flag.
+    // Keep a separate client so concurrent history and discovery requests cannot
+    // change one another's authentication state.
+    private val guestTube = InnerTube()
 
     var locale: YouTubeLocale
         get() = innerTube.locale
@@ -931,6 +935,31 @@ object YouTube {
             }.toMutableList()
         val chips = sectionListRender?.header?.chipCloudRenderer?.chips?.mapNotNull { HomePage.Chip.fromChipCloudChipRenderer(it) }
         HomePage(chips, sections, continuation)
+    }
+
+    suspend fun publicHome(): Result<HomePage> = runCatching {
+        guestTube.locale = locale
+        if (guestTube.proxy != proxy) guestTube.proxy = proxy
+        guestTube.proxyAuth = proxyAuth
+        if (guestTube.ipVersion != ipVersion) guestTube.ipVersion = ipVersion
+        val response = guestTube.browse(WEB_REMIX, browseId = "FEmusic_home").body<BrowseResponse>()
+        val sectionList = response.contents?.singleColumnBrowseResultsRenderer?.tabs?.firstOrNull()
+            ?.tabRenderer?.content?.sectionListRenderer
+        val sections = sectionList?.contents.orEmpty()
+            .mapNotNull { it.musicCarouselShelfRenderer }
+            .mapNotNull(HomePage.Section::fromMusicCarouselShelfRenderer)
+        val publicSections = if (sections.isNotEmpty()) sections else {
+            val releases = guestTube.browse(WEB_REMIX, browseId = "FEmusic_new_releases_albums")
+                .body<BrowseResponse>()
+            val albums = releases.contents?.singleColumnBrowseResultsRenderer?.tabs?.firstOrNull()
+                ?.tabRenderer?.content?.sectionListRenderer?.contents?.firstOrNull()
+                ?.gridRenderer?.items?.mapNotNull { it.musicTwoRowItemRenderer }
+                ?.mapNotNull(NewReleaseAlbumPage::fromMusicTwoRowItemRenderer).orEmpty()
+            if (albums.isEmpty()) emptyList() else listOf(
+                HomePage.Section("New releases", null, null, null, albums)
+            )
+        }
+        HomePage(null, publicSections)
     }
 
     private suspend fun homeContinuation(continuation: String): Result<HomePage> = runCatching {

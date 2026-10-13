@@ -2002,7 +2002,7 @@ private fun AboutDetail() {
             Text("XAN Desktop $XAN_DESKTOP_VERSION · bxane", Modifier.padding(top = 10.dp).clip(RoundedCornerShape(50)).background(XanColors.CardLight).padding(horizontal = 18.dp, vertical = 8.dp), color = XanColors.Muted)
         }
         Text("Your music. Your library. Your way.", color = XanColors.Text, style = MaterialTheme.typography.titleLarge)
-        Text("Developer, author, and producer: bxane · GPL-3.0-only · First launched $installed", color = XanColors.Muted)
+        Text("Developer, author, and producer: bxane · GPL 3.0 · First launched $installed", color = XanColors.Muted)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
             listOf("Source" to "https://github.com/bxanedot/xan", "Releases" to "https://github.com/bxanedot/xan/releases", "Issues" to "https://github.com/bxanedot/xan/issues").forEach { (label, url) ->
                 OutlinedButton(onClick = { runCatching { java.awt.Desktop.getDesktop().browse(java.net.URI(url)) }.onFailure { status = it.message ?: "Could not open $label." } }) { Text(label) }
@@ -2040,7 +2040,7 @@ private fun AboutDetail() {
     }
     if (licenseOpen) AlertDialog(
         onDismissRequest = { licenseOpen = false },
-        title = { Text("GPL-3.0-only License") },
+        title = { Text("GPL 3.0 License") },
         text = { Column(Modifier.widthIn(max = 720.dp).heightIn(max = 520.dp).verticalScroll(rememberScrollState())) { Text(license.ifBlank { "The license text could not be loaded." }, color = XanColors.Text) } },
         confirmButton = { TextButton(onClick = { licenseOpen = false }) { Text("Close") } },
     )

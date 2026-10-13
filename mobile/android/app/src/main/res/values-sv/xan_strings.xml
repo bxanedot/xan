@@ -553,7 +553,7 @@
     <string name="done">Done</string>
     <string name="audio_devices">ljudenheter</string>
     <string name="bluetooth_headphones">Bluetooth hörlurar</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">Standard Lyrics Blur</string>
     <string name="listen_together_smart_resync">Smart nätverk resync</string>
     <string name="listen_together_smart_resync_desc">Automatiskt fånga upp med värd efter en anslutning droppe</string>
@@ -1555,7 +1555,7 @@
     <string name="feat_update_title">Dynamiska uppdateringar</string>
     <string name="feat_update_desc">Var alltid uppdaterad med vår inbyggda uppdatering.</string>
     <string name="feat_license_title">licens</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GitHub</string>
     <string name="feat_github_desc">Öppen källa projekt</string>
     <string name="join_telegram">Gå med i vår Telegram-kanal</string>
@@ -1776,7 +1776,7 @@
     <string name="support_bxane">Stöd bxane</string>
     <string name="open_supporter_page">Öppna stödsidan</string>
     <string name="release_label">släppt</string>
-    <string name="open_source_license_desc">GPL-3.0-only • Gratis programvara med öppen källkod</string>
+    <string name="open_source_license_desc">GPL 3.0 • Gratis programvara med öppen källkod</string>
     <string name="sponsorblock_desc">Skip sponsorer, självpromo och icke-musik segment automatiskt</string>
     <string name="ok">OK</string>
     <string name="import_from_local_file">Import från lokala filer</string>

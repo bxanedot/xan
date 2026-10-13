@@ -373,7 +373,7 @@
     <string name="done">डान्स</string>
     <string name="audio_devices">ध्वनि उपकरण</string>
     <string name="bluetooth_headphones">ब्लूटूथ हेडफोन</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">ब्लुङ लिमिङ</string>
     <string name="listen_together_smart_resync">स्मार्ट नेटवर्क रिसिन</string>
     <string name="listen_together_smart_resync_desc">यसका लागि यसलाई सुरक्षित स्थानमा पहुँच गर्छ ।</string>
@@ -1543,7 +1543,7 @@
     <string name="feat_update_title">गतिशीलताका लागि</string>
     <string name="feat_update_desc">यो करिब एक दशक मन्त्रालय तहमा काम गर्दाको मेरो अनुभव हो ।</string>
     <string name="feat_license_title">अनुमति</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GitHub</string>
     <string name="feat_github_desc">खुले स्रोतको परियोजना</string>
     <string name="join_telegram">चन्द्रमा चन्द्रमा चन्द्रमा</string>
@@ -1764,7 +1764,7 @@
     <string name="support_bxane">bxane लाई समर्थन गर्नुहोस्</string>
     <string name="open_supporter_page">खुल्ला डाटा प्रत्यक्ष</string>
     <string name="release_label">रिलीज</string>
-    <string name="open_source_license_desc">GPL-3.0-only • नि:शुल्क खुला स्रोत सफ्टवेयर</string>
+    <string name="open_source_license_desc">GPL 3.0 • नि:शुल्क खुला स्रोत सफ्टवेयर</string>
     <string name="sponsorblock_desc">यस बाहेक यहाँ उर्दू तथा अंग्रेजी पनि बोलिन्छ ।</string>
     <string name="ok">ठीक</string>
     <string name="import_from_local_file">स्थानीय फाइलबाट आयात</string>

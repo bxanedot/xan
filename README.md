@@ -183,7 +183,7 @@ XAN offers two ways to move around the app. **Magnet** opens a floating shortcut
 
 ### About and app info
 
-The app's **Settings → About** screen shows release **0.9.2**, Android version code **7000020**, the install date recorded on that device, the GPL-3.0-only project license, GitHub and website links, and direct links to GitHub, guns.lol, Patreon, and Ko-fi. **Settings → Privacy** includes a FOSS mode switch that disables Google Play Services features such as Cast; it is off by default, so the single APK opens with all features available. The website's About section repeats the release details and explains the same in-app information below them.
+The app's **Settings → About** screen shows release **1.0.7**, Android version code **8**, the install date recorded on that device, the GPL 3.0 project license, GitHub and website links, and direct links to GitHub, guns.lol, Patreon, and Ko-fi. **Settings → Privacy** includes a FOSS mode switch that disables Google Play Services features such as Cast; it is off by default, so the single APK opens with all features available. The website's About section repeats the release details and explains the same in-app information below them.
 
 ---
 
@@ -332,7 +332,7 @@ Please never include passwords, private API keys, signing keys, or other sensiti
 
 # 📜 License
 
-XAN's original source code is distributed under **GPL-3.0-only**.
+XAN's original source code is distributed under **GNU GPL 3.0**.
 
 **SPDX-License-Identifier: GPL-3.0-only**
 

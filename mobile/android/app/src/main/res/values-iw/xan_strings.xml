@@ -175,7 +175,7 @@
     <string name="done">דון</string>
     <string name="audio_devices">מכשירים אודיו</string>
     <string name="bluetooth_headphones">אוזניות Bluetooth</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">סטנדרטי בלור</string>
     <string name="listen_together_smart_resync">רשת חכמה Resync</string>
     <string name="listen_together_smart_resync_desc">תופסים באופן אוטומטי את המארח לאחר הפסקת חיבור</string>
@@ -1301,7 +1301,7 @@
     <string name="feat_update_title">עדכונים דינמיים</string>
     <string name="feat_update_desc">הישארו תמיד מעודכנים עם העדכון המובנה שלנו.</string>
     <string name="feat_license_title">רישיון</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GitHub</string>
     <string name="feat_github_desc">פרויקט קוד פתוח</string>
     <string name="join_telegram">הצטרפו לערוץ הטלגרם שלנו</string>
@@ -1522,7 +1522,7 @@
     <string name="support_bxane">תמיכה Bxane</string>
     <string name="open_supporter_page">פתח את דף התומכים</string>
     <string name="release_label">שחרור</string>
-    <string name="open_source_license_desc">GPL-3.0-only • תוכנת קוד פתוח בחינם</string>
+    <string name="open_source_license_desc">GPL 3.0 • תוכנת קוד פתוח בחינם</string>
     <string name="sponsorblock_desc">ספין ספונסר, קידום עצמי וסגנונות לא מוסיקליים באופן אוטומטי</string>
     <string name="ok">בסדר</string>
     <string name="import_from_local_file">ייבוא מהקובץ המקומי</string>

@@ -740,7 +740,7 @@
     <string name="done">Selesai</string>
     <string name="audio_devices">Perangkat audio</string>
     <string name="bluetooth_headphones">headphone Bluetooth</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">Lirik standar kabur</string>
     <string name="listen_together_smart_resync">Sinkronisasi Ulang Jaringan Cerdas</string>
     <string name="listen_together_smart_resync_desc">Secara otomatis mengejar host setelah koneksi terputus</string>
@@ -1261,7 +1261,7 @@
     <string name="feat_update_title">Pembaruan Dinamis</string>
     <string name="feat_update_desc">Selalu dapatkan informasi terkini dengan pembaru bawaan kami.</string>
     <string name="feat_license_title">Lisensi</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GitHub</string>
     <string name="feat_github_desc">Proyek sumber terbuka</string>
     <string name="join_telegram">Bergabunglah dengan saluran Telegram kami</string>
@@ -1482,7 +1482,7 @@
     <string name="support_bxane">Mendukung bxane</string>
     <string name="open_supporter_page">Buka halaman pendukung</string>
     <string name="release_label">Rilis</string>
-    <string name="open_source_license_desc">GPL-3.0-only • Perangkat Lunak Sumber Terbuka Gratis</string>
+    <string name="open_source_license_desc">GPL 3.0 • Perangkat Lunak Sumber Terbuka Gratis</string>
     <string name="sponsorblock_desc">Lewati segmen sponsor, promo mandiri, dan non-musik secara otomatis</string>
     <string name="ok">Oke</string>
     <string name="import_from_local_file">Impor dari file lokal</string>

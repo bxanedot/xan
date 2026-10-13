@@ -373,7 +373,7 @@
     <string name="done">Búið</string>
     <string name="audio_devices">Hljóðtæki</string>
     <string name="bluetooth_headphones">Bluetooth heyrnartól</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">Staðlaðir textar óskýrir</string>
     <string name="listen_together_smart_resync">Endursamstilling snjallnets</string>
     <string name="listen_together_smart_resync_desc">Náðu sjálfkrafa upp á gestgjafann eftir að tengingin rofnar</string>
@@ -1488,7 +1488,7 @@
     <string name="feat_update_title">Kvikar uppfærslur</string>
     <string name="feat_update_desc">Vertu alltaf uppfærður með innbyggða uppfærslutækinu okkar.</string>
     <string name="feat_license_title">Leyfi</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GitHub</string>
     <string name="feat_github_desc">Opinn uppspretta verkefni</string>
     <string name="join_telegram">Vertu með í Telegram rásinni okkar</string>
@@ -1709,7 +1709,7 @@
     <string name="support_bxane">Stuðningur við bxane</string>
     <string name="open_supporter_page">Opnaðu stuðningsmannasíðuna</string>
     <string name="release_label">Gefa út</string>
-    <string name="open_source_license_desc">GPL-3.0-only • Ókeypis opinn hugbúnaður</string>
+    <string name="open_source_license_desc">GPL 3.0 • Ókeypis opinn hugbúnaður</string>
     <string name="sponsorblock_desc">Slepptu sjálfkrafa styrktaraðilum, sjálfkynningum og hlutum sem ekki eru tónlist</string>
     <string name="ok">Allt í lagi</string>
     <string name="import_from_local_file">Flytja inn úr staðbundinni skrá</string>

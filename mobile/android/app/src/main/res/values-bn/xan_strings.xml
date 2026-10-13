@@ -182,7 +182,7 @@
     <string name="done">ডোন</string>
     <string name="audio_devices">অডিও ডিভাইস</string>
     <string name="bluetooth_headphones">ব্লুথুথুন হোডফোন</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">স্ট্যান্ডার্ড লিক্স Blur</string>
     <string name="listen_together_smart_resync">স্মার্ট নেটওয়ার্ক রেসিনক</string>
     <string name="listen_together_smart_resync_desc">স্বয়ংক্রিয়ভাবে একটি সংযোগ বন্ধ করার পরে হোস্টের সাথে আটকে রাখুন</string>
@@ -1305,7 +1305,7 @@
     <string name="feat_update_title">ডায়ানিক আপডেট</string>
     <string name="feat_update_desc">আমাদের ইনস্টলেড আপডেটের সাথে সবসময় আপডেট থাকুন।</string>
     <string name="feat_license_title">লাইসেন্স</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GitHub</string>
     <string name="feat_github_desc">খোলা সূত্র প্রকল্প</string>
     <string name="join_telegram">আমাদের টেলগার চ্যানেলে যোগ করুন</string>
@@ -1526,7 +1526,7 @@
     <string name="support_bxane">সহায়তা bxane</string>
     <string name="open_supporter_page">সমর্থক পৃষ্ঠা খোলা</string>
     <string name="release_label">মুক্তি</string>
-    <string name="open_source_license_desc">GPL-3.0-only • ফ্রি ওপেন সোর্স সফটওয়্যার</string>
+    <string name="open_source_license_desc">GPL 3.0 • ফ্রি ওপেন সোর্স সফটওয়্যার</string>
     <string name="sponsorblock_desc">স্প্যানার, স্ব-প্রোোম এবং অ-সুবিশ্বিক সেগেটগুলি স্বয়ংক্রিয়ভাবে বের করুন</string>
     <string name="ok">OK</string>
     <string name="import_from_local_file">স্থানীয় ফাইল থেকে প্রবেশ</string>

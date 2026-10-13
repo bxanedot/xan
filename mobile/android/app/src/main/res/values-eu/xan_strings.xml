@@ -571,7 +571,7 @@
     <string name="done">Egina.</string>
     <string name="audio_devices">Audio-tresnak</string>
     <string name="bluetooth_headphones">Bluetooth entzungailuak</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">Hitzak lausotu egiten dira.</string>
     <string name="listen_together_smart_resync">Sare adimendunaren erresinkronizazioa</string>
     <string name="listen_together_smart_resync_desc">Konektatuta ez dagoenean, automatikoki harrapatuko dugu.</string>
@@ -1556,7 +1556,7 @@
     <string name="feat_update_title">Eguneratze dinamikoak</string>
     <string name="feat_update_desc">Beti egon eguneratuta gure eguneratzaile integratuarekin.</string>
     <string name="feat_license_title">Lizentzia</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GitHub-a</string>
     <string name="feat_github_desc">Ireki iturriaren proiektua</string>
     <string name="join_telegram">Bat egin gure Telegrameko kanalarekin.</string>
@@ -1780,7 +1780,7 @@
     <string name="support_bxane">Laguntza bxane</string>
     <string name="open_supporter_page">Ireki babesle orria</string>
     <string name="release_label">Askatu</string>
-    <string name="open_source_license_desc">GPL-3.0-only • Kode irekiko software librea</string>
+    <string name="open_source_license_desc">GPL 3.0 • Kode irekiko software librea</string>
     <string name="sponsorblock_desc">Skip-eko babesleak, auto-promozioa eta musikaz ez diren segmentuak.</string>
     <string name="ok">Ondo dago.</string>
     <string name="import_from_local_file">Tokiko artxibotik inportatzea</string>

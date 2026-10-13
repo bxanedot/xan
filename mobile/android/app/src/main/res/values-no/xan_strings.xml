@@ -373,7 +373,7 @@
     <string name="done">Done</string>
     <string name="audio_devices">Audioenheter</string>
     <string name="bluetooth_headphones">Bluetooth hodetelefoner</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">Standard lyrics blur</string>
     <string name="listen_together_smart_resync">Smart nettverk resync</string>
     <string name="listen_together_smart_resync_desc">Automatisk fange opp med hosten etter at en tilkobling dropper</string>
@@ -1543,7 +1543,7 @@
     <string name="feat_update_title">Dynamiske oppdateringer</string>
     <string name="feat_update_desc">Vær alltid oppdatert med vår innebygde oppdatering.</string>
     <string name="feat_license_title">Lisens</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GitHub</string>
     <string name="feat_github_desc">Open Source prosjekt</string>
     <string name="join_telegram">Bli med på Telegram-kanalen</string>
@@ -1764,7 +1764,7 @@
     <string name="support_bxane">Støtte bxane</string>
     <string name="open_supporter_page">Åpne støttende side</string>
     <string name="release_label">Release</string>
-    <string name="open_source_license_desc">GPL-3.0-only • Gratis åpen kildekode-programvare</string>
+    <string name="open_source_license_desc">GPL 3.0 • Gratis åpen kildekode-programvare</string>
     <string name="sponsorblock_desc">Skip sponsorer, self-promo og ikke-musikk segmenter automatisk</string>
     <string name="ok">OK</string>
     <string name="import_from_local_file">Import fra lokale filer</string>

@@ -92,6 +92,7 @@ import app.xan.music.constants.ProxyUsernameKey
 import app.xan.music.constants.QuickPicks
 import app.xan.music.constants.QuickPicksKey
 import app.xan.music.constants.RandomizeHomeOrderKey
+import app.xan.music.constants.RandomizeHomeMusicKey
 import app.xan.music.constants.ShowHomeMoodFiltersKey
 import app.xan.music.constants.SYSTEM_DEFAULT
 import app.xan.music.constants.ShowArtistDescriptionKey
@@ -190,7 +191,11 @@ fun ContentSettings(
     )
     val (randomizeHomeOrder, onRandomizeHomeOrderChange) = rememberPreference(
         RandomizeHomeOrderKey,
-        defaultValue = true
+        defaultValue = false
+    )
+    val (randomizeHomeMusic, onRandomizeHomeMusicChange) = rememberPreference(
+        RandomizeHomeMusicKey,
+        defaultValue = false
     )
     val (ipVersion, onIpVersionChange) = rememberEnumPreference(
         IpVersionKey,
@@ -1278,6 +1283,18 @@ fun ContentSettings(
             items = listOf(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.xan_icon_shuffle),
+                    title = { Text(stringResource(R.string.randomize_home_music)) },
+                    description = { Text(stringResource(R.string.randomize_home_music_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = randomizeHomeMusic,
+                            onCheckedChange = onRandomizeHomeMusicChange,
+                        )
+                    },
+                    onClick = { onRandomizeHomeMusicChange(!randomizeHomeMusic) },
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.xan_icon_shuffle),
                     title = { Text(stringResource(R.string.randomize_home_order)) },
                     description = { Text(stringResource(R.string.randomize_home_order_desc)) },
                     trailingContent = {
@@ -1372,6 +1389,10 @@ fun ContentSettings(
     }
 
     TopAppBar(
+        colors = androidx.compose.material3.TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.background,
+            scrolledContainerColor = MaterialTheme.colorScheme.background,
+        ),
             windowInsets = appTopBarWindowInsets(),
         title = { Text(stringResource(R.string.content)) },
         navigationIcon = {

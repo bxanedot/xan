@@ -373,7 +373,7 @@
     <string name="done">I-Done</string>
     <string name="audio_devices">I-Audio</string>
     <string name="bluetooth_headphones">I-Bluetooth</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">I-Lyrics ye-Bluur</string>
     <string name="listen_together_smart_resync">Ukusebenza kwe-Smart Network</string>
     <string name="listen_together_smart_resync_desc">Ukulinganiswa ngokushesha nge-host emva koku-connection</string>
@@ -1543,7 +1543,7 @@
     <string name="feat_update_title">Imikhiqizo Lethu</string>
     <string name="feat_update_desc">Sishayele ngokuvamile nge-in-in update yethu.</string>
     <string name="feat_license_title">Ukuhlobisa</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">I-GitHub</string>
     <string name="feat_github_desc">I-Open Source Project</string>
     <string name="join_telegram">Ukusebenza kwe-Telegram Channel</string>
@@ -1764,7 +1764,7 @@
     <string name="support_bxane">Ukusebenza bxane</string>
     <string name="open_supporter_page">Ukubonisa imikhiqizo</string>
     <string name="release_label">Ukubonisa</string>
-    <string name="open_source_license_desc">GPL-3.0-only • Isofthiwe Yomthombo Ovulekile Yamahhala</string>
+    <string name="open_source_license_desc">GPL 3.0 • Isofthiwe Yomthombo Ovulekile Yamahhala</string>
     <string name="sponsorblock_desc">Ukukhanyisa isisindo, self-promo kanye ne-music segments ngokushesha</string>
     <string name="ok">Ok</string>
     <string name="import_from_local_file">I-Import from Local File</string>

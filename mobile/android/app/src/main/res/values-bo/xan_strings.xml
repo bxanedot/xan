@@ -373,7 +373,7 @@
     <string name="done">གྲུབ་ཟིན་པ།</string>
     <string name="audio_devices">སྒྲ་མཉེན་ཆས་</string>
     <string name="bluetooth_headphones">གློག་ཀླད་དང་ཁ་པར།</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">དབྱངས་ཅན་ཚིག་རྩོམ།</string>
     <string name="listen_together_smart_resync">གློག་ཀླད་རིག་པའི་དྲ་ལམ་ Resync</string>
     <string name="listen_together_smart_resync_desc">འབྲེལ་མཐུད་ཆད་པའི་རྗེས་དཀྱིལ་འཁོར་དུ་དྲ་སྣེ་འཛིན་ལ་གློ་བུར་དུ་འཛིན་བཟུང་བྱེད།</string>
@@ -1544,7 +1544,7 @@
     <string name="feat_update_title">ཤུགས་ལྡན་གསར་བཅོས་</string>
     <string name="feat_update_desc">ཨ་རྟག་རང་ང་ཚོའི་ནང་བཙུགས་པའི་གསར་བཅོས་ཆས་ཀྱི་སྒོ་ནས་དུས་རྒྱུན་གྱི་གནས་ཚུལ་གསར་དུ་གནས་ཤིག</string>
     <string name="feat_license_title">ལག་ཁྱེར་</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GitHub</string>
     <string name="feat_github_desc">སྒྱུ་རྩལ་ཁ་ཕྱེས་ཀྱི་ལས་འགུལ་</string>
     <string name="join_telegram">ང་ཚོའི་ Telegram channel ལ་ཞུགས་རོགས་གནང་།</string>
@@ -1768,7 +1768,7 @@
     <string name="support_bxane">རྒྱབ་སྐྱོར། bxane</string>
     <string name="open_supporter_page">རྒྱབ་སྐྱོར་ཤོག་ལེའུ།</string>
     <string name="release_label">ཕྱིར་གཏོང་།</string>
-    <string name="open_source_license_desc">GPL-3.0-only • རིན་མེད་ཁ་ཕྱེ་བའི་ཐོན་ཁུངས་མཉེན་ཆས།</string>
+    <string name="open_source_license_desc">GPL 3.0 • རིན་མེད་ཁ་ཕྱེ་བའི་ཐོན་ཁུངས་མཉེན་ཆས།</string>
     <string name="sponsorblock_desc">གློག་བརྙན་གཏོང་མཁན། རང་མོས་གཏོང་མཁན། སྒྲ་དབྱངས་མ་གཏོང་མཁན། གློག་བརྙན་གཏོང་མཁན། རང་མོས་གཏོང་མཁན། རང་མོས་གཏོང་མཁན།</string>
     <string name="ok">ལེགས་པ་རེད།</string>
     <string name="import_from_local_file">ས་གནས་ཡིག་སྣོད་ནས་ཕྱིར་འདྲེན་</string>

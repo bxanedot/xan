@@ -373,7 +373,7 @@
     <string name="done">Дараа нь</string>
     <string name="audio_devices">Зөвлөгөө</string>
     <string name="bluetooth_headphones">Блуетоу дугуй</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">Нэргийн Lyrics Блох</string>
     <string name="listen_together_smart_resync">Smart Network Resync нь</string>
     <string name="listen_together_smart_resync_desc">Автомат нь хост нь холболт татаж авах</string>
@@ -1543,7 +1543,7 @@
     <string name="feat_update_title">ДИНАМИЧНЫЙ АЗУРАХ</string>
     <string name="feat_update_desc">Бидний утас шинэчлэгдсэн шинэчлэгдсэн нь үргэлж шинэчлэгддэг.</string>
     <string name="feat_license_title">Лиценз</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GitHub нь</string>
     <string name="feat_github_desc">Open Source хөтөлбөр</string>
     <string name="join_telegram">Бидний Telegram Channel-д нэгж</string>
@@ -1764,7 +1764,7 @@
     <string name="support_bxane">bxane-г дэмжинэ</string>
     <string name="open_supporter_page">Дараа нь дэмжлэг сайт</string>
     <string name="release_label">Үнэгүй</string>
-    <string name="open_source_license_desc">GPL-3.0-only • Үнэгүй нээлттэй эхийн програм хангамж</string>
+    <string name="open_source_license_desc">GPL 3.0 • Үнэгүй нээлттэй эхийн програм хангамж</string>
     <string name="sponsorblock_desc">Sponsor, Self-Promo болон Non-Music сегмент нь автоматтай</string>
     <string name="ok">Үнэгүй</string>
     <string name="import_from_local_file">Нүүр хуудас / Local File</string>

@@ -1313,7 +1313,7 @@
     <string name="feat_update_title">Dinamik Güncellemeler</string>
     <string name="feat_update_desc">Her zaman entegre güncelleştirmelerimizle güncelleştirin.</string>
     <string name="feat_license_title">lisans</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GitHub</string>
     <string name="feat_github_desc">Açık Kaynak Projesi</string>
     <string name="welcome_update_check">kalın</string>
@@ -1529,7 +1529,7 @@
     <string name="support_bxane">Destek bxane</string>
     <string name="open_supporter_page">Destek sayfasını açın</string>
     <string name="release_label">serbest bırakma</string>
-    <string name="open_source_license_desc">GPL-3.0-only • Ücretsiz Açık Kaynak Yazılım</string>
+    <string name="open_source_license_desc">GPL 3.0 • Ücretsiz Açık Kaynak Yazılım</string>
     <string name="sponsorblock_desc">Sponsor, self-promo ve non-müzik segmentleri otomatik olarak kaydırın</string>
     <string name="ok">OK</string>
     <string name="import_from_local_file">Yerel dosyadan ithalat</string>

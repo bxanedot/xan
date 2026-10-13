@@ -373,7 +373,7 @@
     <string name="done">Жаратылган</string>
     <string name="audio_devices">Аудио шаймандар</string>
     <string name="bluetooth_headphones">Bluetooth наушниктери</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">Кадимки тексттер тунук</string>
     <string name="listen_together_smart_resync">Акылдуу тармактын ресинкциясы</string>
     <string name="listen_together_smart_resync_desc">Байланыш үзүлгөндөн кийин автоматтык түрдө кожоюнуна жетүү</string>
@@ -1544,7 +1544,7 @@
     <string name="feat_update_title">Динамикалык жаңыртуулар</string>
     <string name="feat_update_desc">Ар дайым биздин ички жаңыртуучубуз менен кабардар болгула.</string>
     <string name="feat_license_title">Лицензия</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GitHub</string>
     <string name="feat_github_desc">Ачык булактуу долбоор</string>
     <string name="join_telegram">Телеграмма каналыбызга кошулуңуз</string>
@@ -1768,7 +1768,7 @@
     <string name="support_bxane">Bxane колдоосу</string>
     <string name="open_supporter_page">Колдоочу баракчасын ачуу</string>
     <string name="release_label">Көз карандысыздык</string>
-    <string name="open_source_license_desc">GPL-3.0-only • Акысыз ачык программалык камсыздоо</string>
+    <string name="open_source_license_desc">GPL 3.0 • Акысыз ачык программалык камсыздоо</string>
     <string name="sponsorblock_desc">Скип демөөрчү, өзүн-өзү жарнамалоо жана музыкалык эмес сегменттер автоматтык түрдө</string>
     <string name="ok">Жакшы эле.</string>
     <string name="import_from_local_file">Жергиликтүү файлдан импорттоо</string>

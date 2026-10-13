@@ -210,7 +210,7 @@
     <string name="done">डोन</string>
     <string name="audio_devices">ऑडियो उपकरण</string>
     <string name="bluetooth_headphones">ब्लूटूथ हेडफोन</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">ब्लू ब्लू ब्लू ब्लू</string>
     <string name="listen_together_smart_resync">स्मार्ट नेटवर्क पुनरावृत्ति</string>
     <string name="listen_together_smart_resync_desc">स्वचालित रूप से एक कनेक्शन बंद होने के बाद होस्ट के साथ पकड़ो</string>
@@ -1372,7 +1372,7 @@
     <string name="feat_update_title">गतिशील अद्यतन</string>
     <string name="feat_update_desc">हमेशा हमारे अंतर्निहित अद्यतन के साथ अद्यतन रहें।</string>
     <string name="feat_license_title">लाइसेंस</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GitHub के बारे में</string>
     <string name="feat_github_desc">खुले स्रोत परियोजना</string>
     <string name="join_telegram">हमारा टेलीग्राम चैनल</string>
@@ -1593,7 +1593,7 @@
     <string name="support_bxane">Bxane समर्थन</string>
     <string name="open_supporter_page">समर्थन पृष्ठ खोलें</string>
     <string name="release_label">रिलीज</string>
-    <string name="open_source_license_desc">GPL-3.0-only • Free Open Source Software</string>
+    <string name="open_source_license_desc">GPL 3.0 • Free Open Source Software</string>
     <string name="sponsorblock_desc">स्पिन, स्वयं-प्रोमो और गैर-संगीत सेगमेंट स्वचालित रूप से</string>
     <string name="ok">ठीक है</string>
     <string name="import_from_local_file">स्थानीय फ़ाइलों से आयात</string>

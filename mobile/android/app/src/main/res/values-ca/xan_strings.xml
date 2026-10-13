@@ -755,7 +755,7 @@
     <string name="done">Dona</string>
     <string name="audio_devices">Dispositius d\'àudio</string>
     <string name="bluetooth_headphones">Títol Bluetooth</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">Lírica estàndard Blur</string>
     <string name="listen_together_smart_resync">Xarxa intel·ligent Resync</string>
     <string name="listen_together_smart_resync_desc">Automaticament capturar amb l\'host després d\'una descàrrega de connexió</string>
@@ -1326,7 +1326,7 @@
     <string name="feat_update_title">Actualitzacions dinàmiques</string>
     <string name="feat_update_desc">Mantenir-se sempre actualitzat amb la nostra actualització integrada.</string>
     <string name="feat_license_title">Llicència</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GitHub</string>
     <string name="feat_github_desc">Projecte d\'Open Source</string>
     <string name="join_telegram">Aneu al nostre canal de telegram</string>
@@ -1547,7 +1547,7 @@
     <string name="support_bxane">Suport bxane</string>
     <string name="open_supporter_page">Obrir la pàgina de suport</string>
     <string name="release_label">Llibertat</string>
-    <string name="open_source_license_desc">GPL-3.0-only • Programari lliure de codi obert</string>
+    <string name="open_source_license_desc">GPL 3.0 • Programari lliure de codi obert</string>
     <string name="sponsorblock_desc">Skip patrocinador, auto-promo i segment no musical automàticament</string>
     <string name="ok">OK</string>
     <string name="import_from_local_file">Importació de fitxers locals</string>

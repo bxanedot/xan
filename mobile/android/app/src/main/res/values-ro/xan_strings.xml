@@ -750,7 +750,7 @@
     <string name="done">Done</string>
     <string name="audio_devices">Dispozitivele audio</string>
     <string name="bluetooth_headphones">Știrile Bluetooth</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">Cuvânt cheie blur</string>
     <string name="listen_together_smart_resync">Rețea inteligentă Resync</string>
     <string name="listen_together_smart_resync_desc">Închideți automat cu gazda după ce o conexiune a scăzut</string>
@@ -1326,7 +1326,7 @@
     <string name="feat_update_title">Actualizări dinamice</string>
     <string name="feat_update_desc">Fii mereu actualizat cu actualizarea noastră integrată.</string>
     <string name="feat_license_title">Licență</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GitHub</string>
     <string name="feat_github_desc">Proiect Open Source</string>
     <string name="join_telegram">Alăturați-vă canalului nostru Telegram</string>
@@ -1547,7 +1547,7 @@
     <string name="support_bxane">sprijin bxane</string>
     <string name="open_supporter_page">Deschideți pagina de susținere</string>
     <string name="release_label">eliberare</string>
-    <string name="open_source_license_desc">GPL-3.0-only • Software gratuit cu sursă deschisă</string>
+    <string name="open_source_license_desc">GPL 3.0 • Software gratuit cu sursă deschisă</string>
     <string name="sponsorblock_desc">Sponsor, auto-promo și segmentele non-muzice</string>
     <string name="ok">OK</string>
     <string name="import_from_local_file">Importarea din fișier local</string>

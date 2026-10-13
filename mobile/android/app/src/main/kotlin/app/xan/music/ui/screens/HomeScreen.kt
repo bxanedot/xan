@@ -140,6 +140,7 @@ import app.xan.music.constants.LocalSongSortDescendingKey
 import app.xan.music.constants.HideHomeFavoriteIconKey
 import app.xan.music.constants.LocalSongSortTypeKey
 import app.xan.music.constants.RandomizeHomeOrderKey
+import app.xan.music.constants.RandomizeHomeMusicKey
 import app.xan.music.constants.SongSortType
 import app.xan.music.constants.ShowHomeFabKey
 import app.xan.music.constants.HomeCardCornerRadiusOverrideKey
@@ -715,6 +716,7 @@ fun HomeScreen(
     // ("fixed order, I can find things faster"); the third wanted only the top section
     // pinned. Users who explicitly enabled shuffling keep it.
     val (randomizeHomeOrder) = rememberPreference(RandomizeHomeOrderKey, false)
+    val (randomizeHomeMusic) = rememberPreference(RandomizeHomeMusicKey, false)
 
     val shouldShowWrappedCard by viewModel.showWrappedCard.collectAsStateWithLifecycle()
     val wrappedState by viewModel.wrappedManager.state.collectAsStateWithLifecycle()
@@ -984,6 +986,7 @@ fun HomeScreen(
     val homeSections = remember(
         heroCardEnabled,
         randomizeHomeOrder,
+        randomizeHomeMusic,
         // Without this key a reorder saved in settings would not reach Home until
         // something else invalidated the list.
         savedSectionOrder,
@@ -1027,7 +1030,7 @@ fun HomeScreen(
 
         homePage?.sections
             ?.mapIndexedNotNull { index, section -> index.takeUnless { section.isPodcastSection() } }
-            ?.take(MaxHomePageSections)
+            ?.take(if (randomizeHomeMusic) 6 else MaxHomePageSections)
             ?.forEach { i ->
                 list.add(HomeSection.HomePageSection(i))
             }
@@ -1044,7 +1047,9 @@ fun HomeScreen(
             .filter(String::isNotEmpty)
             .toList()
 
-        if (customOrder.isNotEmpty()) {
+        if (randomizeHomeMusic) {
+            list.shuffled(Random(randomSeed))
+        } else if (customOrder.isNotEmpty()) {
             // An explicit arrangement beats both the shuffle and the default weights --
             // the user has said what they want to see first.
             //

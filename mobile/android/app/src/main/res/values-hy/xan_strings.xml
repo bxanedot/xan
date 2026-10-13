@@ -373,7 +373,7 @@
     <string name="done">Աղբյուր</string>
     <string name="audio_devices">Audio սենյակներ</string>
     <string name="bluetooth_headphones">Bluetooth սենյակներ</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">Աղբյուր՝ Blur</string>
     <string name="listen_together_smart_resync">Հիմնական հոդված՝ Smart Network Resync</string>
     <string name="listen_together_smart_resync_desc">Հիմնական հոդված՝ Հիմնական հոդված՝ Հիմնական հոդված՝ Հիմնական հոդված՝ Հիմնական հոդված՝ Հիմնական հոդված՝ Հիմնական հոդված՝ Հիմնական հոդված՝ Հիմնական հոդված՝ Հիմնական հոդված։</string>
@@ -1543,7 +1543,7 @@
     <string name="feat_update_title">Dynamic Update Վիքիպահեստում</string>
     <string name="feat_update_desc">Մենք միշտ մանրամասներ ենք տալիս մեր մանրամասների մանրամասները.</string>
     <string name="feat_license_title">Համաձայնագրություն</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GitHub Վիքիպահեստում</string>
     <string name="feat_github_desc">Open Source-ի գործունեությունը</string>
     <string name="join_telegram">Ներկայացրեք մեր Telegram-ը</string>
@@ -1764,7 +1764,7 @@
     <string name="support_bxane">Աջակցություն bxane</string>
     <string name="open_supporter_page">Հրատարակված է աջակցական կայքը</string>
     <string name="release_label">ազատվել է</string>
-    <string name="open_source_license_desc">GPL-3.0-only • Անվճար բաց կոդով ծրագրակազմ</string>
+    <string name="open_source_license_desc">GPL 3.0 • Անվճար բաց կոդով ծրագրակազմ</string>
     <string name="sponsorblock_desc">Skip Sponsor, Self-Promo եւ Non-Music Segments- ը</string>
     <string name="ok">Բարեւ</string>
     <string name="import_from_local_file">Հրատարակված է Հրատարակված Հրատարակված Հրատարակված Հրատարակված</string>

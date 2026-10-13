@@ -25,11 +25,13 @@ import com.music.innertube.pages.ExplorePage
 import com.music.innertube.pages.HomePage
 import com.music.innertube.ExternalVideoHomePage
 import com.music.innertube.utils.completed
+import com.music.innertube.utils.parseCookieString
 import app.xan.music.constants.HideExplicitKey
 import app.xan.music.constants.HideVideoSongsKey
 import app.xan.music.constants.DataSaverEnabledKey
 import app.xan.music.constants.HideYoutubeShortsKey
 import app.xan.music.constants.InnerTubeCookieKey
+import app.xan.music.constants.RandomizeHomeMusicKey
 import app.xan.music.constants.LocalAlbumsByYearKey
 import app.xan.music.constants.LocalOnlyModeKey
 import app.xan.music.constants.VideoSearchFallbackKey
@@ -236,6 +238,10 @@ class HomeViewModel @Inject constructor(
             isRandomizing.value = true
             // Visual feedback for the animation
             kotlinx.coroutines.delay(1000)
+
+            if (context.dataStore.get(RandomizeHomeMusicKey, false)) {
+                return allYtItems.value.filterIsInstance<SongItem>().shuffled().firstOrNull()
+            }
 
             val userSongs = mutableListOf<YTItem>()
             val otherSources = mutableListOf<YTItem>()
@@ -619,25 +625,53 @@ class HomeViewModel @Inject constructor(
      * Because isLoading is already false, each section streams into the UI
      * as its data arrives â€” no spinner blocking the user.
      */
-    private suspend fun loadNetworkDataPhase() {
+    private fun clearPersonalizedRows() {
+        quickPicks.value = null
+        dailyDiscover.value = null
+        forgottenFavorites.value = null
+        keepListening.value = null
+        similarRecommendations.value = null
+        communityPlaylists.value = null
+        accountPlaylists.value = null
+        allLocalItems.value = emptyList()
+    }
+
+    private suspend fun loadNetworkDataPhase(randomizeMusic: Boolean, hasAccount: Boolean) {
         val hideExplicit = context.dataStore.get(HideExplicitKey, false)
         val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false) || context.dataStore.get(DataSaverEnabledKey, false)
         val hideYoutubeShorts = context.dataStore.get(HideYoutubeShortsKey, false)
+        var remoteHistorySongs: List<SongItem> = emptyList()
 
         coroutineScope {
-            launch(Dispatchers.IO) { getDailyDiscover() }
-            launch(Dispatchers.IO) { getCommunityPlaylists() }
-            launch(Dispatchers.IO) { loadSimilarRecommendations() }
+            if (hasAccount && !randomizeMusic) {
+                launch(Dispatchers.IO) { getDailyDiscover() }
+                launch(Dispatchers.IO) { getCommunityPlaylists() }
+                launch(Dispatchers.IO) { loadSimilarRecommendations() }
+                launch(Dispatchers.IO) { loadAccountPlaylists() }
+                launch(Dispatchers.IO) {
+                    YouTube.musicHistory().onSuccess { page ->
+                        remoteHistorySongs = page.sections.orEmpty().flatMap { it.songs }
+                            .distinctBy { it.id }
+                            .filterExplicit(hideExplicit)
+                            .filterVideoSongs(hideVideoSongs)
+                            .take(20)
+                    }.onFailure { reportException(it) }
+                }
+            }
             launch(Dispatchers.IO) {
-                YouTube.home().onSuccess { page ->
+                val result = if (hasAccount && !randomizeMusic) YouTube.home() else YouTube.publicHome()
+                result.onSuccess { page ->
+                    val sections = page.sections.mapNotNull { section ->
+                        val filteredItems = section.items
+                            .filterExplicit(hideExplicit)
+                            .filterVideoSongs(hideVideoSongs)
+                            .filterYoutubeShorts(hideYoutubeShorts)
+                        if (filteredItems.isEmpty()) null else section.copy(
+                            items = if (randomizeMusic) filteredItems.shuffled() else filteredItems
+                        )
+                    }
                     homePage.value = page.copy(
-                        sections = page.sections.mapNotNull { section ->
-                            val filteredItems = section.items
-                                .filterExplicit(hideExplicit)
-                                .filterVideoSongs(hideVideoSongs)
-                                .filterYoutubeShorts(hideYoutubeShorts)
-                            if (filteredItems.isEmpty()) null else section.copy(items = filteredItems)
-                        }
+                        sections = if (randomizeMusic) sections.shuffled() else sections
                     )
                 }.onFailure { reportException(it) }
             }
@@ -648,34 +682,44 @@ class HomeViewModel @Inject constructor(
                     )
                 }.onFailure { reportException(it) }
             }
-            if (YouTube.cookie != null) {
-                launch(Dispatchers.IO) { loadAccountPlaylists() }
+        }
+
+        if (hasAccount && !randomizeMusic) {
+            if (remoteHistorySongs.isNotEmpty()) {
+                val history = HomePage.Section(
+                    title = context.getString(R.string.home_youtube_history),
+                    label = null, thumbnail = null, endpoint = null, items = remoteHistorySongs,
+                )
+                val page = homePage.value ?: HomePage(null, emptyList())
+                homePage.value = page.copy(sections = listOf(history) + page.sections)
+            } else {
+                // Expired sessions and empty histories get the same public feed as guests.
+                clearPersonalizedRows()
+                YouTube.publicHome().onSuccess { homePage.value = it }
+                    .onFailure { reportException(it) }
             }
         }
 
-        // Update combined YT items once all network data has settled
-        allYtItems.value = similarRecommendations.value?.flatMap { it.items }.orEmpty() +
-                homePage.value?.sections?.flatMap { it.items }.orEmpty()
         if (homePage.value?.sections.isNullOrEmpty()) {
-            val albums = explorePage.value?.newReleaseAlbums.orEmpty()
-            val publicItems: List<YTItem> = if (albums.isNotEmpty()) albums else
-                YouTube.search("new music", YouTube.SearchFilter.FILTER_SONG).getOrNull()?.items.orEmpty()
-                    .filterExplicit(hideExplicit).filterVideoSongs(hideVideoSongs)
-            if (publicItems.isNotEmpty()) {
-                homePage.value = HomePage(null, listOf(HomePage.Section(
-                    title = context.getString(R.string.home_discover_music), label = null,
-                    thumbnail = null, endpoint = null, items = publicItems,
-                )))
-                allYtItems.value = allYtItems.value + publicItems
-            }
+            YouTube.publicHome().onSuccess { homePage.value = it }
+                .onFailure { reportException(it) }
         }
+        allYtItems.value = similarRecommendations.value?.flatMap { it.items }.orEmpty() +
+            homePage.value?.sections?.flatMap { it.items }.orEmpty()
     }
 
     private suspend fun load() {
         isLoading.value = true
         try {
         val preferences = context.dataStore.data.first()
-        YouTube.cookie = preferences[InnerTubeCookieKey]?.takeIf(String::isNotBlank)
+        val cookie = preferences[InnerTubeCookieKey]?.takeIf(String::isNotBlank)
+        YouTube.cookie = cookie
+        val hasAccount = cookie != null && "SAPISID" in parseCookieString(cookie)
+        val randomizeMusic = preferences[RandomizeHomeMusicKey] ?: false
+        homeChipRequest?.cancel()
+        selectedChip.value = null
+        previousHomePage.value = null
+        homePage.value = null
 
         // Local-only mode never touches the network — the Room flows above already
         // feed Home, so the only thing left to fetch is the folder index.
@@ -686,7 +730,7 @@ class HomeViewModel @Inject constructor(
         }
 
         // Phase 1: Local DB only â€” UI renders immediately after this
-        loadLocalDataPhase()
+        if (hasAccount && !randomizeMusic) loadLocalDataPhase() else clearPersonalizedRows()
 
         if (preferences[VideoSearchFallbackKey] == true) {
             videoHomePage.value = null
@@ -708,7 +752,7 @@ class HomeViewModel @Inject constructor(
         videoHomePage.value = null
 
         // Phase 2: All network sections in parallel â€” streams in progressively
-        loadNetworkDataPhase()
+        loadNetworkDataPhase(randomizeMusic, hasAccount)
         } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (failure: Exception) {
@@ -854,8 +898,9 @@ class HomeViewModel @Inject constructor(
         // between the YouTube feed and the on-device library without a restart.
         viewModelScope.launch(Dispatchers.IO) {
             context.dataStore.data.map { preferences ->
-                Triple(preferences[LocalOnlyModeKey] == true,
-                    preferences[VideoSearchFallbackKey] == true, preferences[InnerTubeCookieKey])
+                listOf(preferences[LocalOnlyModeKey] == true,
+                    preferences[VideoSearchFallbackKey] == true, preferences[InnerTubeCookieKey],
+                    preferences[RandomizeHomeMusicKey] == true)
             }
                 .distinctUntilChanged()
                 .collectLatest { load() }

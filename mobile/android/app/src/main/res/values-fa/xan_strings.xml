@@ -280,7 +280,7 @@
     <string name="support_section">حمایت</string>
     <string name="app_info_section">اطلاعات برنامه</string>
     <string name="installed_date_title">تاریخ نصب</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="listen_history">تاریخچهٔ گوش‌دادن</string>
     <string name="search_history">تاریخچهٔ جستجو</string>
     <string name="disable_screenshot">غیرفعال‌کردن عکس‌گرفتن از صفحه</string>
@@ -663,8 +663,8 @@
     <string name="support_bxane">حمایت از bxane</string>
     <string name="open_supporter_page">بازکردن صفحهٔ حمایت</string>
     <string name="release_label">نسخه</string>
-    <string name="open_source_license_desc">GPL-3.0-only • نرم افزار منبع باز رایگان</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="open_source_license_desc">GPL 3.0 • نرم افزار منبع باز رایگان</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="sponsorblock_desc">بخش‌های تبلیغاتی، تبلیغ شخصی و غیرموسیقی را خودکار رد می‌کند</string>
     <string name="error_title">خطا</string>
     <string name="username">نام کاربری</string>

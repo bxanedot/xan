@@ -373,7 +373,7 @@
     <string name="done">Done</string>
     <string name="audio_devices">Audio მოწყობილობები</string>
     <string name="bluetooth_headphones">Bluetooth ტელეფონები</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">Standard Lyrics ბრიტანელი</string>
     <string name="listen_together_smart_resync">Smart Network Resync რეგისტრაციის გარეშე</string>
     <string name="listen_together_smart_resync_desc">ადიიიიიიიიიი რაააააააააააააააააააააააააააააააააააააააააააა</string>
@@ -1543,7 +1543,7 @@
     <string name="feat_update_title">Dynamic Update-ის გამოყენებით</string>
     <string name="feat_update_desc">ადიიიიიიიიიი რაააააააააააააააააააააააააააააააააააააააააააა</string>
     <string name="feat_license_title">Licensed</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GitHub-ის</string>
     <string name="feat_github_desc">Open Source პროგრამა</string>
     <string name="join_telegram">შეეძლოთ ჩვენს Telegram Channel-ზე</string>
@@ -1764,7 +1764,7 @@
     <string name="support_bxane">Bxane მხარდაჭერა</string>
     <string name="open_supporter_page">გამოგზავნილია: 16 May 2017, 14:44 #5246 · პროფილი · პირადი მიმოწერა · ჩატი · ელფოსტა</string>
     <string name="release_label">გამოგზავნილია</string>
-    <string name="open_source_license_desc">GPL-3.0-only • უფასო ღია კოდის პროგრამული უზრუნველყოფა</string>
+    <string name="open_source_license_desc">GPL 3.0 • უფასო ღია კოდის პროგრამული უზრუნველყოფა</string>
     <string name="sponsorblock_desc">Skip sponsors, self-promo და non-music segments automatically (ქართულად) (ქართულად) (ქართულად) (ქართულად) (ქართულად) (ქართულად) (ქართულად) (ქართულად)</string>
     <string name="ok">OK</string>
     <string name="import_from_local_file">ადიიიიიიიიიი რაააააააააააააააააააააააააააააააააააააააააააა</string>

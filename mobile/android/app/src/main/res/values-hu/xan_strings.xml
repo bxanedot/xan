@@ -406,7 +406,7 @@
     <string name="done">Done</string>
     <string name="audio_devices">Audio készülékek</string>
     <string name="bluetooth_headphones">Bluetooth fülhallgató</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">Standard szótár blur</string>
     <string name="listen_together_smart_resync">Intelligens hálózati resync</string>
     <string name="listen_together_smart_resync_desc">automatikusan rögzítse a házigazdával a csatlakozás leállítása után</string>
@@ -1313,7 +1313,7 @@
     <string name="feat_update_title">Dinamikus frissítések</string>
     <string name="feat_update_desc">Mindig naprakész maradjon beépített frissítésünkkel.</string>
     <string name="feat_license_title">licenc</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GitHub</string>
     <string name="feat_github_desc">Nyílt forráskódú projekt</string>
     <string name="join_telegram">Csatlakozzon a Telegram csatornánkhoz</string>
@@ -1534,7 +1534,7 @@
     <string name="support_bxane">Támogatás bxane</string>
     <string name="open_supporter_page">Nyissa meg a támogató oldalt</string>
     <string name="release_label">kiadás</string>
-    <string name="open_source_license_desc">GPL-3.0-only • Ingyenes nyílt forráskódú szoftver</string>
+    <string name="open_source_license_desc">GPL 3.0 • Ingyenes nyílt forráskódú szoftver</string>
     <string name="sponsorblock_desc">A szponzor, az önkéntes és a nem zenei szegmensek automatikusan</string>
     <string name="ok">OK</string>
     <string name="import_from_local_file">Bevezetés a helyi fájlból</string>

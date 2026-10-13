@@ -373,7 +373,7 @@
     <string name="done">ڈون</string>
     <string name="audio_devices">آڈیو آلات</string>
     <string name="bluetooth_headphones">Bluetooth سافٹ ویئر</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">معیاری الفاظ Blur</string>
     <string name="listen_together_smart_resync">سمارٹ نیٹ ورک Resync</string>
     <string name="listen_together_smart_resync_desc">خود کار طریقے سے ایک کنکشن ڈپریشن کے بعد میزبان کے ساتھ پکڑو</string>
@@ -1543,7 +1543,7 @@
     <string name="feat_update_title">متحرک اپ ڈیٹ</string>
     <string name="feat_update_desc">ہمیشہ اپنے انسٹال اپ ڈیٹ کے ساتھ اپ ڈیٹ رہیں.</string>
     <string name="feat_license_title">اجازت کے</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GITHUB</string>
     <string name="feat_github_desc">Open Source پروجیکٹ</string>
     <string name="join_telegram">ہمارے ٹیلی گرام چینل میں شامل ہو جاؤ</string>
@@ -1764,7 +1764,7 @@
     <string name="support_bxane">bxane کی حمایت کریں۔</string>
     <string name="open_supporter_page">سپورٹ صفحہ کھولیں</string>
     <string name="release_label">آزادی</string>
-    <string name="open_source_license_desc">GPL-3.0-only • مفت اوپن سورس سافٹ ویئر</string>
+    <string name="open_source_license_desc">GPL 3.0 • مفت اوپن سورس سافٹ ویئر</string>
     <string name="sponsorblock_desc">سپانسر، خود پرومو اور غیر موسیقی کے حصوں کو خود کار طریقے سے چھوڑ دیں</string>
     <string name="ok">ٹھیک ہے</string>
     <string name="import_from_local_file">مقامی فائلوں سے درآمد</string>

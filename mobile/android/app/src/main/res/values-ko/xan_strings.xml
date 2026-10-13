@@ -204,7 +204,7 @@
     <string name="done">DON</string>
     <string name="audio_devices">오디오 장치</string>
     <string name="bluetooth_headphones">Bluetooth 헤드폰</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">표준 블루 링크</string>
     <string name="listen_together_smart_resync">똑똑한 네트워크 재생</string>
     <string name="listen_together_smart_resync_desc">연결이 떨어진 후 호스트와 함께 자동으로 캡처</string>
@@ -1301,7 +1301,7 @@
     <string name="feat_update_title">역동적 업데이트</string>
     <string name="feat_update_desc">항상 내장된 업데이트를 통해 업데이트하십시오.</string>
     <string name="feat_license_title">면허증</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GITHUB</string>
     <string name="feat_github_desc">오픈소스 프로젝트</string>
     <string name="join_telegram">우리의 Telegram 채널에 가입하십시오</string>
@@ -1522,7 +1522,7 @@
     <string name="support_bxane">지원 bxane</string>
     <string name="open_supporter_page">지원자 페이지 열기</string>
     <string name="release_label">릴리스</string>
-    <string name="open_source_license_desc">GPL-3.0-only • 무료 오픈 소스 소프트웨어</string>
+    <string name="open_source_license_desc">GPL 3.0 • 무료 오픈 소스 소프트웨어</string>
     <string name="sponsorblock_desc">스폰서, 스스로 프로모션 및 비 음악 세그먼트를 자동으로 스키</string>
     <string name="ok">괜찮아</string>
     <string name="import_from_local_file">현지 파일에서 수입</string>

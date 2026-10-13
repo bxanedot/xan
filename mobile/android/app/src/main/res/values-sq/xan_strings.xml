@@ -373,7 +373,7 @@
     <string name="done">Dona</string>
     <string name="audio_devices">pajisje audio</string>
     <string name="bluetooth_headphones">Fjalë kyçe Bluetooth</string>
-    <string name="license">GPL-3.0-only</string>
+    <string name="license">GPL 3.0</string>
     <string name="standard_lyrics_blur">Fjalë kyçe blur</string>
     <string name="listen_together_smart_resync">Rrjetet e mençura Resync</string>
     <string name="listen_together_smart_resync_desc">Automatikisht të kapur me mikpritës pas një rënie të lidhjes</string>
@@ -1543,7 +1543,7 @@
     <string name="feat_update_title">Përditësimet dinamike</string>
     <string name="feat_update_desc">Qëndroni gjithmonë të përditësuar me përditësimin tonë të integruar.</string>
     <string name="feat_license_title">licencë</string>
-    <string name="feat_license_desc">GPL-3.0-only</string>
+    <string name="feat_license_desc">GPL 3.0</string>
     <string name="feat_github_title">GitHub</string>
     <string name="feat_github_desc">Projekti i burimit të hapur</string>
     <string name="join_telegram">Bashkohu me kanalin tonë Telegram</string>
@@ -1764,7 +1764,7 @@
     <string name="support_bxane">Mbështetje bxane</string>
     <string name="open_supporter_page">Hapja e faqes së mbështetësit</string>
     <string name="release_label">Lirimi</string>
-    <string name="open_source_license_desc">GPL-3.0-only • Software Free Open Source</string>
+    <string name="open_source_license_desc">GPL 3.0 • Software Free Open Source</string>
     <string name="sponsorblock_desc">Shkarko sponsorët, vetë-promo dhe segmentet jo muzikore automatikisht</string>
     <string name="ok">OK</string>
     <string name="import_from_local_file">Import nga faqja lokale</string>
