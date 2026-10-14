@@ -30,9 +30,21 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import java.net.ConnectException
+import java.net.NoRouteToHostException
+import java.net.SocketTimeoutException
+import java.net.UnknownHostException
+import java.util.concurrent.ConcurrentHashMap
 
 // ─── Data models (lenient — instances vary) ──────────────────────────────────
 
@@ -149,6 +161,12 @@ object TidalService {
     @Volatile private var cachedLive: List<String> = emptyList()
     @Volatile private var cachedAt: Long = 0L
     private const val LIVE_TTL_MS = 10 * 60 * 1000L
+    private const val EMPTY_LIVE_TTL_MS = 60 * 1000L
+    private const val LIVE_DISCOVERY_TIMEOUT_MS = 200L
+    private const val ENDPOINT_FAILURE_COOLDOWN_MS = 60 * 1000L
+    @Volatile private var liveDiscoveryInitialized = false
+    private val discoveryMutex = Mutex()
+    private val unavailableUntil = ConcurrentHashMap<String, Long>()
 
     private val json = Json {
         isLenient         = true
@@ -171,32 +189,80 @@ object TidalService {
 
     /** Currently-online instances from the uptime workers, cached for [LIVE_TTL_MS]. */
     private suspend fun liveInstances(): List<String> {
-        val now = System.currentTimeMillis()
-        if (now - cachedAt < LIVE_TTL_MS && cachedLive.isNotEmpty()) return cachedLive
-        for (worker in UPTIME_WORKERS) {
-            val hosts = runCatching {
-                val resp = client.get(worker) {
-                    headers.append(HttpHeaders.Accept, "application/json")
-                    headers.append(HttpHeaders.UserAgent, UA)
+        return discoveryMutex.withLock {
+            val now = System.currentTimeMillis()
+            val ttl = if (cachedLive.isEmpty()) EMPTY_LIVE_TTL_MS else LIVE_TTL_MS
+            if (liveDiscoveryInitialized && now - cachedAt < ttl) return@withLock cachedLive
+
+            // Discovery is advisory; query both workers concurrently with a short
+            // budget so a slow uptime service cannot delay ordinary YT Music playback.
+            val discovered = withTimeoutOrNull(LIVE_DISCOVERY_TIMEOUT_MS) {
+                coroutineScope {
+                    UPTIME_WORKERS.map { worker ->
+                        async {
+                            val hosts = try {
+                                val resp = client.get(worker) {
+                                    headers.append(HttpHeaders.Accept, "application/json")
+                                    headers.append(HttpHeaders.UserAgent, UA)
+                                }
+                                if (resp.status != HttpStatusCode.OK) emptyList() else {
+                                    val body = resp.body<UptimeResponse>()
+                                    (body.api + body.streaming).map { it.url.trimEnd('/') }
+                                        .filter { it.startsWith("http") }
+                                }
+                            } catch (cancelled: CancellationException) {
+                                throw cancelled
+                            } catch (error: Exception) {
+                                emptyList()
+                            }
+                            if (hosts.isNotEmpty()) {
+                                Timber.tag(TAG).d("live instances (${hosts.size}) via $worker")
+                            }
+                            hosts
+                        }
+                    }
+                        .awaitAll()
+                        .firstOrNull { it.isNotEmpty() }
+                        .orEmpty()
                 }
-                if (resp.status != HttpStatusCode.OK) return@runCatching emptyList<String>()
-                val body = resp.body<UptimeResponse>()
-                (body.api + body.streaming).map { it.url.trimEnd('/') }.filter { it.startsWith("http") }
-            }.getOrElse { emptyList() }
-            if (hosts.isNotEmpty()) {
-                Timber.tag(TAG).d("live instances (${hosts.size}) via $worker")
-                cachedLive = hosts
-                cachedAt = now
-                return hosts
-            }
+            }.orEmpty()
+
+            // Cache an empty result too. If both uptime workers are unreachable,
+            // retrying them before every song adds network latency without changing
+            // the bundled fallback list.
+            cachedLive = discovered
+            cachedAt = now
+            liveDiscoveryInitialized = true
+            discovered
         }
-        return emptyList()
     }
 
     /** Ordered: user override first, then live-discovered, then bundled fallback. */
     private suspend fun orderedInstances(customBaseUrl: String?): List<String> {
         val custom = customBaseUrl?.trim()?.trimEnd('/')?.takeIf { it.startsWith("http") }
-        return (listOfNotNull(custom) + liveInstances() + BUNDLED_INSTANCES).distinct()
+        val all = (listOfNotNull(custom) + liveInstances() + BUNDLED_INSTANCES).distinct()
+        val now = System.currentTimeMillis()
+        return all.filter { base ->
+            val retryAt = unavailableUntil[base] ?: return@filter true
+            if (retryAt <= now) {
+                unavailableUntil.remove(base, retryAt)
+                true
+            } else {
+                false
+            }
+        }
+    }
+
+    private fun markTransportFailure(base: String, error: Throwable) {
+        var cause: Throwable? = error
+        while (cause != null) {
+            if (cause is UnknownHostException || cause is ConnectException ||
+                cause is SocketTimeoutException || cause is NoRouteToHostException) {
+                unavailableUntil[base] = System.currentTimeMillis() + ENDPOINT_FAILURE_COOLDOWN_MS
+                return
+            }
+            cause = cause.cause
+        }
     }
 
     /**
@@ -206,20 +272,26 @@ object TidalService {
     suspend fun search(query: String, customBaseUrl: String? = null): List<TidalTrack> {
         if (query.isBlank()) return emptyList()
         for (base in orderedInstances(customBaseUrl)) {
-            val hits = runCatching {
+            val hits = try {
                 val resp = client.get("$base/search/") {
                     parameter("s", query)
                     headers.append(HttpHeaders.Accept, "application/json")
                     headers.append(HttpHeaders.UserAgent, UA)
                     headers.append(HttpHeaders.AcceptEncoding, "identity")
                 }
-                if (resp.status != HttpStatusCode.OK) return@runCatching emptyList<TidalTrack>()
+                if (resp.status != HttpStatusCode.OK) emptyList() else {
                 val body = resp.body<TidalSearchResponse>()
-                val data = body.data ?: return@runCatching emptyList<TidalTrack>()
-                data.items.ifEmpty { data.tracks?.items ?: emptyList() }
-                    .filter { it.id != 0L && it.title.isNotBlank() }
-            }.getOrElse {
-                Timber.tag(TAG).d("search failed on $base: ${it.message}")
+                val data = body.data
+                data?.let {
+                    it.items.ifEmpty { it.tracks?.items ?: emptyList() }
+                        .filter { track -> track.id != 0L && track.title.isNotBlank() }
+                } ?: emptyList()
+                }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                markTransportFailure(base, error)
+                Timber.tag(TAG).d("search failed on $base: ${error.message}")
                 emptyList()
             }
             if (hits.isNotEmpty()) {
@@ -241,7 +313,7 @@ object TidalService {
         customBaseUrl: String? = null,
     ): String? {
         for (base in orderedInstances(customBaseUrl)) {
-            val url = runCatching {
+            val url = try {
                 val resp = client.get("$base/track/") {
                     parameter("id", trackId)
                     parameter("quality", quality)
@@ -251,18 +323,23 @@ object TidalService {
                 }
                 if (resp.status != HttpStatusCode.OK) {
                     Timber.tag(TAG).d("track HTTP ${resp.status.value} on $base id=$trackId body=${resp.bodyAsText().take(200)}")
-                    return@runCatching null
+                    null
+                } else {
+                    val data = resp.body<TidalTrackResponse>().data
+                    if (data?.manifest == null) {
+                        Timber.tag(TAG).d("track no manifest on $base id=$trackId mime=${data?.manifestMimeType}")
+                        null
+                    } else {
+                        decodeManifestUrl(data.manifest, data.manifestMimeType).also {
+                            if (it == null) Timber.tag(TAG).d("track manifest not decodable on $base mime=${data.manifestMimeType} head=${data.manifest.take(24)}")
+                        }
+                    }
                 }
-                val data = resp.body<TidalTrackResponse>().data
-                if (data?.manifest == null) {
-                    Timber.tag(TAG).d("track no manifest on $base id=$trackId mime=${data?.manifestMimeType}")
-                    return@runCatching null
-                }
-                decodeManifestUrl(data.manifest, data.manifestMimeType).also {
-                    if (it == null) Timber.tag(TAG).d("track manifest not decodable on $base mime=${data.manifestMimeType} head=${data.manifest.take(24)}")
-                }
-            }.getOrElse {
-                Timber.tag(TAG).d("streamUrl failed on $base: ${it.message}")
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                markTransportFailure(base, error)
+                Timber.tag(TAG).d("streamUrl failed on $base: ${error.message}")
                 null
             }
             if (!url.isNullOrBlank()) {

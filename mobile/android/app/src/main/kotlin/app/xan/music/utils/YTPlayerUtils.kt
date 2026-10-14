@@ -53,6 +53,7 @@ import java.net.ProxySelector
 import java.net.SocketAddress
 import java.net.URI
 import java.io.IOException
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 
@@ -211,7 +212,8 @@ object YTPlayerUtils {
             if (!forceStandardAudio && allowLossless &&
                 (audioQuality == AudioQuality.LOSSLESS || forceLossless)) {
                 Timber.tag(TAG).d("Lossless enabled — trying TIDAL for videoId=$videoId")
-                val tidalResult = runCatching {
+                val tidalResult = tryLosslessLookupWithinDeadline {
+                    try {
                     val (currentSong, meta) = coroutineScope {
                         val nextDeferred = async {
                             val nextResult = YouTube.next(WatchEndpoint(videoId = videoId)).getOrNull()
@@ -223,7 +225,7 @@ object YTPlayerUtils {
                     }
 
                     val title = currentSong?.title ?: meta?.videoDetails?.title.orEmpty()
-                    if (title.isBlank()) return@runCatching null
+                    if (title.isBlank()) return@tryLosslessLookupWithinDeadline null
 
                     val artistNames: List<String> = if (currentSong?.artists?.isNotEmpty() == true) {
                         currentSong.artists.map { it.name }
@@ -273,7 +275,7 @@ object YTPlayerUtils {
 
                     if (matchingCandidates.isEmpty()) {
                         Timber.tag(TAG).d("TIDAL: no match for \"$query\" — falling back")
-                        return@runCatching null
+                        return@tryLosslessLookupWithinDeadline null
                     }
 
                     val quality = runCatching {
@@ -294,7 +296,7 @@ object YTPlayerUtils {
                     }
                     if (best == null || streamUrl == null) {
                         Timber.tag(TAG).d("TIDAL: no stream URL among ${matchingCandidates.size} match(es) for \"$query\" — falling back")
-                        return@runCatching null
+                        return@tryLosslessLookupWithinDeadline null
                     }
 
                     Timber.tag(TAG).i("Tidal: streaming FLAC \"${best.title}\" (id=${best.id}, ${quality.toApiValue()}) for videoId=$videoId")
@@ -329,13 +331,21 @@ object YTPlayerUtils {
                         streamExpiresInSeconds = 3600,
                         isTidalStream          = true,
                     )
-                }.getOrNull()
+                    } catch (cancelled: CancellationException) {
+                        throw cancelled
+                    } catch (error: Exception) {
+                        Timber.tag(TAG).w("Lossless source lookup failed (${error::class.simpleName}); falling back to High audio")
+                        null
+                    }
+                }
 
                 if (tidalResult != null) {
                     InnerTubeXPlayer.clearResolvedStreamClient(videoId)
                     return Result.success(tidalResult)
                 }
-                Timber.tag(TAG).d("TIDAL intercept failed or returned null — trying next source")
+                Timber.tag(TAG).d(
+                    "Lossless source unavailable or timed out after up to ${LOSSLESS_SOURCE_LOOKUP_TIMEOUT_MS}ms — falling back to High audio",
+                )
             }
             // ── End TIDAL intercept ──────────────────────────────────────────────
 
@@ -352,29 +362,9 @@ object YTPlayerUtils {
             allowInnerTubeX,
         )
 
-        val firstFailure = firstAttempt.exceptionOrNull()
-
-        // visitorData is sent independently of the login cookie and dataSyncId.
-        // A bot-flagged visitor can therefore affect signed-in sessions too. On an
-        // explicit YouTube verification response, refresh that identity once while
-        // preserving the user's account cookies, then retry the same resolver chain.
-        // Do not spend retries on unrelated network, cipher, or format failures.
-        if (BotDetectionMitigator.shouldRefreshVisitorSession(firstFailure)) {
-            Timber.tag(TAG).w("YouTube requested verification; refreshing visitorData once")
-            PlaybackLogManager.log(PlaybackLogLevel.BOT, "YouTube requested verification", "Refreshing visitorData once")
-            if (BotDetectionMitigator.refreshVisitorSession()) {
-                val retryResult = resolvePlaybackData(
-                    videoId,
-                    playlistId,
-                    standardAudioQuality,
-                    connectivityManager,
-                    allowInnerTubeX,
-                )
-                retryResult.onSuccess { BotDetectionMitigator.notifyPlaybackSuccess() }
-                return retryResult
-            }
+        if (BotDetectionMitigator.isBotDetectionError(firstAttempt.exceptionOrNull())) {
+            Timber.tag(TAG).w("YouTube requires account verification; stopping playback resolution")
         }
-
         firstAttempt.onSuccess { BotDetectionMitigator.notifyPlaybackSuccess() }
         return firstAttempt
     }
@@ -609,6 +599,7 @@ object YTPlayerUtils {
             else -> -1
         }
 
+        var consecutiveVerificationChallenges = 0
         for (clientIndex in (startIndex until STREAM_FALLBACK_CLIENTS.size)) {
             // reset for each client
             format = null
@@ -796,6 +787,22 @@ object YTPlayerUtils {
                 
                 // Restore original Timber log for Logcat
                 Timber.tag(logTag).d("Player response status not OK: ${streamPlayerResponse?.playabilityStatus?.status}, reason: ${streamPlayerResponse?.playabilityStatus?.reason}")
+
+                // Give the first few regular clients a chance to provide a stream,
+                // then stop. Repeating the same explicit sign-in challenge across
+                // every client can add tens of seconds while never changing access.
+                if (BotDetectionMitigator.isBotDetectionError(reason)) {
+                    consecutiveVerificationChallenges++
+                    if (consecutiveVerificationChallenges >= 3) {
+                        throw PlaybackException(
+                            reason,
+                            null,
+                            PlaybackException.ERROR_CODE_REMOTE_ERROR,
+                        )
+                    }
+                } else {
+                    consecutiveVerificationChallenges = 0
+                }
             }
         }
 

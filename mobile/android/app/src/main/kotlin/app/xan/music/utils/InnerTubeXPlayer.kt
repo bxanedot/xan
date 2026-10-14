@@ -48,7 +48,7 @@ import kotlin.time.Clock
 /** The sole stream extraction entry point for the Android app using innertubex back-end. */
 object InnerTubeXPlayer {
     private const val TAG = "InnerTubeXPlayer"
-    private const val WEB_REMIX_FAILURE_TTL_MS = 5 * 60 * 1000L
+    private const val STREAM_CLIENT_FAILURE_TTL_MS = 5 * 60 * 1000L
     private const val DEFAULT_STREAM_TTL_SECONDS = 5 * 60
     private const val POTOKEN_WARMUP_VIDEO_ID = "jNQXAC9IVRw"
 
@@ -58,7 +58,7 @@ object InnerTubeXPlayer {
     @Volatile
     private var currentBundle: ExtractionBundle? = null
     private val bundleMutex = Mutex()
-    private val webRemixFailures = java.util.concurrent.ConcurrentHashMap<String, Long>()
+    private val failedStreamClients = StreamClientFailureTracker(STREAM_CLIENT_FAILURE_TTL_MS)
     private val resolvedStreamClients = java.util.concurrent.ConcurrentHashMap<String, String>()
 
     @Volatile
@@ -151,8 +151,11 @@ object InnerTubeXPlayer {
             val excludedClients =
                 buildSet {
                     addAll(disabledStreamClients)
-                    if (hasRecentWebRemixFailure(videoId)) add("WEB_REMIX")
+                    addAll(failedStreamClients.excludedFor(videoId))
                 }
+            if (excludedClients.isNotEmpty()) {
+                Timber.tag(TAG).d("Retrying $videoId without rejected stream clients: ${excludedClients.joinToString()}")
+            }
             val stream =
                 requireNotNull(
                     bundle().extractor.extract(
@@ -182,31 +185,16 @@ object InnerTubeXPlayer {
             Result.failure(error)
         }
 
-    fun clearWebRemixFailures() {
-        webRemixFailures.clear()
-    }
-
     suspend fun refreshAfterStreamRejection(videoId: String): Boolean {
         val failedClient = resolvedStreamClients.remove(videoId) ?: return false
+        failedStreamClients.markRejected(videoId, failedClient)
+        Timber.tag(TAG).i("Stream client $failedClient was rejected for $videoId; excluding it on the next resolution")
         val changed = bundle().cipherService.refreshAfterStreamRejection()
-        if (changed) clearWebRemixFailures()
-        if (failedClient == "WEB_REMIX") {
-            webRemixFailures[videoId] = System.currentTimeMillis()
-        }
         return changed
     }
 
     fun clearResolvedStreamClient(videoId: String) {
         resolvedStreamClients.remove(videoId)
-    }
-
-    private fun hasRecentWebRemixFailure(videoId: String): Boolean {
-        val failedAt = webRemixFailures[videoId] ?: return false
-        if ((System.currentTimeMillis() - failedAt) !in 0 until WEB_REMIX_FAILURE_TTL_MS) {
-            webRemixFailures.remove(videoId, failedAt)
-            return false
-        }
-        return true
     }
 
     private suspend fun bundle(): ExtractionBundle {

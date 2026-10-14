@@ -87,18 +87,9 @@ fun PlaybackError(
     }
     val clipboard = LocalClipboardManager.current
 
-    // Check if this is an age-restricted content error
-    // Age-restricted content typically returns 403 Forbidden or contains age-related messages
-    val isAgeRestricted = rawErrorMessage.contains("age", ignoreCase = true) ||
-            rawErrorMessage.contains("Sign in to confirm your age", ignoreCase = true) ||
-            rawErrorMessage.contains("LOGIN_REQUIRED", ignoreCase = true) ||
-            rawErrorMessage.contains("confirm your age", ignoreCase = true) ||
-            rawErrorMessage.contains("403", ignoreCase = true) ||
-            rawErrorMessage.contains("Response code: 403", ignoreCase = true) ||
-            // Only a real 403 means age-gated. IO_BAD_HTTP_STATUS on its own
-            // covers 404/429/5xx too, and claiming "age-restricted" for those
-            // sent people chasing the wrong problem.
-            httpStatus == 403
+    // A generic 403 can also mean that a signed media URL or stream client was
+    // rejected. Only show the age restriction message when YouTube says so.
+    val isAgeRestricted = isExplicitAgeRestriction(rawErrorMessage)
     
     val isYouTubeVerification = remember(causeChain) {
         causeChain.any { BotDetectionMitigator.isBotDetectionError(it.message) }
@@ -198,6 +189,18 @@ fun PlaybackError(
             }
         }
     }
+}
+
+internal fun isExplicitAgeRestriction(message: String): Boolean {
+    val normalized = message.lowercase()
+    return listOf(
+        "age-restricted",
+        "age restricted",
+        "age-gated",
+        "age gated",
+        "confirm your age",
+        "age verification",
+    ).any(normalized::contains)
 }
 
 /**
