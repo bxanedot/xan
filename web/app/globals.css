@@ -1,8 +1,8 @@
 @import "tailwindcss";
 @config "../tailwind.config.ts";
 
-:root { --bg:#080808; --panel:#121212; --ink:#f7f7f7; --muted:#9b9b9b; --line:#ffffff1a; --pink:#f7f7f7; --icon:#fff; --blue:#d5d5d5; --gradient:linear-gradient(110deg,#ffffff,#f2f2f2 48%,#bcbcbc); }
-html[data-theme="gold"] { --bg:#080808; --panel:#15120b; --ink:#fff9e8; --muted:#b9ae91; --line:#f1c85a2b; --pink:#f4c84a; --icon:#f4c84a; --blue:#d9a738; --gradient:linear-gradient(110deg,#f8dd7a,#d9a738 48%,#a66a05); }
+:root { --bg:#121212; --panel:#1c1c1e; --panel-raised:#2c2c2e; --ink:#f7f7f7; --muted:#8e8e93; --line:#ffffff1c; --pink:#fa2d48; --icon:#fff; --blue:#fa647a; --gradient:linear-gradient(110deg,#fa2d48,#ed3854 48%,#c91c3c); }
+html[data-theme="gold"] { --bg:#121212; --panel:#211d16; --ink:#fff9e8; --muted:#b9ae91; --line:#f1c85a2b; --pink:#f4c84a; --icon:#f4c84a; --blue:#d9a738; --gradient:linear-gradient(110deg,#f8dd7a,#d9a738 48%,#a66a05); }
 * { box-sizing:border-box; }
 html { scroll-behavior:smooth; scroll-padding-top:100px; background:var(--bg); }
 body { margin:0; min-height:100vh; background:var(--bg); color:var(--ink); font-family:"Segoe UI",Inter,system-ui,sans-serif; -webkit-font-smoothing:antialiased; }
@@ -428,3 +428,35 @@ html[dir="rtl"] .download-page-header { direction:rtl; }
 .xan-app-preview-thumbnails button { flex:0 0 38px; width:38px; height:65px; overflow:hidden; border:2px solid transparent; border-radius:8px; opacity:.55; scroll-snap-align:center; }
 .xan-app-preview-thumbnails button.is-active { border-color:var(--pink); opacity:1; }
 .xan-app-preview-thumbnails button img { width:100%; height:100%; object-fit:cover; object-position:top; }
+
+/* Android-inspired web design language: AppleTokens surfaces, typography and controls. */
+:root { --xan-gutter:20px; --xan-gap:16px; --xan-radius-control:12px; --xan-radius-card:22px; --xan-radius-large:28px; }
+body { background:var(--bg); }
+.section-shell { width:min(1180px,calc(100% - 40px)); }
+.site-nav { border-radius:22px !important; background:color-mix(in srgb,var(--panel) 88%,transparent) !important; box-shadow:0 8px 40px #0004; }
+.nav-link { border-radius:12px; font-weight:600; }
+.nav-link:hover,.nav-link:focus-visible { background:var(--panel-raised); }
+.download-button { color:#fff; box-shadow:0 10px 35px #fa2d4829; }
+.download-button:hover { box-shadow:0 14px 40px #fa2d4844; }
+.secondary-button,.clone-card,.eq-panel,.feature-card,.info-panel { background:var(--panel) !important; }
+.clone-card,.info-panel,.eq-panel,.visual-stage { border-radius:22px; }
+.feature-card { border-radius:0; transition:background .2s ease,transform .2s ease; }
+.feature-card:hover { background:var(--panel-raised) !important; transform:translateY(-3px); }
+.features-grid { gap:12px !important; border:0 !important; background:transparent !important; border-radius:0 !important; overflow:visible !important; }
+.features-grid .feature-card { border:1px solid var(--line); border-radius:22px; }
+.eq-preset { border-radius:12px; }
+.eq-preset-active,.mobile-dock-download { color:#fff !important; }
+.mobile-dock-inner { border-radius:24px; background:color-mix(in srgb,var(--panel) 94%,transparent); }
+.mobile-dock-download svg,.download-button svg { color:#fff; }
+.xan-landing { padding-top:clamp(125px,15vw,205px); }
+.xan-landing .xan-app-hero-grid { display:block; max-width:900px; }
+.xan-landing .xan-app-hero-copy { max-width:850px; }
+.xan-landing .hero-title { font-size:clamp(58px,10vw,128px); letter-spacing:-.075em; line-height:.98; font-weight:750; }
+.xan-landing .hero-description { max-width:560px; font-size:clamp(16px,2vw,19px); color:var(--muted); line-height:1.65; }
+.xan-landing .xan-app-hero-pills { display:flex; flex-wrap:wrap; gap:10px; margin-top:28px; }
+.xan-landing .xan-app-hero-pills span { border:1px solid var(--line); background:var(--panel); border-radius:999px; padding:9px 15px; font-size:13px; color:var(--ink); }
+.xan-landing .xan-app-source { margin-top:clamp(70px,9vw,125px); }
+.xan-landing .hero-ambient { opacity:.22; }
+#screenshots { margin-top:30px; }
+#screenshots .gallery-track { scroll-padding-inline:20px; }
+@media(max-width:639px) { .section-shell { width:calc(100% - 36px); } .xan-landing { padding-top:112px; } .xan-landing .hero-title { font-size:clamp(52px,13vw,76px); } .features-grid { gap:12px !important; } }
