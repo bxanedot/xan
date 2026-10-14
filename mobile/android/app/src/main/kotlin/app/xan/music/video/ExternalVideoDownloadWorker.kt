@@ -128,6 +128,7 @@ fun enqueueMergedExternalVideoDownload(
         .addTag("media:${externalVideoMediaId(result, format)}")
         .addTag("title:$title")
         .addTag("resolution:${format.resolution}")
+        .addTag("request:${requestFile.absolutePath}")
         .setInputData(workDataOf(ExternalVideoDownloadWorker.REQUEST_FILE to requestFile.absolutePath))
         .setBackoffCriteria(androidx.work.BackoffPolicy.EXPONENTIAL, 20, TimeUnit.SECONDS)
         .setConstraints(androidx.work.Constraints.Builder().setRequiredNetworkType(androidx.work.NetworkType.CONNECTED).build())
@@ -166,6 +167,7 @@ class ExternalVideoDownloadWorker(context: Context, params: WorkerParameters) : 
     @Volatile private var bytesTotal = -1L
     @Volatile private var bytesPerSecond = 0L
     @Volatile private var stage = "download"
+    @Volatile private var explicitlyResumingPausedTransfer = false
     private val progressLock = Any()
     private val streamBytes = longArrayOf(0L, 0L)
     private val streamSizes = longArrayOf(-1L, -1L)
@@ -213,7 +215,9 @@ class ExternalVideoDownloadWorker(context: Context, params: WorkerParameters) : 
         val thumbnail = requestString(THUMBNAIL).orEmpty().ifBlank { null }
         val resolution = requestString(RESOLUTION).orEmpty()
         val formatId = requestString(FORMAT_ID).orEmpty()
-        val tempDirectory = File(applicationContext.cacheDir, "external-video-$id")
+        val tempDirectory = externalVideoTempDirectory(applicationContext, mediaId)
+        explicitlyResumingPausedTransfer = videoPauseMarker(applicationContext, mediaId).isFile
+        videoPauseMarker(applicationContext, mediaId).delete()
         var retainPartialFiles = false
         var removeRequest = false
         var publishedUri: android.net.Uri? = null
@@ -307,9 +311,12 @@ class ExternalVideoDownloadWorker(context: Context, params: WorkerParameters) : 
             )
             publishedUri = null
             removeRequest = true
+            videoPauseMarker(applicationContext, mediaId).delete()
             Result.success(workDataOf("download_uri" to uri.toString(), "file_size" to outputFile.length()))
         } catch (cancelled: CancellationException) {
-            removeRequest = true
+            val paused = videoPauseMarker(applicationContext, mediaId).isFile
+            retainPartialFiles = paused
+            removeRequest = !paused
             throw cancelled
         } catch (error: LinkageError) {
             Result.failure(Data.Builder().putAll(inputData)
@@ -378,7 +385,7 @@ class ExternalVideoDownloadWorker(context: Context, params: WorkerParameters) : 
             },
             onBytesTransferred = { count -> downloadUtil.limitDownloadBytes(count) },
             beforeRead = { downloadUtil.waitForBackgroundDownloadPermission() },
-            allowResume = resumeDownloadsEnabled,
+            allowResume = resumeDownloadsEnabled || explicitlyResumingPausedTransfer,
         )
         reportProgress(force = true)
     }
@@ -705,12 +712,12 @@ class ExternalVideoDownloadWorker(context: Context, params: WorkerParameters) : 
                     output.fd.sync()
                 }
             }
-            values.clear()
-            values.put(MediaStore.MediaColumns.IS_PENDING, 0)
-            if (resolver.update(uri, values, null, null) <= 0) throw IOException("Could not finalize the video in Movies/XAN.")
             if (sha256(resolver.openInputStream(uri) ?: throw IOException("Could not verify the saved video.")) != expectedHash) {
                 throw IOException("The saved video did not pass its read-back integrity check.")
             }
+            values.clear()
+            values.put(MediaStore.MediaColumns.IS_PENDING, 0)
+            if (resolver.update(uri, values, null, null) <= 0) throw IOException("Could not finalize the video in Movies/XAN.")
             return uri
         } catch (error: Exception) {
             resolver.delete(uri, null, null)

@@ -1,10 +1,19 @@
 package app.xan.music.playback
 
+import app.xan.music.constants.AudioQuality
+import app.xan.music.constants.DownloadQuality
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class DownloadPerformancePolicyTest {
+    @Test
+    fun `lossless download falls back to high audio when no FLAC match exists`() {
+        assertEquals(AudioQuality.HIGH, audioQualityForDownload(DownloadQuality.LOSSLESS, AudioQuality.LOW))
+        assertEquals(AudioQuality.LOW, audioQualityForDownload(DownloadQuality.LOW, AudioQuality.HIGH))
+        assertEquals(AudioQuality.LOW, audioQualityForDownload(DownloadQuality.AUTO, AudioQuality.LOW))
+    }
+
     @Test
     fun `adaptive scheduler starts at eight and grows after a healthy transfer window`() {
         val scheduler = AdaptiveDownloadController(maximumConcurrency = 12)

@@ -18,6 +18,15 @@ import org.junit.rules.TemporaryFolder
 class VideoDownloadReliabilityTest {
     @get:Rule val temporary = TemporaryFolder()
 
+    @Test fun `public video filenames restore their stable XAN media identity`() {
+        val mediaId = "${EXTERNAL_VIDEO_MEDIA_ID_PREFIX}0123456789abcdef01234567"
+        val token = java.util.Base64.getUrlEncoder().withoutPadding()
+            .encodeToString(mediaId.toByteArray(Charsets.UTF_8))
+        assertEquals(mediaId, restoredExternalVideoMediaId("XAN - title [xan-id-$token].mp4"))
+        assertNull(restoredExternalVideoMediaId("ordinary-video.mp4"))
+        assertNull(restoredExternalVideoMediaId("XAN - title [xan-id-invalid].mp4"))
+    }
+
     @Test fun `fresh signed URLs keep one download identity but different qualities do not`() {
         val source = ExternalVideoSearchResult(0, "YouTube", "video-id", "https://youtube.com/watch?v=video-id", "title", "artist", 10, null)
         val first = format("1080-mp4", "mp4", 1080)

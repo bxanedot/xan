@@ -134,6 +134,8 @@
     <string name="video_download_combining">Combining video and audio</string>
     <string name="video_download_saving">Validating and saving video</string>
     <string name="video_download_queued">Queued · waiting for network or download slot</string>
+    <string name="video_download_paused">Paused · partial video data is saved</string>
+    <string name="resume_download">Resume</string>
     <string name="saving">Saving</string>
     <string name="saved">Saved</string>
     <string name="remove_download">Remove download</string>

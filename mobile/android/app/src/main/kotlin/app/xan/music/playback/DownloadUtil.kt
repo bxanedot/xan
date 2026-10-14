@@ -285,22 +285,16 @@ constructor(
 
             val resolutionStartedAtMs = SystemClock.elapsedRealtime()
             val playbackData = runBlocking(Dispatchers.IO) {
-                val selectedAudioQuality = when (downloadQuality) {
-                    DownloadQuality.HIGH -> AudioQuality.HIGH
-                    DownloadQuality.LOW -> AudioQuality.LOW
-                    DownloadQuality.LOSSLESS -> AudioQuality.AUTO
-                    DownloadQuality.AUTO -> {
-                        val estimatedBandwidthKbps = connectivityManager.activeNetwork
-                            ?.let(connectivityManager::getNetworkCapabilities)
-                            ?.linkDownstreamBandwidthKbps ?: 0
-                        when {
-                            appContext.dataStore.get(DataSaverEnabledKey, false) -> AudioQuality.LOW
-                            connectivityManager.isActiveNetworkMetered -> AudioQuality.LOW
-                            estimatedBandwidthKbps in 1..2_999 -> AudioQuality.LOW
-                            else -> AudioQuality.HIGH
-                        }
-                    }
+                val estimatedBandwidthKbps = connectivityManager.activeNetwork
+                    ?.let(connectivityManager::getNetworkCapabilities)
+                    ?.linkDownstreamBandwidthKbps ?: 0
+                val automaticAudioQuality = when {
+                    appContext.dataStore.get(DataSaverEnabledKey, false) -> AudioQuality.LOW
+                    connectivityManager.isActiveNetworkMetered -> AudioQuality.LOW
+                    estimatedBandwidthKbps in 1..2_999 -> AudioQuality.LOW
+                    else -> AudioQuality.HIGH
                 }
+                val selectedAudioQuality = audioQualityForDownload(downloadQuality, automaticAudioQuality)
                 YTPlayerUtils.playerResponseForPlayback(
                     mediaId,
                     audioQuality = selectedAudioQuality,
@@ -323,7 +317,10 @@ constructor(
                 }
             }.getOrThrow()
             if (downloadQuality == DownloadQuality.LOSSLESS && !playbackData.isTidalStream) {
-                throw IllegalStateException("A lossless FLAC source was not available for this track. Choose High or Automatic quality.")
+                Timber.tag("DownloadSpeed").w(
+                    "No lossless match for id=%s; continuing with the high-quality audio fallback",
+                    mediaId,
+                )
             }
             if (BuildConfig.DEBUG) {
                 Timber.tag("DownloadSpeed").i(

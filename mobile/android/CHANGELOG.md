@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Downloads and Library
+- Fall back to high-quality audio when a Lossless request has no matching FLAC source, instead of failing the download.
+- Keep video download progress resumable when explicitly paused, and verify audio and video media before publishing it to public storage.
+- Restore XAN downloads from the public Music/XAN and Movies/XAN folders when the user opens Downloaded after reinstalling the app.
+- Add the Artists filter back to Library and route it to the existing Artists screen.
+
 ## 1.1.4
 
 ### Build and dependencies

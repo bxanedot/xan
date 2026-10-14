@@ -215,15 +215,15 @@ class PersistentAudioDownloadWorker(context: Context, params: WorkerParameters) 
                     hash
                 }
             }
+            val savedHash = applicationContext.contentResolver.openInputStream(uri)?.use(::sha256)
+                ?: throw IOException("Could not verify Music/XAN audio media.")
+            if (savedHash != copiedHash) throw IOException("Saved audio failed its read-back integrity check.")
+            verifyPlayableAudio(uri)
             values.clear()
             values.put(MediaStore.MediaColumns.IS_PENDING, 0)
             if (applicationContext.contentResolver.update(uri, values, null, null) <= 0) {
                 throw IOException("Could not finalize Music/XAN audio media.")
             }
-            val savedHash = applicationContext.contentResolver.openInputStream(uri)?.use(::sha256)
-                ?: throw IOException("Could not verify Music/XAN audio media.")
-            if (savedHash != copiedHash) throw IOException("Saved audio failed its read-back integrity check.")
-            verifyPlayableAudio(uri)
             return uri
         } catch (error: Exception) {
             applicationContext.contentResolver.delete(uri, null, null)

@@ -76,6 +76,7 @@ import app.xan.music.constants.SongSortTypeKey
 import app.xan.music.constants.YtmSyncKey
 import app.xan.music.extensions.toMediaItem
 import app.xan.music.playback.queues.ListQueue
+import app.xan.music.playback.reconcileDownloadedAudioFiles
 import app.xan.music.ui.component.ListScrollRail
 import app.xan.music.ui.component.LargeScreenTitle
 import app.xan.music.ui.component.buildAlphabetSectionIndex
@@ -128,9 +129,6 @@ fun LibrarySongsScreen(
     val (localOnly) = rememberPreference(LocalOnlyModeKey, false)
     // Mirrors what the view model actually queries while local-only mode is on.
     val filter = if (localOnly) SongFilter.LOCAL else storedFilter
-    LaunchedEffect(filter) {
-        if (filter == SongFilter.DOWNLOADED) reconcileDownloadedVideoFiles(context, database)
-    }
     // Pull-to-refresh only: no hero artwork on this screen, so heroZoom.scale
     // goes unread and the modifier contributes just the rubber-band stretch.
     val heroZoom = rememberHeroZoom()
@@ -142,6 +140,48 @@ fun LibrarySongsScreen(
         contract = ActivityResultContracts.RequestPermission()
     ) { granted ->
         hasStoragePermission = granted
+    }
+
+    var hasAudioStoragePermission by remember { mutableStateOf(false) }
+    var hasVideoStoragePermission by remember { mutableStateOf(false) }
+    val videoPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { result ->
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            hasAudioStoragePermission = result[Manifest.permission.READ_MEDIA_AUDIO] == true
+            hasVideoStoragePermission = result[Manifest.permission.READ_MEDIA_VIDEO] == true
+        } else {
+            val granted = result[Manifest.permission.READ_EXTERNAL_STORAGE] == true
+            hasAudioStoragePermission = granted
+            hasVideoStoragePermission = granted
+        }
+    }
+
+    LaunchedEffect(filter) {
+        if (filter == SongFilter.DOWNLOADED) {
+            val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                listOf(Manifest.permission.READ_MEDIA_AUDIO, Manifest.permission.READ_MEDIA_VIDEO)
+            } else {
+                listOf(Manifest.permission.READ_EXTERNAL_STORAGE)
+            }
+            hasAudioStoragePermission = context.checkSelfPermission(permissions.first()) ==
+                android.content.pm.PackageManager.PERMISSION_GRANTED
+            hasVideoStoragePermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                context.checkSelfPermission(Manifest.permission.READ_MEDIA_VIDEO) ==
+                    android.content.pm.PackageManager.PERMISSION_GRANTED
+            } else hasAudioStoragePermission
+            val missingPermissions = permissions.filter {
+                context.checkSelfPermission(it) != android.content.pm.PackageManager.PERMISSION_GRANTED
+            }.toTypedArray()
+            if (missingPermissions.isNotEmpty()) videoPermissionLauncher.launch(missingPermissions)
+        }
+    }
+
+    LaunchedEffect(filter, hasAudioStoragePermission, hasVideoStoragePermission) {
+        if (filter == SongFilter.DOWNLOADED && hasAudioStoragePermission && hasVideoStoragePermission) {
+            reconcileDownloadedAudioFiles(context, database)
+            reconcileDownloadedVideoFiles(context, database)
+        }
     }
 
     LaunchedEffect(Unit) {

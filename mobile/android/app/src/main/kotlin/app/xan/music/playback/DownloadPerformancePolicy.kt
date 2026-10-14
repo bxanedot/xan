@@ -4,6 +4,8 @@ import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
 import android.net.Uri
+import app.xan.music.constants.AudioQuality
+import app.xan.music.constants.DownloadQuality
 import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DataSpec
 import androidx.media3.datasource.TransferListener
@@ -116,6 +118,16 @@ internal fun canReserveVideoTransferSlots(
 ): Boolean = requestedVideoSlots > 0 &&
     activeAudioTransfers.coerceAtLeast(0) + activeVideoSlots.coerceAtLeast(0) + requestedVideoSlots <=
     transferLimit.coerceAtLeast(1)
+
+/** Lossless downloads try FLAC first, then use high quality if no match exists. */
+internal fun audioQualityForDownload(
+    requested: DownloadQuality,
+    automaticSelection: AudioQuality,
+): AudioQuality = when (requested) {
+    DownloadQuality.AUTO -> automaticSelection
+    DownloadQuality.HIGH, DownloadQuality.LOSSLESS -> AudioQuality.HIGH
+    DownloadQuality.LOW -> AudioQuality.LOW
+}
 
 /** Decorates either audio or video upstreams while keeping the limiter aggregate across requests. */
 internal class RateLimitedDataSource(

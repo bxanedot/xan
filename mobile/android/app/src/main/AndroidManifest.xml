@@ -14,6 +14,7 @@
 
     <!-- Local audio file access -->
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
     <!-- Ringtone save on API 26-28 only: writes to the public Ringtones dir
          via java.io.File, which needs this below scoped storage (API 29+).
