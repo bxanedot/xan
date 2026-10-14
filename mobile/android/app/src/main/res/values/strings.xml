@@ -676,7 +676,15 @@
     <string name="background_downloads">Background downloads</string>
     <string name="background_downloads_desc">Continue downloads while XAN is in the background.</string>
     <string name="keep_downloads_after_uninstall">Keep downloads after uninstall</string>
-    <string name="keep_downloads_after_uninstall_desc">Save completed audio and video in Music/XAN and Movies/XAN. Existing shared files are preserved when this setting changes.</string>
+    <string name="keep_downloads_after_uninstall_desc">Keep downloads in Music/XAN and Movies/XAN so they survive uninstall. Changing this setting moves verified XAN downloads between shared and app-only storage.</string>
+    <string name="download_storage_migration_running">Copying and verifying your downloads…</string>
+    <string name="download_storage_migration_confirm_title">Move downloads to app-only storage?</string>
+    <string name="download_storage_migration_confirm_desc">XAN will copy each matched download, verify its contents, update your library, then delete the shared original. App-only downloads are removed when XAN is uninstalled. Files that cannot be matched or verified will be left untouched.</string>
+    <string name="download_storage_migration_move">Move downloads</string>
+    <string name="download_storage_migration_result_title">Download storage updated</string>
+    <string name="download_storage_migration_complete">Moved and verified %1$d downloads.</string>
+    <string name="download_storage_migration_incomplete">Moved %1$d downloads. %2$d source files were left untouched because XAN could not match or remove them.</string>
+    <string name="download_storage_migration_failed">The storage change was not applied: %1$s</string>
     <string name="retry_failed_downloads">Retry failed audio downloads</string>
     <string name="retry_failed_downloads_desc">%1$d failed items. Retry keeps each original request and its saved progress.</string>
 </resources>

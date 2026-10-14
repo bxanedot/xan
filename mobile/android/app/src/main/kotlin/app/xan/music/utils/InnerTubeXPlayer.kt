@@ -124,7 +124,7 @@ object InnerTubeXPlayer {
         playlistId: String? = null,
         audioQuality: AudioQuality,
         connectivityManager: ConnectivityManager,
-        contentHints: ContentHints = ContentHints(),
+        contentHints: ContentHints = ContentHints(wantVideo = false),
         allowBoundedRange: Boolean = true,
     ): Result<PlaybackData> =
         try {

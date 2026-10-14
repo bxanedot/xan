@@ -12,11 +12,13 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
@@ -71,9 +73,11 @@ import app.xan.music.ui.component.Material3SettingsItem
 import app.xan.music.ui.utils.backToMain
 import app.xan.music.ui.utils.formatFileSize
 import app.xan.music.playback.AudioDownloadRecoveryWorker
+import app.xan.music.playback.DownloadStorageMigration
 import androidx.media3.exoplayer.offline.Download
 import app.xan.music.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
@@ -123,12 +127,52 @@ fun StorageSettings(
     var clearDownloads by remember { mutableStateOf(false) }
     var clearCacheDialog by remember { mutableStateOf(false) }
     var clearImageCacheDialog by remember { mutableStateOf(false) }
+    var storageMigrationConfirmation by remember { mutableStateOf(false) }
+    var storageMigrationRunning by remember { mutableStateOf(false) }
+    var storageMigrationMessage by remember { mutableStateOf<String?>(null) }
 
     // State for the confirmation dialog
     var showCacheWarningDialog by remember { mutableStateOf(false) }
     var cacheType by remember { mutableStateOf("") }
     var cacheUsage by remember { androidx.compose.runtime.mutableLongStateOf(0L) }
     var onConfirmAction by remember { mutableStateOf<() -> Unit>({}) }
+
+    fun startStorageMigration(targetPreserve: Boolean, sharedDeleteConfirmed: Boolean = false) {
+        if (storageMigrationRunning) return
+        coroutineScope.launch {
+            storageMigrationRunning = true
+            try {
+                val result = DownloadStorageMigration.migrate(
+                    context = context,
+                    database = database,
+                    keepAfterUninstall = targetPreserve,
+                    deleteSharedOriginalsConfirmed = sharedDeleteConfirmed,
+                )
+                onPreserveAfterUninstallChange(targetPreserve)
+                if (result.leftInSource > 0) {
+                    storageMigrationMessage = context.getString(
+                        R.string.download_storage_migration_incomplete,
+                        result.moved,
+                        result.leftInSource,
+                    )
+                } else if (result.moved > 0) {
+                    storageMigrationMessage = context.getString(
+                        R.string.download_storage_migration_complete,
+                        result.moved,
+                    )
+                }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                storageMigrationMessage = context.getString(
+                    R.string.download_storage_migration_failed,
+                    error.localizedMessage ?: error.javaClass.simpleName,
+                )
+            } finally {
+                storageMigrationRunning = false
+            }
+        }
+    }
 
 
     var imageCacheSize by remember {
@@ -269,6 +313,37 @@ fun StorageSettings(
         )
     }
 
+    if (storageMigrationConfirmation) {
+        AlertDialog(
+            onDismissRequest = { storageMigrationConfirmation = false },
+            title = { Text(stringResource(R.string.download_storage_migration_confirm_title)) },
+            text = { Text(stringResource(R.string.download_storage_migration_confirm_desc)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    storageMigrationConfirmation = false
+                    startStorageMigration(targetPreserve = false, sharedDeleteConfirmed = true)
+                }) { Text(stringResource(R.string.download_storage_migration_move)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { storageMigrationConfirmation = false }) {
+                    Text(stringResource(android.R.string.cancel))
+                }
+            },
+        )
+    }
+    storageMigrationMessage?.let { message ->
+        AlertDialog(
+            onDismissRequest = { storageMigrationMessage = null },
+            title = { Text(stringResource(R.string.download_storage_migration_result_title)) },
+            text = { Text(message) },
+            confirmButton = {
+                TextButton(onClick = { storageMigrationMessage = null }) {
+                    Text(stringResource(android.R.string.ok))
+                }
+            },
+        )
+    }
+
     // Confirmation Dialog
     if (showCacheWarningDialog) {
         AlertDialog(
@@ -352,12 +427,12 @@ fun StorageSettings(
                     title = { Text(stringResource(R.string.maximum_parallel_downloads)) },
                     description = {
                         Column {
-                            Text("$maxParallelDownloads")
+                            Text("${maxParallelDownloads.coerceIn(2, 16)}")
                             Slider(
-                                value = maxParallelDownloads.coerceIn(2, 32).toFloat(),
-                                onValueChange = { onMaxParallelDownloadsChange(it.roundToInt().coerceIn(2, 32)) },
-                                valueRange = 2f..32f,
-                                steps = 29,
+                                value = maxParallelDownloads.coerceIn(2, 16).toFloat(),
+                                onValueChange = { onMaxParallelDownloadsChange(it.roundToInt().coerceIn(2, 16)) },
+                                valueRange = 2f..16f,
+                                steps = 13,
                             )
                         }
                     },
@@ -401,9 +476,31 @@ fun StorageSettings(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.xan_icon_storage),
                     title = { Text(stringResource(R.string.keep_downloads_after_uninstall)) },
-                    description = { Text(stringResource(R.string.keep_downloads_after_uninstall_desc)) },
-                    trailingContent = { Switch(checked = preserveAfterUninstall, onCheckedChange = onPreserveAfterUninstallChange) },
-                    onClick = { onPreserveAfterUninstallChange(!preserveAfterUninstall) },
+                    description = {
+                        Text(
+                            stringResource(
+                                if (storageMigrationRunning) R.string.download_storage_migration_running
+                                else R.string.keep_downloads_after_uninstall_desc,
+                            ),
+                        )
+                    },
+                    enabled = !storageMigrationRunning,
+                    trailingContent = {
+                        if (storageMigrationRunning) CircularProgressIndicator(Modifier.size(20.dp))
+                        else Switch(
+                            checked = preserveAfterUninstall,
+                            onCheckedChange = { target ->
+                                if (target) startStorageMigration(targetPreserve = true)
+                                else storageMigrationConfirmation = true
+                            },
+                        )
+                    },
+                    onClick = {
+                        if (!storageMigrationRunning) {
+                            if (preserveAfterUninstall) storageMigrationConfirmation = true
+                            else startStorageMigration(targetPreserve = true)
+                        }
+                    },
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.cached),

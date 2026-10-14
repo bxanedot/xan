@@ -452,7 +452,7 @@
     <string name="likes">Likes</string>
     <string name="dislikes">Dislikes</string>
     <string name="subscribe">Follow</string>
-    <string name="subscribed">Following</string>
+    <string name="subscribed">Followed</string>
     <string name="artist_follow_updating">Updating…</string>
     <string name="artist_follow_sign_in_required">Sign in to YouTube in Settings to follow artists.</string>
     <string name="artist_follow_failed">Saved in XAN, but YouTube sync failed. Try again later.</string>
@@ -463,7 +463,7 @@
     <string name="artist_onboarding_results">Search results</string>
     <string name="artist_onboarding_skip">Skip</string>
     <string name="artist_onboarding_follow">Follow</string>
-    <string name="artist_onboarding_following">Following</string>
+    <string name="artist_onboarding_following">Followed</string>
     <string name="artist_download">Download</string>
     <string name="artist_onboarding_loading">Finding artists…</string>
     <string name="artist_onboarding_no_results">No artists found</string>

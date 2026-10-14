@@ -710,7 +710,7 @@ fun ArtistScreen(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(top = 16.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
                                     verticalAlignment = Alignment.Top,
                                 ) {
                                     Column(
@@ -738,14 +738,14 @@ fun ArtistScreen(
                                             Row(
                                                 modifier = Modifier
                                                     .fillMaxSize()
-                                                    .padding(horizontal = 8.dp),
+                                                    .padding(horizontal = 4.dp),
                                                 horizontalArrangement = Arrangement.Center,
                                                 verticalAlignment = Alignment.CenterVertically,
                                             ) {
                                                 when {
                                                     isArtistDownloading ->
                                                         CircularProgressIndicator(
-                                                            modifier = Modifier.size(18.dp),
+                                                            modifier = Modifier.size(16.dp),
                                                             strokeWidth = 2.dp,
                                                         )
 
@@ -753,17 +753,17 @@ fun ArtistScreen(
                                                         Icon(
                                                             painter = painterResource(R.drawable.offline),
                                                             contentDescription = null,
-                                                            modifier = Modifier.size(18.dp),
+                                                            modifier = Modifier.size(16.dp),
                                                         )
 
                                                     else ->
                                                         Icon(
                                                             painter = painterResource(R.drawable.xan_icon_download),
                                                             contentDescription = null,
-                                                            modifier = Modifier.size(18.dp),
+                                                            modifier = Modifier.size(16.dp),
                                                         )
                                                 }
-                                                Spacer(Modifier.width(6.dp))
+                                                Spacer(Modifier.width(4.dp))
                                                 Text(
                                                     text = stringResource(
                                                         when {
@@ -772,9 +772,9 @@ fun ArtistScreen(
                                                             else -> R.string.artist_download
                                                         }
                                                     ),
-                                                    style = MaterialTheme.typography.labelLarge,
+                                                    style = MaterialTheme.typography.labelMedium,
                                                     maxLines = 1,
-                                                    overflow = TextOverflow.Ellipsis,
+                                                    softWrap = false,
                                                 )
                                             }
                                         }
@@ -824,8 +824,9 @@ fun ArtistScreen(
                                     }
                                     // Primary Play Button (Center - Large)
                                     val artistId = artistPage?.artist?.id
+                                    val playButtonSize = 56.dp
                                     Box(
-                                        modifier = Modifier.size(72.dp),
+                                        modifier = Modifier.size(playButtonSize),
                                         contentAlignment = Alignment.Center,
                                     ) {
                                         Surface(
@@ -859,15 +860,15 @@ fun ArtistScreen(
                                             shape = CircleShape,
                                             color = if (useGlass) Color.Transparent else onTint,
                                             modifier = Modifier
-                                                .size(72.dp)
+                                                .size(playButtonSize)
                                                 .then(if (useGlass) chromeBackgroundModifier else Modifier),
                                         ) {
                                             AnimatedPlayPauseIcon(
                                                 isPlaying = isPlaying && artistId != null &&
                                                     mediaMetadata?.artists?.any { it.id == artistId } == true,
                                                 tint = tint,
-                                                size = 32.dp,
-                                                modifier = Modifier.offset(x = 2.dp)
+                                                size = 26.dp,
+                                                modifier = Modifier.offset(x = 1.dp)
                                             )
                                         }
                                     }
@@ -885,7 +886,7 @@ fun ArtistScreen(
                                     Box(
                                         modifier = Modifier
                                             .weight(1f)
-                                            .height(72.dp),
+                                            .height(56.dp),
                                         contentAlignment = Alignment.Center,
                                     ) {
                                         ToggleButton(
@@ -909,6 +910,7 @@ fun ArtistScreen(
                                             },
                                             enabled = !followRequestLoading && followArtist != null,
                                             shapes = ButtonGroupDefaults.connectedTrailingButtonShapes(),
+                                            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 8.dp),
                                             colors = if (useGlass) {
                                                 ToggleButtonDefaults.colors(
                                                     containerColor = Color.Transparent,
@@ -939,7 +941,7 @@ fun ArtistScreen(
                                                     modifier = Modifier.size(18.dp),
                                                 )
                                             }
-                                            Spacer(Modifier.width(8.dp))
+                                            Spacer(Modifier.width(4.dp))
                                             Text(
                                                 stringResource(
                                                     when {
@@ -947,7 +949,10 @@ fun ArtistScreen(
                                                         isSubscribed -> R.string.artist_onboarding_following
                                                         else -> R.string.artist_onboarding_follow
                                                     }
-                                                )
+                                                ),
+                                                style = MaterialTheme.typography.labelMedium,
+                                                maxLines = 1,
+                                                softWrap = false,
                                             )
                                         }
                                     }

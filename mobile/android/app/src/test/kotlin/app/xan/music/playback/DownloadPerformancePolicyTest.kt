@@ -126,4 +126,11 @@ class DownloadPerformancePolicyTest {
 
         assertEquals(listOf(1_000_000_000L), waits)
     }
+
+    @Test
+    fun `video streams reserve capacity shared with active audio transfers`() {
+        assertTrue(canReserveVideoTransferSlots(6, 0, 2, 8))
+        assertTrue(!canReserveVideoTransferSlots(7, 0, 2, 8))
+        assertTrue(!canReserveVideoTransferSlots(4, 2, 3, 8))
+    }
 }

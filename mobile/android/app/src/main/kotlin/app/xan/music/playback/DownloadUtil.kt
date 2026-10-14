@@ -15,6 +15,8 @@ import android.net.ConnectivityManager
 import android.app.ActivityManager
 import android.os.StatFs
 import android.os.SystemClock
+import android.os.Handler
+import android.os.Looper
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
 import androidx.media3.database.DatabaseProvider
@@ -91,12 +93,53 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.suspendCancellableCoroutine
 import okhttp3.OkHttpClient
 import java.time.LocalDateTime
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executor
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.atomic.AtomicReference
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 import javax.inject.Inject
 import javax.inject.Singleton
+
+private fun runOnLooper(looper: Looper, action: () -> Unit) {
+    if (Looper.myLooper() === looper) {
+        action()
+    } else if (!Handler(looper).post(action)) {
+        throw IllegalStateException("The download manager thread is no longer accepting work.")
+    }
+}
+
+private fun runOnLooperSynchronously(looper: Looper, action: () -> Unit) {
+    if (Looper.myLooper() === looper) {
+        action()
+        return
+    }
+    val completed = CountDownLatch(1)
+    val failure = AtomicReference<Throwable?>()
+    if (!Handler(looper).post {
+            try {
+                action()
+            } catch (error: Throwable) {
+                failure.set(error)
+            } finally {
+                completed.countDown()
+            }
+        }
+    ) {
+        throw IllegalStateException("The download manager thread is no longer accepting work.")
+    }
+    try {
+        completed.await()
+    } catch (interrupted: InterruptedException) {
+        Thread.currentThread().interrupt()
+        throw interrupted
+    }
+    failure.get()?.let { throw it }
+}
 
 @UnstableApi
 @Singleton
@@ -123,7 +166,7 @@ constructor(
     private val appForeground = MutableStateFlow(true)
     private val externalVideoSlotChanged = MutableStateFlow(0L)
     private val externalVideoSlotLock = Any()
-    private var activeExternalVideoJobs = 0
+    private var activeExternalVideoSlots = 0
     @Volatile private var backgroundDownloadsEnabled = true
     private var adaptiveWindowStartedAtMs = SystemClock.elapsedRealtime()
     private var adaptiveWindowBytes = 0L
@@ -581,21 +624,22 @@ constructor(
             resolvingDataSourceFactory,
             Executor(Runnable::run)
         ).apply {
-            maxParallelDownloads = adaptiveController.currentConcurrency
-            minRetryCount = 3
-            // Built to post a notification on a failed download but never actually
-            // registered anywhere — a failure produced no system notification, no
-            // in-app error state (see the STATE_FAILED handling below/in the menus),
-            // nothing. It just silently looked like the download had never happened.
-            addListener(
-                ExoDownloadService.TerminalStateNotificationHelper(
-                    context,
-                    downloadNotificationHelper,
-                    ExoDownloadService.NOTIFICATION_ID + 1,
+            runOnLooperSynchronously(applicationLooper) {
+                maxParallelDownloads = adaptiveController.currentConcurrency
+                minRetryCount = 3
+                // Built to post a notification on a failed download but never actually
+                // registered anywhere — a failure produced no system notification, no
+                // in-app error state (see the STATE_FAILED handling below/in the menus),
+                // nothing. It just silently looked like the download had never happened.
+                addListener(
+                    ExoDownloadService.TerminalStateNotificationHelper(
+                        context,
+                        downloadNotificationHelper,
+                        ExoDownloadService.NOTIFICATION_ID + 1,
+                    )
                 )
-            )
-            addListener(
-                object : DownloadManager.Listener {
+                addListener(
+                    object : DownloadManager.Listener {
                     override fun onDownloadChanged(
                         downloadManager: DownloadManager,
                         download: Download,
@@ -683,6 +727,7 @@ constructor(
                                 set(download.request.id, download)
                             }
                         }
+                        externalVideoSlotChanged.value++
 
                         // finalException was being dropped on the floor, so a download
                         // that failed left no trace of WHY anywhere — which is exactly
@@ -738,8 +783,9 @@ constructor(
                             }
                         }
                     }
-                }
-            )
+                    }
+                )
+            }
         }
 
     init {
@@ -750,8 +796,10 @@ constructor(
                 val maximum = settings[MaxParallelDownloadsKey] ?: AdaptiveDownloadController.DEFAULT_MAX_CONCURRENCY
                 adaptiveController.setMaximumConcurrency(maximum)
                 adaptiveController.setAdaptiveEnabled(settings[AdaptiveParallelDownloadsKey] ?: true)
-                downloadManager.minRetryCount = if (settings[AutomaticDownloadRetryKey] ?: true) 3 else 0
-                downloadManager.maxParallelDownloads = adaptiveController.currentConcurrency
+                runOnDownloadManagerThread {
+                    downloadManager.minRetryCount = if (settings[AutomaticDownloadRetryKey] ?: true) 3 else 0
+                    applyAudioParallelLimitOnManagerThread()
+                }
                 backgroundDownloadsEnabled = settings[BackgroundDownloadsEnabledKey] ?: true
                 applyBackgroundDownloadPolicy()
             }
@@ -803,32 +851,83 @@ constructor(
     }
 
     /** Keep video jobs inside the same adaptive transfer budget as audio downloads. */
-    internal suspend fun acquireExternalVideoSlot() {
-        while (!reserveExternalVideoSlot()) {
-            externalVideoSlotChanged.first { reserveExternalVideoSlot() }
+    internal suspend fun acquireExternalVideoSlot(): Int = acquireExternalVideoSlot(1)
+
+    internal suspend fun acquireExternalVideoSlot(requestedSlots: Int): Int {
+        require(requestedSlots > 0) { "At least one video transfer slot must be requested." }
+        while (true) {
+            val observedChange = externalVideoSlotChanged.value
+            val maxVideoSlots = (adaptiveController.currentConcurrency - 1).coerceAtLeast(1)
+            val reservedSlots = requestedSlots.coerceAtMost(maxVideoSlots)
+            if (reserveExternalVideoSlot(reservedSlots)) {
+                applyAudioParallelLimitAndWait()
+                return reservedSlots
+            }
+            externalVideoSlotChanged.first { it != observedChange }
         }
     }
 
     internal fun releaseExternalVideoSlot() {
-        synchronized(externalVideoSlotLock) {
-            activeExternalVideoJobs = (activeExternalVideoJobs - 1).coerceAtLeast(0)
-            externalVideoSlotChanged.value++
-        }
+        releaseExternalVideoSlot(1)
     }
 
-    private fun reserveExternalVideoSlot(): Boolean = synchronized(externalVideoSlotLock) {
-        val maximumJobs = (adaptiveController.currentConcurrency / 2).coerceAtLeast(1)
-        if (activeExternalVideoJobs >= maximumJobs) return@synchronized false
-        activeExternalVideoJobs++
+    internal fun releaseExternalVideoSlot(releasedSlots: Int) {
+        synchronized(externalVideoSlotLock) {
+            activeExternalVideoSlots = (activeExternalVideoSlots - releasedSlots.coerceAtLeast(0)).coerceAtLeast(0)
+            externalVideoSlotChanged.value++
+        }
+        applyAudioParallelLimit()
+    }
+
+    private fun reserveExternalVideoSlot(requestedSlots: Int): Boolean = synchronized(externalVideoSlotLock) {
+        val activeAudioTransfers = downloads.value.values.count { it.state == Download.STATE_DOWNLOADING }
+        if (!canReserveVideoTransferSlots(
+                activeAudioTransfers = activeAudioTransfers,
+                activeVideoSlots = activeExternalVideoSlots,
+                requestedVideoSlots = requestedSlots,
+                transferLimit = adaptiveController.currentConcurrency,
+            )
+        ) return@synchronized false
+        activeExternalVideoSlots += requestedSlots
         true
     }
 
-    private fun applyBackgroundDownloadPolicy() {
-        if (!backgroundDownloadsEnabled && !appForeground.value) {
-            downloadManager.pauseDownloads()
-        } else {
-            downloadManager.resumeDownloads()
+    private fun applyAudioParallelLimit() {
+        runOnDownloadManagerThread { applyAudioParallelLimitOnManagerThread() }
+    }
+
+    private suspend fun applyAudioParallelLimitAndWait() {
+        suspendCancellableCoroutine { continuation ->
+            runOnDownloadManagerThread {
+                if (!continuation.isActive) return@runOnDownloadManagerThread
+                try {
+                    applyAudioParallelLimitOnManagerThread()
+                    continuation.resume(Unit)
+                } catch (error: Throwable) {
+                    continuation.resumeWithException(error)
+                }
+            }
         }
+    }
+
+    private fun applyAudioParallelLimitOnManagerThread() {
+        val reservedVideoSlots = synchronized(externalVideoSlotLock) { activeExternalVideoSlots }
+        val audioLimit = (adaptiveController.currentConcurrency - reservedVideoSlots).coerceAtLeast(1)
+        if (downloadManager.maxParallelDownloads != audioLimit) downloadManager.maxParallelDownloads = audioLimit
+    }
+
+    private fun applyBackgroundDownloadPolicy() {
+        runOnDownloadManagerThread {
+            if (!backgroundDownloadsEnabled && !appForeground.value) {
+                downloadManager.pauseDownloads()
+            } else {
+                downloadManager.resumeDownloads()
+            }
+        }
+    }
+
+    private fun runOnDownloadManagerThread(action: () -> Unit) {
+        runOnLooper(downloadManager.applicationLooper, action)
     }
 
     private fun updateAggregateDownloadSpeed() {
@@ -859,7 +958,7 @@ constructor(
                 freeDiskBytes = freeDisk,
             ),
         )
-        if (downloadManager.maxParallelDownloads != next) downloadManager.maxParallelDownloads = next
+        applyAudioParallelLimit()
         externalVideoSlotChanged.value++
         adaptiveWindowStartedAtMs = nowMs
         adaptiveWindowBytes = 0L

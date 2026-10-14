@@ -158,6 +158,7 @@ import java.net.InetAddress
 import java.net.Inet4Address
 import java.net.Inet6Address
 import java.io.ByteArrayOutputStream
+import java.io.IOException
 import app.xan.music.db.MusicDatabase
 import app.xan.music.db.entities.Event
 import app.xan.music.db.entities.FormatEntity
@@ -208,7 +209,11 @@ import app.xan.music.utils.SyncUtils
 import app.xan.music.utils.YTPlayerUtils
 import app.xan.music.video.EXTERNAL_VIDEO_MEDIA_ID_PREFIX
 import app.xan.music.video.EXTERNAL_VIDEO_USER_AGENT
+import app.xan.music.video.DIRECT_FILE_SERVICE_ID
 import app.xan.music.video.autoPlaybackFormat
+import app.xan.music.video.buildExternalVideoQueue
+import app.xan.music.video.directVideoInfo
+import app.xan.music.video.externalVideoResult
 import app.xan.music.utils.InnerTubeXPlayer
 import app.xan.music.utils.BotDetectionMitigator
 import app.xan.music.utils.dataStore
@@ -2727,12 +2732,17 @@ class MusicService :
         if (isExpiredUrlError(error) || isRangeNotSatisfiableError(error) || isPageReloadError(error)) {
             return false
         }
+        val causeChain = generateSequence(error as Throwable?) { it.cause }.take(12)
         return error.errorCode == PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED ||
                 error.errorCode == PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT ||
                 error.errorCode == PlaybackException.ERROR_CODE_IO_INVALID_HTTP_CONTENT_TYPE ||
-                error.cause is java.net.ConnectException ||
-                error.cause is java.net.UnknownHostException ||
-                (error.cause as? PlaybackException)?.errorCode == PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED
+                causeChain.any {
+                    it is java.net.ConnectException ||
+                        it is java.net.UnknownHostException ||
+                        it is java.net.SocketTimeoutException ||
+                        (it as? PlaybackException)?.errorCode == PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED ||
+                        (it as? PlaybackException)?.errorCode == PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT
+                }
     }
 
     /**
@@ -2789,6 +2799,16 @@ class MusicService :
         if (BotDetectionMitigator.isBotDetectionError(error)) {
             Timber.tag(TAG).w("YouTube requested account verification; stopping automatic playback retries")
             player.pause()
+            return
+        }
+
+        // The resolver already tried its alternate YouTube clients. A definitive
+        // "Video unavailable" response is a content/playability result, not a
+        // transient data-source failure; retrying the same resolver only repeats
+        // the same request and can make Wi-Fi playback appear stuck.
+        if (PlaybackFailureClassifier.isContentUnavailable(error)) {
+            Timber.tag(TAG).w("YouTube reports this item is unavailable; skipping transport retries for $mediaId")
+            handleFinalFailure()
             return
         }
 
@@ -2888,12 +2908,15 @@ class MusicService :
             }
         }
 
-        // Clear decryption caches
-        try {
-            YTPlayerUtils.forceRefreshForVideo(mediaId)
-            Timber.tag(TAG).d("Cleared decryption caches for $mediaId")
-        } catch (e: Exception) {
-            Timber.tag(TAG).e(e, "Failed to clear decryption caches for $mediaId")
+        // YouTube decryption state belongs only to regular music items. External
+        // video URLs are refreshed through their originating video extractor.
+        if (!mediaId.startsWith(EXTERNAL_VIDEO_MEDIA_ID_PREFIX)) {
+            try {
+                YTPlayerUtils.forceRefreshForVideo(mediaId)
+                Timber.tag(TAG).d("Cleared decryption caches for $mediaId")
+            } catch (e: Exception) {
+                Timber.tag(TAG).e(e, "Failed to clear decryption caches for $mediaId")
+            }
         }
     }
 
@@ -3127,6 +3150,11 @@ class MusicService :
             return
         }
 
+        if (mediaId.startsWith(EXTERNAL_VIDEO_MEDIA_ID_PREFIX)) {
+            refreshExternalVideoStream(mediaId, "expired stream URL")
+            return
+        }
+
         incrementRetryCount(mediaId)
         val recoveryIndex = player.currentMediaItemIndex
 
@@ -3172,6 +3200,11 @@ class MusicService :
             return
         }
 
+        if (mediaId.startsWith(EXTERNAL_VIDEO_MEDIA_ID_PREFIX)) {
+            refreshExternalVideoStream(mediaId, "generic IO error")
+            return
+        }
+
         incrementRetryCount(mediaId)
         val recoveryIndex = player.currentMediaItemIndex
 
@@ -3187,6 +3220,70 @@ class MusicService :
             player.prepare()
 
             Timber.tag(TAG).d("Retrying playback for $mediaId after generic IO error")
+        }
+    }
+
+    /**
+     * External video items use NewPipe or a direct video URL. Their signed
+     * stream URLs must be refreshed from that source; sending an external ID
+     * through the YouTube Music player resolver cannot recover the video.
+     */
+    private fun refreshExternalVideoStream(mediaId: String, reason: String) {
+        val metadata = player.currentMetadata
+        val result = metadata?.takeIf { it.isExternalVideo }?.let(::externalVideoResult)
+        if (metadata == null || result == null) {
+            Timber.tag(TAG).w("Cannot refresh external video after $reason for $mediaId: source metadata missing")
+            handleFinalFailure()
+            return
+        }
+
+        incrementRetryCount(mediaId)
+        val recoveryIndex = player.currentMediaItemIndex
+        retryJob?.cancel()
+        retryJob = scope.launch {
+            try {
+                val replacement = withContext(Dispatchers.IO) {
+                    val info = if (result.serviceId == DIRECT_FILE_SERVICE_ID) {
+                        directVideoInfo(result)
+                    } else {
+                        com.music.innertube.NewPipeExtractor.getVideoInfo(result).getOrThrow()
+                    }
+                    val format = info.formats.firstOrNull {
+                        it.id == metadata.externalVideoFormatId
+                    } ?: info.formats.firstOrNull {
+                        it.resolution == metadata.externalVideoResolution
+                    } ?: info.autoPlaybackFormat()
+                    format?.let {
+                        buildExternalVideoQueue(result, info, it).getInitialStatus().items.firstOrNull()
+                    }
+                }
+
+                if (!isRecoveryTargetCurrent(mediaId, recoveryIndex)) return@launch
+                if (replacement == null) {
+                    Timber.tag(TAG).w("No refreshed external video stream found after $reason for $mediaId")
+                    markSongAsFailed(mediaId)
+                    handleFinalFailure()
+                    return@launch
+                }
+
+                val position = player.currentPosition
+                player.replaceMediaItem(recoveryIndex, replacement)
+                player.seekTo(recoveryIndex, position)
+                player.prepare()
+                player.play()
+                Timber.tag(TAG).i("Refreshed external video stream for $mediaId after $reason")
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                Timber.tag(TAG).w(error, "Failed to refresh external video stream for $mediaId after $reason")
+                if (!isRecoveryTargetCurrent(mediaId, recoveryIndex)) return@launch
+                if (!isNetworkConnected.value) {
+                    waitOnNetworkError()
+                } else {
+                    markSongAsFailed(mediaId)
+                    handleFinalFailure()
+                }
+            }
         }
     }
 
@@ -3518,7 +3615,18 @@ class MusicService :
                 Timber.tag("MusicService").i("BYPASSING CACHE for $mediaId due to quality change")
             }
 
-            Timber.tag("MusicService").i("FETCHING STREAM: $mediaId | quality=$audioQuality")
+            val activeNetwork = connectivityManager.activeNetwork
+            val networkCapabilities = activeNetwork?.let(connectivityManager::getNetworkCapabilities)
+            Timber.tag("MusicService").i(
+                "FETCHING STREAM: id=%s quality=%s ip=%s wifi=%s metered=%s validated=%s proxy=%s",
+                mediaId,
+                audioQuality,
+                ipVersion,
+                networkCapabilities?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true,
+                connectivityManager.isActiveNetworkMetered,
+                networkCapabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED) == true,
+                YouTube.proxy != null,
+            )
             val fetchStart = SystemClock.elapsedRealtime()
             val playbackData = try {
                 runBlocking(Dispatchers.IO) {
@@ -3531,28 +3639,27 @@ class MusicService :
                     )
                 }.getOrElse { throwable ->
                     when (throwable) {
-                        is PlaybackException -> throw throwable
+                        // ResolvingDataSource's resolver contract is IOException.
+                        // Throwing Media3 PlaybackException here is treated as an
+                        // unexpected loader exception and surfaced as IO_UNSPECIFIED
+                        // (2000), hiding the actual YouTube availability/network cause.
+                        is CancellationException -> throw throwable
+                        is PlaybackException -> throw IOException(
+                            throwable.message ?: getString(R.string.error_unknown),
+                            throwable,
+                        )
 
                         is java.net.ConnectException, is java.net.UnknownHostException -> {
-                            throw PlaybackException(
-                                getString(R.string.error_no_internet),
-                                throwable,
-                                PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED
-                            )
+                            throw IOException(getString(R.string.error_no_internet), throwable)
                         }
 
                         is java.net.SocketTimeoutException -> {
-                            throw PlaybackException(
-                                getString(R.string.error_timeout),
-                                throwable,
-                                PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT
-                            )
+                            throw IOException(getString(R.string.error_timeout), throwable)
                         }
 
-                        else -> throw PlaybackException(
-                            getString(R.string.error_unknown),
+                        else -> throw IOException(
+                            throwable.message ?: getString(R.string.error_unknown),
                             throwable,
-                            PlaybackException.ERROR_CODE_REMOTE_ERROR
                         )
                     }
                 }

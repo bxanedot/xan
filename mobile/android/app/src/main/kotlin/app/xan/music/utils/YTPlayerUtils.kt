@@ -394,7 +394,9 @@ object YTPlayerUtils {
                     playlistId = playlistId,
                     audioQuality = audioQuality,
                     connectivityManager = connectivityManager,
-                    contentHints = com.metrolist.innertubex.extraction.ContentHints(),
+                    // This is the music player path. External video playback has
+                    // its own video-capable media item and never enters this resolver.
+                    contentHints = com.metrolist.innertubex.extraction.ContentHints(wantVideo = false),
                     allowBoundedRange = true,
                 )
             }

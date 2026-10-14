@@ -107,6 +107,16 @@ internal class AdaptiveDownloadController(
     }
 }
 
+/** Audio requests and video streams share the same active-transfer ceiling. */
+internal fun canReserveVideoTransferSlots(
+    activeAudioTransfers: Int,
+    activeVideoSlots: Int,
+    requestedVideoSlots: Int,
+    transferLimit: Int,
+): Boolean = requestedVideoSlots > 0 &&
+    activeAudioTransfers.coerceAtLeast(0) + activeVideoSlots.coerceAtLeast(0) + requestedVideoSlots <=
+    transferLimit.coerceAtLeast(1)
+
 /** Decorates either audio or video upstreams while keeping the limiter aggregate across requests. */
 internal class RateLimitedDataSource(
     private val upstream: DataSource,

@@ -218,6 +218,7 @@ class ExternalVideoDownloadWorker(context: Context, params: WorkerParameters) : 
         var removeRequest = false
         var publishedUri: android.net.Uri? = null
         var externalVideoSlotAcquired = false
+        var externalVideoSlotCount = 0
         val automaticRetryEnabled = applicationContext.dataStore.get(AutomaticDownloadRetryKey, true)
 
         try {
@@ -232,7 +233,9 @@ class ExternalVideoDownloadWorker(context: Context, params: WorkerParameters) : 
             val outputFile = File(tempDirectory, "finished.$extension")
             stage = "download"
             reportProgress(force = true)
-            downloadUtil.acquireExternalVideoSlot()
+            externalVideoSlotCount = downloadUtil.acquireExternalVideoSlot(
+                requestedSlots = if (!adaptiveManifest && audioUrl != null) 2 else 1,
+            )
             externalVideoSlotAcquired = true
             if (adaptiveManifest) {
                 try {
@@ -245,7 +248,7 @@ class ExternalVideoDownloadWorker(context: Context, params: WorkerParameters) : 
                     outputFile.delete()
                     remuxAdaptiveManifest(refreshedManifest, referer, outputFile, title, uploader, description)
                 }
-                downloadUtil.releaseExternalVideoSlot()
+                downloadUtil.releaseExternalVideoSlot(externalVideoSlotCount)
                 externalVideoSlotAcquired = false
             } else {
                 var currentVideoUrl = videoUrl
@@ -277,7 +280,7 @@ class ExternalVideoDownloadWorker(context: Context, params: WorkerParameters) : 
                         audioFile,
                     )
                 }
-                downloadUtil.releaseExternalVideoSlot()
+                downloadUtil.releaseExternalVideoSlot(externalVideoSlotCount)
                 externalVideoSlotAcquired = false
                 val requiredBytes = videoFile.length() + if (currentAudioUrl != null) audioFile.length() else 0L
                 if (tempDirectory.usableSpace < requiredBytes) {
@@ -320,7 +323,7 @@ class ExternalVideoDownloadWorker(context: Context, params: WorkerParameters) : 
                 .putString("error", error.message ?: "Video download failed.").build())
         } finally {
             withContext(NonCancellable) {
-                if (externalVideoSlotAcquired) downloadUtil.releaseExternalVideoSlot()
+                if (externalVideoSlotAcquired) downloadUtil.releaseExternalVideoSlot(externalVideoSlotCount)
                 downloadUtil.finishExternalDownloadSpeed(id.toString())
                 publishedUri?.let { uri ->
                     if (uri.scheme == "file") uri.path?.let { File(it).delete() }
