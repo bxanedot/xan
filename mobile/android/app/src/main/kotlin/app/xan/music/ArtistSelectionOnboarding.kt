@@ -95,23 +95,36 @@ fun ArtistSelectionOnboardingScreen(
 
     LaunchedEffect(Unit) {
         loadingSuggestions = true
+        // Home recommendations can contain just one artist (or no artist rows).
+        // Supplement them with several independent artist searches so onboarding
+        // offers a useful range of choices rather than a single featured artist.
         val homeArtists = YouTube.publicHome().getOrNull()
             ?.sections
             ?.flatMap { it.items }
             ?.filterIsInstance<ArtistItem>()
             .orEmpty()
-            .distinctBy(ArtistItem::id)
-        suggestions = if (homeArtists.isNotEmpty()) {
-            homeArtists.take(40)
-        } else {
-            YouTube.search("popular artists", YouTube.SearchFilter.FILTER_ARTIST)
+        val discoveryQueries = listOf(
+            "popular artists",
+            "pop artists",
+            "hip hop artists",
+            "rock artists",
+            "R&B artists",
+            "latin music artists",
+            "indie artists",
+            "electronic music artists",
+        )
+        val discovered = mutableListOf<ArtistItem>()
+        discovered.addAll(homeArtists)
+        for (discoveryQuery in discoveryQueries) {
+            if (discovered.distinctBy(ArtistItem::id).size >= 40) break
+            val artists = YouTube.search(discoveryQuery, YouTube.SearchFilter.FILTER_ARTIST)
                 .getOrNull()
                 ?.items
                 ?.filterIsInstance<ArtistItem>()
                 .orEmpty()
-                .distinctBy(ArtistItem::id)
-                .take(40)
+            discovered.addAll(artists)
         }
+        suggestions = discovered.distinctBy(ArtistItem::id).take(40)
         loadingSuggestions = false
     }
 
