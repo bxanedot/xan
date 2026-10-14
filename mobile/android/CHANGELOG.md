@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## 1.0.9
+
+Android version 1.0.9, version code 10.
+
+### Stability
+- Fix WorkManager access before initialization by supplying application-level configuration.
+- Keep download restoration, media caches, and background jobs out of the separate crash-report process.
+- Add startup regression coverage for early work scheduling and crash-report process isolation.
+
 ## 1.0.8
 
 Android version 1.0.8, version code 9.

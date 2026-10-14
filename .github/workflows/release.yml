@@ -134,14 +134,14 @@ jobs:
           mkdir -p mobile/android/app/keystore
           echo "$KEYSTORE_BASE64" | base64 -d > mobile/android/app/keystore/release.keystore
 
-      - name: Run playback, Magnet, and logo regression tests
+      - name: Run startup, playback, Magnet, and logo regression tests
         env:
           XAN_RELEASE_TAG: ${{ steps.release.outputs.tag }}
           STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
-          ./gradlew :app:testDebugUnitTest --tests 'app.xan.music.playback.NetworkRecoveryTest' --tests 'app.xan.music.ui.component.MagnetSemicircleLayoutTest' --tests 'app.xan.music.constants.AppLogoTest' --tests 'app.xan.music.platform.updater.UpdateApkSelectorTest' --no-daemon --no-configuration-cache --console=plain --warning-mode summary -Dorg.gradle.problems.report=false
+          ./gradlew :app:testDebugUnitTest --tests 'app.xan.music.WorkManagerStartupTest' --tests 'app.xan.music.playback.NetworkRecoveryTest' --tests 'app.xan.music.ui.component.MagnetSemicircleLayoutTest' --tests 'app.xan.music.constants.AppLogoTest' --tests 'app.xan.music.platform.updater.UpdateApkSelectorTest' --no-daemon --no-configuration-cache --console=plain --warning-mode summary -Dorg.gradle.problems.report=false
         working-directory: mobile/android
 
       - name: Build signed release APK

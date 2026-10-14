@@ -12,6 +12,8 @@ import android.content.Context
 import android.os.Build
 import android.widget.Toast
 import androidx.datastore.preferences.core.edit
+import androidx.work.Configuration
+import androidx.work.WorkManager
 import coil3.ImageLoader
 import coil3.PlatformContext
 import coil3.SingletonImageLoader
@@ -44,6 +46,7 @@ import app.xan.music.utils.dataStore
 import app.xan.music.utils.get
 import app.xan.music.utils.reportException
 import dagger.hilt.android.HiltAndroidApp
+import dagger.Lazy
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -62,19 +65,28 @@ import java.util.Locale
 import javax.inject.Inject
 
 @HiltAndroidApp
-class App : Application(), SingletonImageLoader.Factory, Application.ActivityLifecycleCallbacks {
+class App : Application(), Configuration.Provider, SingletonImageLoader.Factory, Application.ActivityLifecycleCallbacks {
+
+    // Must be available before onCreate/Hilt injection: restored work can ask for
+    // WorkManager while Android is still starting the application.
+    override val workManagerConfiguration: Configuration
+        get() = Configuration.Builder().setDefaultProcessName(packageName).build()
 
     @Inject
     @ApplicationScope
     lateinit var applicationScope: CoroutineScope
 
     @Inject
-    lateinit var downloadUtil: app.xan.music.playback.DownloadUtil
+    lateinit var downloadUtil: Lazy<app.xan.music.playback.DownloadUtil>
 
     private var startedActivityCount = 0
 
     override fun onCreate() {
         super.onCreate()
+        // CrashActivity runs in :crash. Opening a report must not restore downloads,
+        // acquire media caches, or start a second set of background workers.
+        if (!isMainApplicationProcess()) return
+        WorkManager.getInstance(this)
         registerActivityLifecycleCallbacks(this)
 
         // Restored synchronously, before anything else can start: the async
@@ -124,12 +136,12 @@ class App : Application(), SingletonImageLoader.Factory, Application.ActivityLif
 
     override fun onActivityStarted(activity: android.app.Activity) {
         startedActivityCount++
-        if (startedActivityCount == 1) downloadUtil.setApplicationForeground(true)
+        if (startedActivityCount == 1) downloadUtil.get().setApplicationForeground(true)
     }
 
     override fun onActivityStopped(activity: android.app.Activity) {
         startedActivityCount = (startedActivityCount - 1).coerceAtLeast(0)
-        if (startedActivityCount == 0) downloadUtil.setApplicationForeground(false)
+        if (startedActivityCount == 0) downloadUtil.get().setApplicationForeground(false)
     }
 
     override fun onActivityCreated(activity: android.app.Activity, savedInstanceState: android.os.Bundle?) = Unit

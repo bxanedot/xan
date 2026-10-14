@@ -32,7 +32,7 @@ import org.robolectric.annotation.Config
 
 /** Repeatable loopback throughput/integrity check of XAN's production audio data-source wrapper. */
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [35])
+@Config(sdk = [35], manifest = Config.NONE, application = android.app.Application::class)
 class DownloadEngineBenchmarkTest {
     @get:Rule
     val temporary = TemporaryFolder()
