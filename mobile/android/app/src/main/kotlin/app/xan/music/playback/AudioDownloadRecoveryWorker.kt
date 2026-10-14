@@ -97,7 +97,10 @@ class AudioDownloadRecoveryWorker(context: Context, params: WorkerParameters) : 
                 .build()
             WorkManager.getInstance(context.applicationContext).enqueueUniqueWork(
                 "$WORK_PREFIX${download.request.id}",
-                ExistingWorkPolicy.KEEP,
+                // A previous recovery job may still be RUNNING when the retried
+                // download fails again. KEEP discards the new attempt in that
+                // case, leaving the download permanently FAILED.
+                ExistingWorkPolicy.REPLACE,
                 request,
             )
         }
