@@ -419,3 +419,12 @@ html[dir="rtl"] .download-page-header { direction:rtl; }
 .xan-app-hero .hero-scroll-link { display:inline-flex; margin:30px 0 0; }
 @media(max-width:850px) { .xan-app-hero-grid { grid-template-columns:1fr; gap:12px; } .xan-app-hero-copy { padding:20px 0; } .xan-app-preview { max-width:520px; width:100%; margin:auto; } .xan-app-source { margin-top:42px; } }
 @media(max-width:639px) { .xan-app-hero { padding-top:100px; } .xan-app-hero .hero-title { font-size:clamp(49px,12vw,70px); } .xan-app-hero .hero-actions > * { max-width:100%; } .xan-app-phone { height:370px; } .xan-app-source { padding:18px; } }
+
+
+.xan-app-preview-controls { display:flex; align-items:center; justify-content:center; gap:24px; padding:10px 0; border-top:1px solid var(--line); color:var(--muted); font-size:12px; font-variant-numeric:tabular-nums; }
+.xan-app-preview-controls button { width:40px; height:40px; border:1px solid var(--line); border-radius:50%; background:var(--bg); color:var(--ink); font-size:20px; }
+.xan-app-preview-controls button:hover,.xan-app-preview-controls button:focus-visible { border-color:var(--pink); }
+.xan-app-preview-thumbnails { display:flex; gap:8px; overflow-x:auto; padding:6px 0 18px; scrollbar-width:thin; scroll-snap-type:x proximity; }
+.xan-app-preview-thumbnails button { flex:0 0 38px; width:38px; height:65px; overflow:hidden; border:2px solid transparent; border-radius:8px; opacity:.55; scroll-snap-align:center; }
+.xan-app-preview-thumbnails button.is-active { border-color:var(--pink); opacity:1; }
+.xan-app-preview-thumbnails button img { width:100%; height:100%; object-fit:cover; object-position:top; }
