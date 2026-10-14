@@ -395,3 +395,27 @@ html[dir="rtl"] .download-page-header { direction:rtl; }
 .feature-pair .visual-stage-note { right:14px; bottom:10px; }
 @media(max-width:900px) { .feature-pair { grid-template-columns:1fr; width:min(720px,calc(100% - 36px)); gap:36px; padding:64px 0; } }
 @media(max-width:639px) { .feature-pair .editorial-card { padding:28px !important; } .feature-pair .editorial-mobile-title { font-size:clamp(34px,9vw,48px) !important; } .feature-pair .visual-stage { min-height:330px; } }
+
+
+/* App-first landing hero: uses the Android screenshots shipped with XAN. */
+.xan-app-hero { padding-top:125px; }
+.xan-app-hero-grid { position:relative; z-index:1; display:grid; grid-template-columns:minmax(0,1fr) minmax(300px,.9fr); gap:clamp(30px,6vw,90px); align-items:center; }
+.xan-app-hero-copy { padding:55px 0; }
+.xan-app-brandline { display:flex; align-items:center; gap:15px; margin:25px 0 22px; font-size:20px; font-weight:750; letter-spacing:.24em; }
+.xan-app-brandline .xan-brand-mark { width:42px; height:42px; }
+.xan-app-hero .hero-title { margin:0 0 24px; font-size:clamp(54px,6.5vw,94px); line-height:1.02; letter-spacing:-.065em; font-weight:750; }
+.xan-app-hero .hero-description { max-width:470px; color:var(--muted); font-size:clamp(16px,1.7vw,19px); line-height:1.7; }
+.xan-app-hero .hero-actions { display:flex; flex-wrap:wrap; gap:14px; align-items:center; margin-top:30px; }
+.xan-app-hero-pills { display:flex; flex-wrap:wrap; gap:9px; margin-top:36px; }
+.xan-app-hero-pills span { padding:9px 14px; border:1px solid var(--line); border-radius:999px; background:var(--panel); color:var(--muted); font-size:12px; }
+.xan-app-preview { position:relative; overflow:hidden; padding:22px 24px 0; border:1px solid var(--line); border-radius:28px; background:radial-gradient(ellipse at 50% 35%,color-mix(in srgb,var(--pink) 11%,transparent),transparent 65%),var(--panel); text-align:center; }
+.xan-app-preview-header { display:flex; align-items:center; gap:9px; color:var(--muted); font-size:10px; font-weight:700; letter-spacing:.12em; text-align:left; }
+.xan-app-preview-header span:last-child { margin-left:auto; }
+.xan-app-preview-dot { width:7px; height:7px; border-radius:50%; background:var(--pink); }
+.xan-app-phone { width:min(75%,290px); height:440px; margin:28px auto 0; padding:7px; overflow:hidden; border:3px solid #393939; border-bottom:0; border-radius:32px 32px 0 0; background:#000; box-shadow:0 0 0 1px #ffffff18,0 25px 70px #0009; }
+.xan-app-phone img { display:block; width:100%; height:100%; object-fit:cover; object-position:top; border-radius:23px 23px 0 0; }
+.xan-app-preview-caption { padding:13px 0; border-top:1px solid var(--line); color:var(--muted); font-size:11px; letter-spacing:.1em; }
+.xan-app-source { position:relative; z-index:1; margin-top:64px; padding:28px; border:1px solid var(--line); border-radius:24px; background:var(--panel); }
+.xan-app-hero .hero-scroll-link { display:inline-flex; margin:30px 0 0; }
+@media(max-width:850px) { .xan-app-hero-grid { grid-template-columns:1fr; gap:12px; } .xan-app-hero-copy { padding:20px 0; } .xan-app-preview { max-width:520px; width:100%; margin:auto; } .xan-app-source { margin-top:42px; } }
+@media(max-width:639px) { .xan-app-hero { padding-top:100px; } .xan-app-hero .hero-title { font-size:clamp(49px,12vw,70px); } .xan-app-hero .hero-actions > * { max-width:100%; } .xan-app-phone { height:370px; } .xan-app-source { padding:18px; } }
