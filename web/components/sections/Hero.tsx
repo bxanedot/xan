@@ -6,11 +6,11 @@ import { T } from "@/lib/i18n";
 
 export function Hero() {
   return (
-    <section id="top" className="hero-shell section-shell xan-app-hero">
+    <section id="top" className="hero-shell section-shell xan-app-hero xan-landing">
       <div className="hero-ambient" aria-hidden="true" />
       <div className="xan-app-hero-grid">
         <div className="xan-app-hero-copy">
-          <p className="eyebrow"><T text="OPEN-SOURCE MUSIC PLAYER · ANDROID + DESKTOP" /></p>
+          <p className="eyebrow"><T text="OPEN-SOURCE MUSIC PLAYER · ANDROID" /></p>
           <div className="xan-app-brandline"><span className="xan-brand-mark" aria-hidden="true" /><span>XAN</span></div>
           <h1 className="hero-title"><T text="Your music." /><br /><span className="gradient-text"><T text="Your way." /></span></h1>
           <p className="hero-description"><T text="Keep your library, discover artists, and download available catalogues in the app." /></p>
