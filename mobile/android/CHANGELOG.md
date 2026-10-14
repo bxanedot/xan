@@ -2,11 +2,22 @@
 
 ## Unreleased
 
+## 1.0.8
+
+Android version 1.0.8, version code 9.
+
+### Playback
+- Recover from rejected YouTube media streams by excluding the failed player client during the next fresh resolution.
+- Limit optional Lossless source lookup to one second and fall back to High audio when no usable source is found.
+
 ### Downloads and Library
 - Fall back to high-quality audio when a Lossless request has no matching FLAC source, instead of failing the download.
 - Keep video download progress resumable when explicitly paused, and verify audio and video media before publishing it to public storage.
 - Restore XAN downloads from the public Music/XAN and Movies/XAN folders when the user opens Downloaded after reinstalling the app.
 - Add the Artists filter back to Library and route it to the existing Artists screen.
+
+### Website
+- Refresh the landing page with XAN's current visual style and remove the mock app-screen hero.
 
 ## 1.1.4
 

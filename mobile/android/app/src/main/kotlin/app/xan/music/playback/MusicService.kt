@@ -94,6 +94,7 @@ import com.music.innertube.YouTube
 import com.music.innertube.models.SongItem
 import com.music.innertube.models.WatchEndpoint
 import com.music.lastfm.LastFM
+import app.xan.music.BuildConfig
 import app.xan.music.MainActivity
 import app.xan.music.R
 import app.xan.music.constants.AudioNormalizationKey
@@ -2648,10 +2649,21 @@ class MusicService :
     /**
      * Enriches the onPlayerError log so a client report of just "IO unspecified
      * (2000)" is diagnosable from logcat alone: HTTP status, network state,
-     * retry count, media source, and the full cause chain.
+     * retry count, media source, and safe cause types.
      */
     private fun logPlayerErrorDetail(error: PlaybackException, mediaId: String?) {
-        val httpCode = getHttpResponseCode(error)?.toString() ?: "-"
+        var httpFailure: HttpDataSource.InvalidResponseCodeException? = null
+        var cause: Throwable? = error.cause
+        var depth = 0
+        while (cause != null && depth < 12) {
+            if (cause is HttpDataSource.InvalidResponseCodeException) {
+                httpFailure = cause
+                break
+            }
+            cause = cause.cause
+            depth++
+        }
+        val httpCode = httpFailure?.responseCode?.toString() ?: "-"
         val transport = runCatching {
             val net = connectivityManager.activeNetwork
             if (net == null) "none"
@@ -2675,12 +2687,54 @@ class MusicService :
                 "net=${if (isNetworkConnected.value) "connected" else "disconnected"}/$transport | " +
                 "retries=$retries | source=$source | state=${player.playbackState}"
         )
-        var cause = error.cause
-        var depth = 0
+
+        // Stream URLs are signed and request headers can contain credentials.
+        // Keep debug diagnostics useful without logging any URL path/query,
+        // header values, response text, or exception messages.
+        if (BuildConfig.DEBUG && httpFailure != null) {
+            val request = httpFailure.dataSpec
+            val requestHeaderNames = request.httpRequestHeaders.keys.map { it.lowercase() }.toSet()
+            val responseHeaderNames = httpFailure.headerFields.keys
+                .map { it.lowercase() }
+                .sorted()
+                .take(20)
+                .joinToString(",")
+            Timber.tag(TAG).e(
+                "Playback HTTP rejection | status=${httpFailure.responseCode} | " +
+                    "host=${request.uri.host ?: "?"} | method=${request.httpMethodString} | " +
+                    "position=${request.position} | length=${request.length} | " +
+                    "requestHeaders=${safeRequestHeaderPresence(requestHeaderNames)} | " +
+                    "responseHeaderNames=$responseHeaderNames | " +
+                    "bodyBytes=${httpFailure.responseBody.size} | " +
+                    "bodyClass=${classifyHttpErrorBody(httpFailure.responseBody)} | net=$transport"
+            )
+        }
+
+        cause = error.cause
+        depth = 0
         while (cause != null && depth < 6) {
-            Timber.tag(TAG).w("Player error cause #$depth: ${cause::class.java.simpleName}: ${cause.message}")
+            Timber.tag(TAG).w("Player error cause #$depth: ${cause::class.java.simpleName}")
             cause = cause.cause
             depth++
+        }
+    }
+
+    private fun safeRequestHeaderPresence(headerNames: Set<String>): String =
+        "ua=${"user-agent" in headerNames},referer=${"referer" in headerNames}," +
+            "origin=${"origin" in headerNames},range=${"range" in headerNames}," +
+            "cookie=${"cookie" in headerNames},authorization=${"authorization" in headerNames}"
+
+    /** Returns only a coarse allowlisted category; response text is never logged. */
+    private fun classifyHttpErrorBody(responseBody: ByteArray): String {
+        if (responseBody.isEmpty()) return "empty"
+        val body = responseBody.toString(Charsets.UTF_8).lowercase()
+        return when {
+            "age-restricted" in body || "age restricted" in body || "confirm your age" in body -> "age_restriction"
+            "not a bot" in body || "captcha" in body || "verification" in body || "unusual traffic" in body -> "verification"
+            "signature" in body || "expired" in body -> "signed_url_or_signature"
+            "ip address" in body || "not available in your country" in body -> "ip_or_region"
+            "forbidden" in body -> "forbidden"
+            else -> "unrecognized"
         }
     }
 
@@ -2789,7 +2843,11 @@ class MusicService :
         networkRetryJob = null
         waitingForNetworkConnection.value = false
         logPlayerErrorDetail(error, mediaId)
-        Timber.tag(TAG).w(error, "Player error occurred for $mediaId: errorCode=${error.errorCode}, message=${error.message}")
+        if (getHttpResponseCode(error) == 403) {
+            Timber.tag(TAG).w("Player HTTP rejection for $mediaId: errorCode=${error.errorCode}")
+        } else {
+            Timber.tag(TAG).w(error, "Player error occurred for $mediaId: errorCode=${error.errorCode}, message=${error.message}")
+        }
         reportException(error)
 
         // YouTube verification challenges are not transient stream IO failures.
