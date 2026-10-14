@@ -1,3 +1,4 @@
+import { AppPreviewCarousel } from "@/components/sections/AppPreviewCarousel";
 import { CloneCommand } from "@/components/ui/CloneCommand";
 import { DownloadButton } from "@/components/ui/DownloadButton";
 import { GitHubIcon } from "@/components/ui/GitHubIcon";
@@ -22,13 +23,7 @@ export function Hero() {
           </div>
           <div className="xan-app-hero-pills" aria-label="XAN features"><span>Library</span><span>Lyrics</span><span>Equalizer</span><span>Playlists</span></div>
         </div>
-        <div className="xan-app-preview" aria-label="XAN Android app preview">
-          <div className="xan-app-preview-header"><span className="xan-app-preview-dot" /> <span>THE XAN EXPERIENCE</span><span>ANDROID</span></div>
-          <div className="xan-app-phone">
-            <img src="/screenshots/01.jpg" alt="Actual XAN Android app interface" loading="eager" />
-          </div>
-          <div className="xan-app-preview-caption">Designed around the music.</div>
-        </div>
+        <AppPreviewCarousel />
       </div>
       <div id="source" className="hero-source xan-app-source">
         <div className="hero-source-heading"><span className="source-glyph" aria-hidden="true">&gt;_</span><div><p className="eyebrow"><T text="CLONE THE SOURCE" /></p><h2><T text="Start with the code." /></h2></div></div>
