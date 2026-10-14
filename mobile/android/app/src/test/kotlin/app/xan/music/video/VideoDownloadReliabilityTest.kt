@@ -75,7 +75,7 @@ class VideoDownloadReliabilityTest {
                 exchange.sendResponseHeaders(206, 724)
                 exchange.responseBody.use { it.write(bytes, 300, 724) }
             }
-            transferVideoStream(client, url, emptyMap(), destination) { _, _ -> }
+            transferVideoStream(client, url, emptyMap(), destination, onProgress = { _, _ -> })
         }
         assertArrayEquals(bytes, destination.readBytes())
     }
@@ -90,7 +90,7 @@ class VideoDownloadReliabilityTest {
                 exchange.sendResponseHeaders(200, bytes.size.toLong())
                 exchange.responseBody.use { it.write(bytes) }
             }
-            transferVideoStream(client, url, emptyMap(), destination) { _, _ -> }
+            transferVideoStream(client, url, emptyMap(), destination, onProgress = { _, _ -> })
         }
         assertArrayEquals(bytes, destination.readBytes())
     }
@@ -105,11 +105,12 @@ class VideoDownloadReliabilityTest {
                 exchange.responseBody.use { it.write("oops".toByteArray()) }
             }
             try {
-                transferVideoStream(client, url, emptyMap(), destination) { _, _ -> }
+                transferVideoStream(client, url, emptyMap(), destination, onProgress = { _, _ -> })
                 fail("An incorrect Content-Range must not be accepted")
             } catch (_: IOException) { }
         }
-        assertEquals("safe", destination.readText())
+        assertFalse("The invalid partial must be removed so the retry starts from zero", destination.exists())
+        assertFalse(File(destination.parentFile, "${destination.name}.resume").exists())
     }
 
     @Test fun `changed source validator discards partial data instead of appending`() = runBlocking {
@@ -124,7 +125,7 @@ class VideoDownloadReliabilityTest {
                 exchange.responseBody.use { it.write("new data".toByteArray().copyOf(6)) }
             }
             try {
-                transferVideoStream(client, url, emptyMap(), destination) { _, _ -> }
+                transferVideoStream(client, url, emptyMap(), destination, onProgress = { _, _ -> })
                 fail("A resumed response for a changed representation must fail")
             } catch (_: IOException) { }
         }
@@ -141,10 +142,38 @@ class VideoDownloadReliabilityTest {
                 exchange.close()
             }
             try {
-                transferVideoStream(client, url, emptyMap(), destination) { _, _ -> }
+                transferVideoStream(client, url, emptyMap(), destination, onProgress = { _, _ -> })
                 fail("A truncated response must fail")
             } catch (_: IOException) { }
         }
+    }
+
+    @Test fun `disabled resume restarts from zero and discards saved partial bytes`() = runBlocking {
+        val bytes = "fresh representation".toByteArray()
+        val destination = temporary.newFile("video.mp4").apply { writeText("stale prefix") }
+        withServer { server, url ->
+            writeResume(destination, url)
+            server.createContext("/video") { exchange ->
+                assertNull(exchange.requestHeaders.getFirst("Range"))
+                exchange.responseHeaders.add("ETag", "\"version-2\"")
+                exchange.sendResponseHeaders(200, bytes.size.toLong())
+                exchange.responseBody.use { it.write(bytes) }
+            }
+            transferVideoStream(
+                client, url, emptyMap(), destination,
+                onProgress = { _, _ -> },
+                allowResume = false,
+            )
+        }
+        assertArrayEquals(bytes, destination.readBytes())
+        assertFalse(File(destination.parentFile, "${destination.name}.resume").exists())
+    }
+
+    @Test fun `temporary HTTP failures retry while permanent client errors do not`() {
+        assertTrue(VideoHttpStatusException(429).retryable)
+        assertTrue(VideoHttpStatusException(503).retryable)
+        assertFalse(VideoHttpStatusException(404).retryable)
+        assertFalse(VideoHttpStatusException(403).retryable)
     }
 
     private suspend fun withServer(block: suspend (HttpServer, String) -> Unit) {

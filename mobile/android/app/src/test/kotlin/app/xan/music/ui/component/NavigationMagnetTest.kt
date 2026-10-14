@@ -15,11 +15,12 @@ class NavigationMagnetTest {
                 Screens.Home,
                 Screens.Search,
                 Screens.Library,
+                Screens.Recognition,
             ),
             MagnetNavigationScreens,
         )
         assertEquals(
-            listOf("home", "search_input", "library"),
+            listOf("home", "search_input", "library", "recognition"),
             MagnetNavigationScreens.map(Screens::route),
         )
         assertEquals(

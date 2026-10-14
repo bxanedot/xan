@@ -797,6 +797,15 @@ class SyncUtils @Inject constructor(
             Timber.w("Skipping syncArtistsSubscriptions - user not logged in")
             return@withContext
         }
+        if (!context.isSyncEnabled()) {
+            Timber.d("Skipping syncArtistsSubscriptions - YouTube Music sync is disabled or offline")
+            return@withContext
+        }
+
+        // Apply queued local follow/unfollow changes before reconciling the
+        // account library. Failed changes remain queued for the next sync.
+        syncPendingArtistSubscriptions(context, database)
+        val pendingArtistChanges = pendingArtistSubscriptionChanges(context)
 
         updateState { copy(artists = SyncStatus.Syncing, currentOperation = "Syncing artist subscriptions") }
 
@@ -809,17 +818,34 @@ class SyncUtils @Inject constructor(
                     val remoteIds = remoteArtists.map { it.id }.toSet()
                     val localArtists = database.artistsBookmarkedByNameAsc().first()
 
-                    localArtists.filterNot { it.id in remoteIds }.forEach { artist ->
+                    // Local follows are the source for XAN's artist library. Push
+                    // them to YouTube when account sync is enabled so onboarding and
+                    // in-app follows survive a later account sync instead of being
+                    // discarded just because YouTube had not seen them yet.
+                    localArtists
+                        .filter { it.id !in remoteIds && it.artist.isYouTubeArtist && !it.artist.isLocal }
+                        .forEach { artist ->
                         try {
-                            database.update(artist.artist.localToggleLike())
+                            val channelId = artist.artist.channelId?.takeIf(String::isNotBlank)
+                                ?: artist.id.takeIf { it.startsWith("UC") }
+                                ?: YouTube.getChannelId(artist.id).takeIf(String::isNotBlank)
+                                ?: return@forEach
+                            YouTube.subscribeChannel(channelId, true).getOrThrow()
+                            if (artist.artist.channelId != channelId) {
+                                database.update(artist.artist.copy(channelId = channelId))
+                            }
                             delay(DB_OPERATION_DELAY_MS)
                         } catch (e: Exception) {
-                            Timber.e(e, "Failed to update artist: ${artist.id}")
+                            Timber.e(e, "Failed to sync local artist follow: ${artist.id}")
                         }
                     }
-
                     remoteArtists.forEach { artist ->
                         try {
+                            // A pending local unfollow wins over a possibly stale
+                            // YouTube library response until the remote change lands.
+                            if (pendingArtistChanges[artist.id] == false) {
+                                return@forEach
+                            }
                             val dbArtist = database.artist(artist.id).firstOrNull()
                             // Use cached channelId first — only call YouTube.getChannelId() for new artists
                             val channelId = artist.channelId

@@ -12,6 +12,9 @@ import coil3.request.ImageRequest
 
 import android.content.Context
 import android.net.ConnectivityManager
+import android.app.ActivityManager
+import android.os.StatFs
+import android.os.SystemClock
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
 import androidx.media3.database.DatabaseProvider
@@ -31,7 +34,13 @@ import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
 import com.music.innertube.YouTube
 import app.xan.music.constants.AudioQuality
-import app.xan.music.constants.AudioQualityKey
+import app.xan.music.constants.DownloadQuality
+import app.xan.music.constants.DownloadQualityKey
+import app.xan.music.constants.DownloadSpeedLimitKibKey
+import app.xan.music.constants.AdaptiveParallelDownloadsKey
+import app.xan.music.constants.MaxParallelDownloadsKey
+import app.xan.music.constants.AutomaticDownloadRetryKey
+import app.xan.music.constants.BackgroundDownloadsEnabledKey
 import app.xan.music.constants.DataSaverEnabledKey
 import app.xan.music.constants.IpVersionKey
 import com.music.innertube.models.IpVersion
@@ -44,6 +53,7 @@ import app.xan.music.db.entities.FormatEntity
 import app.xan.music.db.entities.ArtistEntity
 import app.xan.music.db.entities.SongEntity
 import app.xan.music.db.entities.SongArtistMap
+import app.xan.music.BuildConfig
 import app.xan.music.models.MediaMetadata
 import app.xan.music.di.DownloadCache
 import app.xan.music.ui.utils.resize
@@ -52,6 +62,7 @@ import app.xan.music.video.EXTERNAL_VIDEO_MEDIA_ID_PREFIX
 import app.xan.music.utils.YTPlayerUtils
 import app.xan.music.utils.enumPreference
 import app.xan.music.utils.get
+import com.music.innertube.models.YouTubeClient
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -61,8 +72,10 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import app.xan.music.applecanvas.AppleMusicCanvasProvider
 import app.xan.music.canvas.AppleMusicArtistBackgroundProvider
 import app.xan.music.constants.CanvasSource
@@ -96,9 +109,29 @@ constructor(
     @DownloadCache val downloadCache: SimpleCache,
 ) {
     private val connectivityManager = context.getSystemService<ConnectivityManager>()!!
-    private val audioQuality by enumPreference(context, AudioQualityKey, AudioQuality.AUTO)
+    private val downloadQuality by enumPreference(context, DownloadQualityKey, DownloadQuality.AUTO)
     private val ipVersion by enumPreference(context, IpVersionKey, IpVersion.AUTO)
     private val songUrlCache = ConcurrentHashMap<String, CachedResolvedStream>()
+    private val downloadQueuedAtMs = ConcurrentHashMap<String, Long>()
+    private val downloadTransferStartedAtMs = ConcurrentHashMap<String, Long>()
+    private val downloadProgressSamples = ConcurrentHashMap<String, Pair<Long, Long>>()
+    private val activeTransferSpeeds = ConcurrentHashMap<String, Long>()
+    private val adaptiveController = AdaptiveDownloadController()
+    private val bandwidthLimiter = DownloadBandwidthLimiter()
+    private val _aggregateDownloadSpeedBytesPerSecond = MutableStateFlow(0L)
+    val aggregateDownloadSpeedBytesPerSecond = _aggregateDownloadSpeedBytesPerSecond.asStateFlow()
+    private val appForeground = MutableStateFlow(true)
+    private val externalVideoSlotChanged = MutableStateFlow(0L)
+    private val externalVideoSlotLock = Any()
+    private var activeExternalVideoJobs = 0
+    @Volatile private var backgroundDownloadsEnabled = true
+    private var adaptiveWindowStartedAtMs = SystemClock.elapsedRealtime()
+    private var adaptiveWindowBytes = 0L
+    private var adaptiveWindowCompleted = 0
+    private var adaptiveWindowFailed = 0
+    private var adaptiveWindowThrottled = 0
+    private var averageResolutionLatencyMs = 0L
+    private var resolutionSamples = 0
     private val appContext: Context = context
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -150,7 +183,8 @@ constructor(
 
     private val resolvingDataSourceFactory =
         ResolvingDataSource.Factory(
-            StreamRangeDataSource.Factory(
+            RateLimitedDataSource.Factory(
+              StreamRangeDataSource.Factory(
                     OkHttpDataSource.Factory(
                         OkHttpClient.Builder()
                             .dns(object : Dns {
@@ -174,6 +208,8 @@ constructor(
                             .build(),
                     ),
                 ),
+              bandwidthLimiter,
+            ),
         ) { dataSpec ->
             val mediaId = dataSpec.key ?: return@Factory dataSpec
             // Extractor-backed video manifests and their segment URLs are already
@@ -199,27 +235,70 @@ constructor(
             // was "<", which paired with the expiry being stored as a bare duration
             // (see below) meant a cached URL was reused forever, long past the point
             // where YouTube stopped serving it, and never re-resolved.
-            songUrlCache[mediaId]?.takeIf { it.expiresAtMillis > System.currentTimeMillis() }?.let { cached ->
+            val qualityCacheKey = "$mediaId|${downloadQuality.name}"
+            songUrlCache[qualityCacheKey]?.takeIf { it.expiresAtMillis > System.currentTimeMillis() }?.let { cached ->
                 return@Factory cached.resolve(dataSpec)
             }
 
+            val resolutionStartedAtMs = SystemClock.elapsedRealtime()
             val playbackData = runBlocking(Dispatchers.IO) {
-                val downloadQuality =
-                    when {
-                        appContext.dataStore.get(DataSaverEnabledKey, false) -> AudioQuality.LOW
-                        audioQuality == AudioQuality.AUTO -> AudioQuality.HIGH
-                        else -> audioQuality
+                val selectedAudioQuality = when (downloadQuality) {
+                    DownloadQuality.HIGH -> AudioQuality.HIGH
+                    DownloadQuality.LOW -> AudioQuality.LOW
+                    DownloadQuality.LOSSLESS -> AudioQuality.AUTO
+                    DownloadQuality.AUTO -> {
+                        val estimatedBandwidthKbps = connectivityManager.activeNetwork
+                            ?.let(connectivityManager::getNetworkCapabilities)
+                            ?.linkDownstreamBandwidthKbps ?: 0
+                        when {
+                            appContext.dataStore.get(DataSaverEnabledKey, false) -> AudioQuality.LOW
+                            connectivityManager.isActiveNetworkMetered -> AudioQuality.LOW
+                            estimatedBandwidthKbps in 1..2_999 -> AudioQuality.LOW
+                            else -> AudioQuality.HIGH
+                        }
                     }
+                }
                 YTPlayerUtils.playerResponseForPlayback(
                     mediaId,
-                    audioQuality = downloadQuality,
+                    audioQuality = selectedAudioQuality,
                     connectivityManager = connectivityManager,
                     context = appContext,
-                    // Lossless is streaming-only for now: downloads stay YouTube so the
-                    // offline cache (keyed by videoId) never mixes FLAC and Opus bytes.
-                    allowLossless = false,
+                    allowLossless = downloadQuality == DownloadQuality.LOSSLESS,
+                    // Prefer the newer resolver because its signed streams handle
+                    // YouTube's current throttling parameters more reliably.
+                    allowInnerTubeX = true,
+                    forceLossless = downloadQuality == DownloadQuality.LOSSLESS,
                 )
+            }.onFailure { error ->
+                if (BuildConfig.DEBUG) {
+                    Timber.tag("DownloadSpeed").w(
+                        error,
+                        "Stream resolution failed id=%s after %d ms",
+                        mediaId,
+                        SystemClock.elapsedRealtime() - resolutionStartedAtMs,
+                    )
+                }
             }.getOrThrow()
+            if (downloadQuality == DownloadQuality.LOSSLESS && !playbackData.isTidalStream) {
+                throw IllegalStateException("A lossless FLAC source was not available for this track. Choose High or Automatic quality.")
+            }
+            if (BuildConfig.DEBUG) {
+                Timber.tag("DownloadSpeed").i(
+                    "Stream resolved id=%s resolutionMs=%d contentLength=%d",
+                    mediaId,
+                    SystemClock.elapsedRealtime() - resolutionStartedAtMs,
+                    playbackData.format.contentLength ?: -1L,
+                )
+            }
+            synchronized(this@DownloadUtil) {
+                averageResolutionLatencyMs = if (resolutionSamples == 0) {
+                    SystemClock.elapsedRealtime() - resolutionStartedAtMs
+                } else {
+                    (averageResolutionLatencyMs * resolutionSamples +
+                        (SystemClock.elapsedRealtime() - resolutionStartedAtMs)) / (resolutionSamples + 1)
+                }
+                resolutionSamples++
+            }
             val format = playbackData.format
 
             // Persist metadata synchronously with URL resolution. The old database.query
@@ -364,14 +443,20 @@ constructor(
             val resolved = CachedResolvedStream(
                 url = playbackData.streamUrl,
                 expiresAtMillis = System.currentTimeMillis() + (playbackData.streamExpiresInSeconds * 1000L),
-                requestHeaders = playbackData.streamHeaders,
+                requestHeaders = buildMap {
+                    // URL validation uses YouTube's browser UA. Keep the actual GET
+                    // request consistent; the default OkHttp UA can leave downloads
+                    // stuck at zero bytes even when the validation HEAD returned 200.
+                    put("User-Agent", YouTubeClient.USER_AGENT_WEB)
+                    putAll(playbackData.streamHeaders)
+                },
                 rangeLengthBytes = playbackData.rangeChunkSizeBytes.takeIf {
                     it > 0 && (playbackData.requireBoundedRange || playbackData.useRangeChunks)
                 },
                 isWholeFileStream = playbackData.isTidalStream,
                 contentLengthBytes = format.contentLength?.takeIf { it > 0 },
             )
-            songUrlCache[mediaId] = resolved
+            songUrlCache[qualityCacheKey] = resolved
             resolved.resolve(dataSpec)
         }
 
@@ -496,7 +581,8 @@ constructor(
             resolvingDataSourceFactory,
             Executor(Runnable::run)
         ).apply {
-            maxParallelDownloads = 3
+            maxParallelDownloads = adaptiveController.currentConcurrency
+            minRetryCount = 3
             // Built to post a notification on a failed download but never actually
             // registered anywhere — a failure produced no system notification, no
             // in-app error state (see the STATE_FAILED handling below/in the menus),
@@ -515,6 +601,83 @@ constructor(
                         download: Download,
                         finalException: Exception?,
                     ) {
+                        val downloadId = download.request.id
+                        val nowMs = SystemClock.elapsedRealtime()
+                        when (download.state) {
+                            Download.STATE_QUEUED,
+                            Download.STATE_RESTARTING -> downloadQueuedAtMs.putIfAbsent(downloadId, nowMs)
+
+                            Download.STATE_DOWNLOADING -> {
+                                downloadQueuedAtMs.putIfAbsent(downloadId, nowMs)
+                                val transferStartedAt = downloadTransferStartedAtMs.putIfAbsent(downloadId, nowMs)
+                                if (BuildConfig.DEBUG && transferStartedAt == null) {
+                                    Timber.tag("DownloadSpeed").i(
+                                        "Transfer started id=%s queueWaitMs=%d contentLength=%d",
+                                        downloadId,
+                                        nowMs - (downloadQueuedAtMs[downloadId] ?: nowMs),
+                                        download.contentLength,
+                                    )
+                                }
+                                val previousSample = downloadProgressSamples[downloadId]
+                                if (previousSample == null) {
+                                    downloadProgressSamples[downloadId] = nowMs to download.bytesDownloaded
+                                } else if (nowMs - previousSample.first >= 5_000L) {
+                                    val elapsedMs = nowMs - previousSample.first
+                                    val transferred = (download.bytesDownloaded - previousSample.second).coerceAtLeast(0L)
+                                    val bytesPerSecond =
+                                        (transferred * 1_000L) /
+                                            elapsedMs.coerceAtLeast(1L)
+                                    adaptiveWindowBytes += transferred
+                                    activeTransferSpeeds[downloadId] = bytesPerSecond
+                                    updateAggregateDownloadSpeed()
+                                    if (BuildConfig.DEBUG) {
+                                        Timber.tag("DownloadSpeed").i(
+                                            "Transfer progress id=%s bytes=%d total=%d bytesPerSecond=%d",
+                                            downloadId,
+                                            download.bytesDownloaded,
+                                            download.contentLength,
+                                            bytesPerSecond,
+                                        )
+                                    }
+                                    downloadProgressSamples[downloadId] = nowMs to download.bytesDownloaded
+                                }
+                            }
+
+                            Download.STATE_COMPLETED -> {
+                                adaptiveWindowCompleted++
+                                AudioDownloadRecoveryWorker.clearRetryCount(appContext, downloadId)
+                                activeTransferSpeeds.remove(downloadId)
+                                updateAggregateDownloadSpeed()
+                                val transferStartedAt = downloadTransferStartedAtMs.remove(downloadId)
+                                val queueStartedAt = downloadQueuedAtMs.remove(downloadId)
+                                downloadProgressSamples.remove(downloadId)
+                                if (BuildConfig.DEBUG) {
+                                    val transferElapsedMs = transferStartedAt?.let { nowMs - it } ?: -1L
+                                    val averageBytesPerSecond =
+                                        if (transferElapsedMs > 0) download.bytesDownloaded * 1_000L / transferElapsedMs else -1L
+                                    Timber.tag("DownloadSpeed").i(
+                                        "Transfer complete id=%s bytes=%d transferMs=%d queueTotalMs=%d averageBytesPerSecond=%d",
+                                        downloadId,
+                                        download.bytesDownloaded,
+                                        transferElapsedMs,
+                                        queueStartedAt?.let { nowMs - it } ?: -1L,
+                                        averageBytesPerSecond,
+                                    )
+                                }
+                            }
+
+                            Download.STATE_FAILED,
+                            Download.STATE_STOPPED,
+                            Download.STATE_REMOVING -> {
+                                if (download.state == Download.STATE_FAILED) adaptiveWindowFailed++
+                                activeTransferSpeeds.remove(downloadId)
+                                updateAggregateDownloadSpeed()
+                                downloadQueuedAtMs.remove(downloadId)
+                                downloadTransferStartedAtMs.remove(downloadId)
+                                downloadProgressSamples.remove(downloadId)
+                            }
+                        }
+
                         downloads.update { map ->
                             map.toMutableMap().apply {
                                 set(download.request.id, download)
@@ -531,7 +694,9 @@ constructor(
                         if (download.state == Download.STATE_FAILED) {
                             // A retry must obtain a new URL after a CDN rejects an otherwise
                             // unexpired cached stream (for example after a session change).
-                            songUrlCache.remove(download.request.id)
+                            DownloadQuality.values().forEach { quality ->
+                                songUrlCache.remove("${download.request.id}|${quality.name}")
+                            }
                             Timber.e(
                                 finalException,
                                 "Download failed: id=%s title=%s reason=%d",
@@ -539,7 +704,14 @@ constructor(
                                 downloadDisplayTitle(download),
                                 download.failureReason,
                             )
+                            if (finalException is androidx.media3.datasource.HttpDataSource.InvalidResponseCodeException &&
+                                finalException.responseCode in setOf(429, 503)) {
+                                adaptiveWindowThrottled++
+                            }
+                            AudioDownloadRecoveryWorker.schedule(appContext, download, finalException)
                         }
+
+                        tuneDownloadConcurrency(nowMs)
 
                         scope.launch {
                             when (download.state) {
@@ -551,6 +723,9 @@ constructor(
                                 Download.STATE_COMPLETED -> {
                                     persistRequestMetadata(download)
                                     database.updateDownloadedInfo(download.request.id, true, LocalDateTime.now())
+                                    enqueuePersistentAudioPublish(appContext, download.request.id)
+                                    // Optional user-selected folder export remains independent of the
+                                    // app's durable MediaStore copy.
                                     enqueueMusicCopy(appContext, download.request.id)
                                 }
                                 Download.STATE_FAILED,
@@ -568,6 +743,19 @@ constructor(
         }
 
     init {
+        scope.launch {
+            appContext.dataStore.data.collect { settings ->
+                val speedLimitKib = settings[DownloadSpeedLimitKibKey] ?: 0
+                bandwidthLimiter.updateLimit(speedLimitKib.toLong().coerceAtLeast(0L) * 1024L)
+                val maximum = settings[MaxParallelDownloadsKey] ?: AdaptiveDownloadController.DEFAULT_MAX_CONCURRENCY
+                adaptiveController.setMaximumConcurrency(maximum)
+                adaptiveController.setAdaptiveEnabled(settings[AdaptiveParallelDownloadsKey] ?: true)
+                downloadManager.minRetryCount = if (settings[AutomaticDownloadRetryKey] ?: true) 3 else 0
+                downloadManager.maxParallelDownloads = adaptiveController.currentConcurrency
+                backgroundDownloadsEnabled = settings[BackgroundDownloadsEnabledKey] ?: true
+                applyBackgroundDownloadPolicy()
+            }
+        }
         val result = mutableMapOf<String, Download>()
         val cursor = downloadManager.downloadIndex.getDownloads()
         while (cursor.moveToNext()) {
@@ -582,6 +770,7 @@ constructor(
                 scope.launch {
                     persistRequestMetadata(download)
                     database.updateDownloadedInfo(download.request.id, true, LocalDateTime.now())
+                    enqueuePersistentAudioPublish(appContext, download.request.id)
                 }
             }
         // Recover copies missed by process death with one batch, rather than a job per restored song.
@@ -592,7 +781,100 @@ constructor(
 
     fun getDownload(songId: String): Flow<Download?> = downloads.map { it[songId] }
 
+    internal fun limitDownloadBytes(bytes: Int) = bandwidthLimiter.acquire(bytes)
+
+    internal fun recordExternalDownloadSpeed(id: String, bytesPerSecond: Long) {
+        activeTransferSpeeds[id] = bytesPerSecond.coerceAtLeast(0L)
+        updateAggregateDownloadSpeed()
+    }
+
+    internal fun finishExternalDownloadSpeed(id: String) {
+        activeTransferSpeeds.remove(id)
+        updateAggregateDownloadSpeed()
+    }
+
+    internal fun setApplicationForeground(foreground: Boolean) {
+        appForeground.value = foreground
+        applyBackgroundDownloadPolicy()
+    }
+
+    internal suspend fun waitForBackgroundDownloadPermission() {
+        appForeground.first { it || backgroundDownloadsEnabled }
+    }
+
+    /** Keep video jobs inside the same adaptive transfer budget as audio downloads. */
+    internal suspend fun acquireExternalVideoSlot() {
+        while (!reserveExternalVideoSlot()) {
+            externalVideoSlotChanged.first { reserveExternalVideoSlot() }
+        }
+    }
+
+    internal fun releaseExternalVideoSlot() {
+        synchronized(externalVideoSlotLock) {
+            activeExternalVideoJobs = (activeExternalVideoJobs - 1).coerceAtLeast(0)
+            externalVideoSlotChanged.value++
+        }
+    }
+
+    private fun reserveExternalVideoSlot(): Boolean = synchronized(externalVideoSlotLock) {
+        val maximumJobs = (adaptiveController.currentConcurrency / 2).coerceAtLeast(1)
+        if (activeExternalVideoJobs >= maximumJobs) return@synchronized false
+        activeExternalVideoJobs++
+        true
+    }
+
+    private fun applyBackgroundDownloadPolicy() {
+        if (!backgroundDownloadsEnabled && !appForeground.value) {
+            downloadManager.pauseDownloads()
+        } else {
+            downloadManager.resumeDownloads()
+        }
+    }
+
+    private fun updateAggregateDownloadSpeed() {
+        _aggregateDownloadSpeedBytesPerSecond.value = activeTransferSpeeds.values.sum()
+    }
+
+    private fun tuneDownloadConcurrency(nowMs: Long) {
+        if (nowMs - adaptiveWindowStartedAtMs < ADAPTIVE_SAMPLE_WINDOW_MS) return
+        val memory = ActivityManager.MemoryInfo()
+        appContext.getSystemService(ActivityManager::class.java)?.getMemoryInfo(memory)
+        val availableMemoryMb = memory.availMem / (1024L * 1024L)
+        val freeDisk = runCatching { StatFs(appContext.filesDir.absolutePath).availableBytes }.getOrDefault(0L)
+        val active = downloads.value.values.count { it.state == Download.STATE_DOWNLOADING }
+        val queued = downloads.value.values.count {
+            it.state == Download.STATE_QUEUED || it.state == Download.STATE_RESTARTING
+        }
+        val next = adaptiveController.observe(
+            TransferWindow(
+                elapsedMillis = nowMs - adaptiveWindowStartedAtMs,
+                bytesTransferred = adaptiveWindowBytes,
+                completedTransfers = adaptiveWindowCompleted,
+                failedTransfers = adaptiveWindowFailed,
+                throttledResponses = adaptiveWindowThrottled,
+                queuedTransfers = queued,
+                activeTransfers = active,
+                averageLatencyMillis = averageResolutionLatencyMs,
+                availableMemoryMb = availableMemoryMb,
+                freeDiskBytes = freeDisk,
+            ),
+        )
+        if (downloadManager.maxParallelDownloads != next) downloadManager.maxParallelDownloads = next
+        externalVideoSlotChanged.value++
+        adaptiveWindowStartedAtMs = nowMs
+        adaptiveWindowBytes = 0L
+        adaptiveWindowCompleted = 0
+        adaptiveWindowFailed = 0
+        adaptiveWindowThrottled = 0
+        averageResolutionLatencyMs = 0L
+        resolutionSamples = 0
+    }
+
     fun release() {
         scope.cancel()
+    }
+
+    private companion object {
+        const val ADAPTIVE_SAMPLE_WINDOW_MS = 10_000L
     }
 }

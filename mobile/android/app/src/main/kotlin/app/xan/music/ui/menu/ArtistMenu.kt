@@ -7,6 +7,7 @@ package app.xan.music.ui.menu
 
 import android.content.Intent
 import android.content.res.Configuration
+import android.widget.Toast
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -23,6 +24,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -43,6 +47,9 @@ import app.xan.music.ui.component.Material3MenuGroup
 import app.xan.music.ui.component.Material3MenuItemData
 import app.xan.music.ui.component.NewAction
 import app.xan.music.ui.component.NewActionGrid
+import app.xan.music.utils.artistFollowErrorMessage
+import app.xan.music.utils.toggleArtistFollowing
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -63,6 +70,7 @@ fun ArtistMenu(
     val artistState = database.artist(originalArtist.id).collectAsState(initial = originalArtist)
     val artist = artistState.value ?: originalArtist
     val isPinned by database.speedDialDao.isPinned(artist.id).collectAsState(initial = false)
+    var followRequestLoading by remember(artist.id) { mutableStateOf(false) }
 
     ArtistListItem(
         artist = artist,
@@ -225,7 +233,7 @@ fun ArtistMenu(
                 items = listOf(
                     Material3MenuItemData(
                         title = {
-                            Text(text = if (artist.artist.bookmarkedAt != null) stringResource(R.string.subscribed) else stringResource(R.string.subscribe))
+                            Text(text = if (followRequestLoading) stringResource(R.string.artist_follow_updating) else if (artist.artist.bookmarkedAt != null) stringResource(R.string.subscribed) else stringResource(R.string.subscribe))
                         },
                         icon = {
                             Icon(
@@ -233,9 +241,21 @@ fun ArtistMenu(
                                 contentDescription = null,
                             )
                         },
-                        onClick = {
-                            database.transaction {
-                                update(artist.artist.toggleLike())
+                        onClick = if (followRequestLoading) null else {
+                            {
+                                followRequestLoading = true
+                                coroutineScope.launch {
+                                    try {
+                                        toggleArtistFollowing(context, database, artist.artist)
+                                        onDismiss()
+                                    } catch (error: CancellationException) {
+                                        throw error
+                                    } catch (error: Exception) {
+                                        Toast.makeText(context, context.artistFollowErrorMessage(error), Toast.LENGTH_LONG).show()
+                                    } finally {
+                                        followRequestLoading = false
+                                    }
+                                }
                             }
                         }
                     )

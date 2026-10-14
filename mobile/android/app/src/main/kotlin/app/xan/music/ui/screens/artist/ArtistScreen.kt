@@ -47,13 +47,15 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.ButtonGroupDefaults
+import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.ripple
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -179,6 +181,8 @@ import app.xan.music.ui.utils.resize
 import app.xan.music.utils.listItemShape
 import app.xan.music.constants.PureBlackHeroBackgroundKey
 import app.xan.music.utils.rememberPreference
+import app.xan.music.utils.artistFollowErrorMessage
+import app.xan.music.utils.toggleArtistFollowing
 import app.xan.music.viewmodels.ArtistViewModel
 import com.valentinilk.shimmer.shimmer
 import app.xan.music.artistvideo.ArtistVideo
@@ -279,6 +283,7 @@ fun ArtistScreen(
     val lazyListState = rememberLazyListState()
     val snackbarHostState = remember { SnackbarHostState() }
     var showLocal by rememberSaveable { mutableStateOf(false) }
+    var followRequestLoading by rememberSaveable(viewModel.artistId) { mutableStateOf(false) }
     val density = LocalDensity.current
 
     // Calculate the offset value outside of the offset lambda
@@ -705,46 +710,74 @@ fun ArtistScreen(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(top = 16.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(24.dp, Alignment.CenterHorizontally),
-                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
+                                    verticalAlignment = Alignment.Top,
                                 ) {
                                     Column(
-                                        modifier = Modifier.width(110.dp),
+                                        modifier = Modifier.weight(1f),
                                         horizontalAlignment = Alignment.CenterHorizontally,
                                     ) {
-                                    GlassCircleButton(
-                                        onClick = {
-                                            if (!artistDownloadLoading) {
-                                                artistDownloadLoading = true
-                                                app.xan.music.playback.enqueueArtistDownload(context, viewModel.artistId)
+                                        val isArtistDownloading = artistDownloadLoading ||
+                                            artistDownloadState == Download.STATE_DOWNLOADING
+                                        Surface(
+                                            onClick = {
+                                                if (!isArtistDownloading) {
+                                                    artistDownloadLoading = true
+                                                    app.xan.music.playback.enqueueArtistDownload(context, viewModel.artistId)
+                                                }
+                                            },
+                                            enabled = !isArtistDownloading,
+                                            shape = RoundedCornerShape(26.dp),
+                                            color = if (useGlass) Color.Transparent else onTint,
+                                            contentColor = if (useGlass) chromeContentColor else tint,
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(52.dp)
+                                                .then(if (useGlass) chromeBackgroundModifier else Modifier),
+                                        ) {
+                                            Row(
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .padding(horizontal = 8.dp),
+                                                horizontalArrangement = Arrangement.Center,
+                                                verticalAlignment = Alignment.CenterVertically,
+                                            ) {
+                                                when {
+                                                    isArtistDownloading ->
+                                                        CircularProgressIndicator(
+                                                            modifier = Modifier.size(18.dp),
+                                                            strokeWidth = 2.dp,
+                                                        )
+
+                                                    artistDownloadState == Download.STATE_COMPLETED ->
+                                                        Icon(
+                                                            painter = painterResource(R.drawable.offline),
+                                                            contentDescription = null,
+                                                            modifier = Modifier.size(18.dp),
+                                                        )
+
+                                                    else ->
+                                                        Icon(
+                                                            painter = painterResource(R.drawable.xan_icon_download),
+                                                            contentDescription = null,
+                                                            modifier = Modifier.size(18.dp),
+                                                        )
+                                                }
+                                                Spacer(Modifier.width(6.dp))
+                                                Text(
+                                                    text = stringResource(
+                                                        when {
+                                                            isArtistDownloading -> R.string.downloading
+                                                            artistDownloadState == Download.STATE_COMPLETED -> R.string.downloaded
+                                                            else -> R.string.artist_download
+                                                        }
+                                                    ),
+                                                    style = MaterialTheme.typography.labelLarge,
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis,
+                                                )
                                             }
-                                        },
-                                        size = 48.dp,
-                                        modifier = Modifier.offset(y = 8.dp),
-                                    ) {
-                                        when {
-                                            artistDownloadLoading ||
-                                                artistDownloadState == Download.STATE_DOWNLOADING ->
-                                                CircularProgressIndicator(
-                                                    modifier = Modifier.size(20.dp),
-                                                    strokeWidth = 2.dp,
-                                                )
-
-                                            artistDownloadState == Download.STATE_COMPLETED ->
-                                                Icon(
-                                                    painter = painterResource(R.drawable.offline),
-                                                    contentDescription = stringResource(R.string.downloaded),
-                                                    modifier = Modifier.size(20.dp),
-                                                )
-
-                                            else ->
-                                                Icon(
-                                                    painter = painterResource(R.drawable.xan_icon_download),
-                                                    contentDescription = stringResource(R.string.download_desc),
-                                                    modifier = Modifier.size(20.dp),
-                                                )
                                         }
-                                    }
 
                                         Spacer(Modifier.height(12.dp))
                                         Text(
@@ -754,15 +787,26 @@ fun ArtistScreen(
                                                 artistDownloadLoading -> stringResource(R.string.artist_download_resolving)
                                                 else -> stringResource(R.string.artist_download_load_total)
                                             },
-                                            modifier = Modifier.widthIn(max = 110.dp),
+                                            modifier = Modifier.widthIn(max = 140.dp),
                                             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                                             style = MaterialTheme.typography.labelSmall,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         )
-                                        if (artistDownloadLoading || artistDownloadState == Download.STATE_DOWNLOADING) {
-                                            androidx.compose.material3.TextButton(onClick = {
-                                                app.xan.music.playback.stopArtistDownload(context, viewModel.artistId, downloadUtil)
-                                            }) { Text(stringResource(R.string.artist_download_stop)) }
+                                        if (isArtistDownloading) {
+                                            androidx.compose.material3.TextButton(
+                                                onClick = {
+                                                    app.xan.music.playback.stopArtistDownload(context, viewModel.artistId, downloadUtil)
+                                                },
+                                                modifier = if (useGlass) chromeBackgroundModifier else Modifier,
+                                                colors = if (useGlass) {
+                                                    androidx.compose.material3.ButtonDefaults.textButtonColors(
+                                                        containerColor = Color.Transparent,
+                                                        contentColor = chromeContentColor,
+                                                    )
+                                                } else {
+                                                    androidx.compose.material3.ButtonDefaults.textButtonColors()
+                                                },
+                                            ) { Text(stringResource(R.string.artist_download_stop)) }
                                         }
                                         if (!artistDownloadLoading && !artistDownloadResolved && artistDownloadIds.isNotEmpty()) Text(
                                             text = stringResource(R.string.artist_download_partial_total),
@@ -780,39 +824,44 @@ fun ArtistScreen(
                                     }
                                     // Primary Play Button (Center - Large)
                                     val artistId = artistPage?.artist?.id
-                                    Surface(
-                                        onClick = {
-                                            val isCurrentArtist = artistId != null &&
-                                                mediaMetadata?.artists?.any { it.id == artistId } == true
-                                            if (isPlaying && isCurrentArtist) {
-                                                playerConnection.player.pause()
-                                            } else if (isCurrentArtist) {
-                                                playerConnection.player.play()
-                                            } else {
-                                                // Play artist top songs or radio
-                                                val songSection = artistPage?.sections?.find { section ->
-                                                    (section.items.firstOrNull() as? SongItem)?.album != null
-                                                }
-                                                val items = songSection?.items?.filterIsInstance<SongItem>()
-                                                if (!items.isNullOrEmpty()) {
-                                                    playerConnection.playQueue(
-                                                        ListQueue(
-                                                            title = artistName ?: "Artist",
-                                                            items = items.map { it.toMediaItem() }
-                                                        )
-                                                    )
+                                    Box(
+                                        modifier = Modifier.size(72.dp),
+                                        contentAlignment = Alignment.Center,
+                                    ) {
+                                        Surface(
+                                            onClick = {
+                                                val isCurrentArtist = artistId != null &&
+                                                    mediaMetadata?.artists?.any { it.id == artistId } == true
+                                                if (isPlaying && isCurrentArtist) {
+                                                    playerConnection.player.pause()
+                                                } else if (isCurrentArtist) {
+                                                    playerConnection.player.play()
                                                 } else {
-                                                    artistPage?.artist?.radioEndpoint?.let {
-                                                        playerConnection.playQueue(YouTubeQueue(it))
+                                                    // Play artist top songs or radio
+                                                    val songSection = artistPage?.sections?.find { section ->
+                                                        (section.items.firstOrNull() as? SongItem)?.album != null
+                                                    }
+                                                    val items = songSection?.items?.filterIsInstance<SongItem>()
+                                                    if (!items.isNullOrEmpty()) {
+                                                        playerConnection.playQueue(
+                                                            ListQueue(
+                                                                title = artistName ?: "Artist",
+                                                                items = items.map { it.toMediaItem() }
+                                                            )
+                                                        )
+                                                    } else {
+                                                        artistPage?.artist?.radioEndpoint?.let {
+                                                            playerConnection.playQueue(YouTubeQueue(it))
+                                                        }
                                                     }
                                                 }
-                                            }
-                                        },
-                                        shape = CircleShape,
-                                        color = onTint,
-                                        modifier = Modifier.size(72.dp)
-                                    ) {
-                                        Box(contentAlignment = Alignment.Center) {
+                                            },
+                                            shape = CircleShape,
+                                            color = if (useGlass) Color.Transparent else onTint,
+                                            modifier = Modifier
+                                                .size(72.dp)
+                                                .then(if (useGlass) chromeBackgroundModifier else Modifier),
+                                        ) {
                                             AnimatedPlayPauseIcon(
                                                 isPlaying = isPlaying && artistId != null &&
                                                     mediaMetadata?.artists?.any { it.id == artistId } == true,
@@ -823,39 +872,84 @@ fun ArtistScreen(
                                         }
                                     }
 
-                                    // Favorite/Subscribe Button (Right)
+                                    // Follow the artist on the signed-in YouTube account.
                                     val isSubscribed = libraryArtist?.artist?.bookmarkedAt != null
-                                    GlassCircleButton(
-                                        onClick = {
-                                            database.transaction {
-                                                val artist = libraryArtist?.artist
-                                                if (artist != null) {
-                                                    update(artist.toggleLike())
-                                                } else {
-                                                    artistPage?.artist?.let {
-                                                        insert(
-                                                            ArtistEntity(
-                                                                id = it.id,
-                                                                name = it.title,
-                                                                channelId = it.channelId,
-                                                                thumbnailUrl = it.thumbnail,
-                                                            ).toggleLike()
-                                                        )
+                                    val followArtist = libraryArtist?.artist ?: artistPage?.artist?.let {
+                                        ArtistEntity(
+                                            id = it.id,
+                                            name = it.title,
+                                            channelId = it.channelId,
+                                            thumbnailUrl = it.thumbnail,
+                                        )
+                                    }
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .height(72.dp),
+                                        contentAlignment = Alignment.Center,
+                                    ) {
+                                        ToggleButton(
+                                            checked = isSubscribed,
+                                            onCheckedChange = {
+                                                val target = followArtist ?: return@ToggleButton
+                                                if (!followRequestLoading) {
+                                                    followRequestLoading = true
+                                                    coroutineScope.launch {
+                                                        try {
+                                                            toggleArtistFollowing(context, database, target)
+                                                        } catch (error: kotlinx.coroutines.CancellationException) {
+                                                            throw error
+                                                        } catch (error: Exception) {
+                                                            snackbarHostState.showSnackbar(context.artistFollowErrorMessage(error))
+                                                        } finally {
+                                                            followRequestLoading = false
+                                                        }
                                                     }
                                                 }
+                                            },
+                                            enabled = !followRequestLoading && followArtist != null,
+                                            shapes = ButtonGroupDefaults.connectedTrailingButtonShapes(),
+                                            colors = if (useGlass) {
+                                                ToggleButtonDefaults.colors(
+                                                    containerColor = Color.Transparent,
+                                                    contentColor = chromeContentColor,
+                                                    disabledContainerColor = Color.Transparent,
+                                                    disabledContentColor = chromeContentColor.copy(alpha = 0.6f),
+                                                    checkedContainerColor = Color.Transparent,
+                                                    checkedContentColor = chromeContentColor,
+                                                )
+                                            } else {
+                                                ToggleButtonDefaults.colors()
+                                            },
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(52.dp)
+                                                .then(if (useGlass) chromeBackgroundModifier else Modifier)
+                                                .semantics { role = Role.Button },
+                                        ) {
+                                            if (followRequestLoading) {
+                                                CircularProgressIndicator(
+                                                    modifier = Modifier.size(18.dp),
+                                                    strokeWidth = 2.dp,
+                                                )
+                                            } else {
+                                                Icon(
+                                                    painter = painterResource(if (isSubscribed) R.drawable.subscribed else R.drawable.subscribe),
+                                                    contentDescription = null,
+                                                    modifier = Modifier.size(18.dp),
+                                                )
                                             }
-                                        },
-                                        size = 48.dp,
-                                        modifier = Modifier.offset(y = 8.dp),
-                                    ) {
-                                        Icon(
-                                            painter = painterResource(
-                                                if (isSubscribed) R.drawable.favorite else R.drawable.favorite_border
-                                            ),
-                                            contentDescription = null,
-                                            modifier = Modifier.size(20.dp),
-                                            tint = if (isSubscribed) MaterialTheme.colorScheme.error else LocalContentColor.current
-                                        )
+                                            Spacer(Modifier.width(8.dp))
+                                            Text(
+                                                stringResource(
+                                                    when {
+                                                        followRequestLoading -> R.string.artist_follow_updating
+                                                        isSubscribed -> R.string.artist_onboarding_following
+                                                        else -> R.string.artist_onboarding_follow
+                                                    }
+                                                )
+                                            )
+                                        }
                                     }
                                 }
 

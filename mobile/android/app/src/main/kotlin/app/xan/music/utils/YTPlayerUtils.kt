@@ -27,7 +27,6 @@ import com.music.innertube.models.YouTubeClient.Companion.WEB_CREATOR
 import com.music.innertube.models.YouTubeClient.Companion.WEB_REMIX
 import com.music.innertube.models.response.PlayerResponse
 import app.xan.music.constants.AudioQuality
-import app.xan.music.constants.EnableTidalStreamingKey
 import app.xan.music.constants.TidalInstanceUrlKey
 import app.xan.music.constants.TidalQuality
 import app.xan.music.constants.TidalQualityKey
@@ -200,12 +199,17 @@ object YTPlayerUtils {
          *  times (stall/parsing errors) — skips Tidal and resolves the plain
          *  YouTube stream for this call only. */
         forceStandardAudio: Boolean = false,
+        /** Downloads can skip the newer resolver's 60-second request timeout. */
+        allowInnerTubeX: Boolean = true,
+        /** Explicit lossless download selection can try TIDAL without changing playback settings. */
+        forceLossless: Boolean = false,
     ): Result<PlaybackData> {
         // ── Lossless (TIDAL) intercept ───────────────────────────────────────
-        // Optional FLAC source. AUTO may upgrade to lossless; an explicit quality
-        // selection is always respected. Any failure falls through to YouTube Music.
+        // Explicit Lossless quality prefers a matching FLAC source. Any failure
+        // falls through to the highest regular YouTube Music quality.
         if (context != null) {
-            if (!forceStandardAudio && audioQuality == AudioQuality.AUTO && allowLossless && context.dataStore.get(EnableTidalStreamingKey, false)) {
+            if (!forceStandardAudio && allowLossless &&
+                (audioQuality == AudioQuality.LOSSLESS || forceLossless)) {
                 Timber.tag(TAG).d("Lossless enabled — trying TIDAL for videoId=$videoId")
                 val tidalResult = runCatching {
                     val (currentSong, meta) = coroutineScope {
@@ -339,7 +343,14 @@ object YTPlayerUtils {
         // ── End lossless intercept ───────────────────────────────────────────
 
 
-        val firstAttempt = resolvePlaybackData(videoId, playlistId, audioQuality, connectivityManager)
+        val standardAudioQuality = if (audioQuality == AudioQuality.LOSSLESS) AudioQuality.HIGH else audioQuality
+        val firstAttempt = resolvePlaybackData(
+            videoId,
+            playlistId,
+            standardAudioQuality,
+            connectivityManager,
+            allowInnerTubeX,
+        )
 
         val firstFailure = firstAttempt.exceptionOrNull()
 
@@ -352,7 +363,13 @@ object YTPlayerUtils {
             Timber.tag(TAG).w("YouTube requested verification; refreshing visitorData once")
             PlaybackLogManager.log(PlaybackLogLevel.BOT, "YouTube requested verification", "Refreshing visitorData once")
             if (BotDetectionMitigator.refreshVisitorSession()) {
-                val retryResult = resolvePlaybackData(videoId, playlistId, audioQuality, connectivityManager)
+                val retryResult = resolvePlaybackData(
+                    videoId,
+                    playlistId,
+                    standardAudioQuality,
+                    connectivityManager,
+                    allowInnerTubeX,
+                )
                 retryResult.onSuccess { BotDetectionMitigator.notifyPlaybackSuccess() }
                 return retryResult
             }
@@ -367,7 +384,9 @@ object YTPlayerUtils {
         playlistId: String? = null,
         audioQuality: AudioQuality,
         connectivityManager: ConnectivityManager,
+        allowInnerTubeX: Boolean,
     ): Result<PlaybackData> = runCatching {
+        if (allowInnerTubeX) {
         val (innerTubeXResult, authenticatedMetadata) = coroutineScope {
             val playback = async {
                 InnerTubeXPlayer.playerResponseForPlayback(
@@ -414,6 +433,7 @@ object YTPlayerUtils {
                 "InnerTubeX stream resolution failed",
                 error::class.simpleName ?: "unknown error",
             )
+        }
         }
         Timber.tag(logTag).d("Fetching player response for videoId: $videoId, playlistId: $playlistId")
         PlaybackLogManager.log(PlaybackLogLevel.INFO, "Resolving playback data", "Video: $videoId")
@@ -877,6 +897,7 @@ object YTPlayerUtils {
                     AudioQuality.AUTO -> if (connectivityManager.isActiveNetworkMetered) -1 else 1
                     AudioQuality.HIGH -> 1
                     AudioQuality.LOW -> -1
+                    AudioQuality.LOSSLESS -> 1
                 } + (if (it.mimeType.startsWith("audio/webm")) 10240 else 0) // prefer opus stream
             }
 

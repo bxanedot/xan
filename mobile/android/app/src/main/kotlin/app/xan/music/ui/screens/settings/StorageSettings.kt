@@ -22,11 +22,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
@@ -48,11 +50,19 @@ import coil3.annotation.DelicateCoilApi
 import coil3.annotation.ExperimentalCoilApi
 import coil3.imageLoader
 import app.xan.music.LocalDatabase
+import app.xan.music.LocalDownloadUtil
 import app.xan.music.LocalPlayerAwareWindowInsets
 import app.xan.music.LocalPlayerConnection
 import app.xan.music.R
 import app.xan.music.constants.MaxImageCacheSizeKey
 import app.xan.music.constants.MaxSongCacheSizeKey
+import app.xan.music.constants.AdaptiveParallelDownloadsKey
+import app.xan.music.constants.AutomaticDownloadRetryKey
+import app.xan.music.constants.BackgroundDownloadsEnabledKey
+import app.xan.music.constants.DownloadSpeedLimitKibKey
+import app.xan.music.constants.MaxParallelDownloadsKey
+import app.xan.music.constants.PreserveDownloadsAfterUninstallKey
+import app.xan.music.constants.ResumeInterruptedDownloadsKey
 import app.xan.music.extensions.tryOrNull
 import app.xan.music.ui.component.ActionPromptDialog
 import app.xan.music.ui.component.IconButton
@@ -60,6 +70,8 @@ import app.xan.music.ui.component.Material3SettingsGroup
 import app.xan.music.ui.component.Material3SettingsItem
 import app.xan.music.ui.utils.backToMain
 import app.xan.music.ui.utils.formatFileSize
+import app.xan.music.playback.AudioDownloadRecoveryWorker
+import androidx.media3.exoplayer.offline.Download
 import app.xan.music.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -77,6 +89,7 @@ fun StorageSettings(
 ) {
     val context = LocalContext.current
     val database = LocalDatabase.current
+    val downloadUtil = LocalDownloadUtil.current
     val imageDiskCache = context.imageLoader.diskCache ?: return
     val playerCache = LocalPlayerConnection.current?.service?.playerCache ?: return
     val downloadCache = LocalPlayerConnection.current?.service?.downloadCache ?: return
@@ -92,6 +105,20 @@ fun StorageSettings(
         key = MaxSongCacheSizeKey,
         defaultValue = 1024
     )
+    val (adaptiveParallel, onAdaptiveParallelChange) = rememberPreference(AdaptiveParallelDownloadsKey, true)
+    val (maxParallelDownloads, onMaxParallelDownloadsChange) = rememberPreference(MaxParallelDownloadsKey, 16)
+    val (automaticRetry, onAutomaticRetryChange) = rememberPreference(AutomaticDownloadRetryKey, true)
+    val (resumeInterrupted, onResumeInterruptedChange) = rememberPreference(ResumeInterruptedDownloadsKey, true)
+    val (backgroundDownloads, onBackgroundDownloadsChange) = rememberPreference(BackgroundDownloadsEnabledKey, true)
+    val (preserveAfterUninstall, onPreserveAfterUninstallChange) = rememberPreference(PreserveDownloadsAfterUninstallKey, true)
+    val (speedLimitKib, onSpeedLimitKibChange) = rememberPreference(DownloadSpeedLimitKibKey, 0)
+    val downloads by downloadUtil.downloads.collectAsState()
+    val downloadSpeed by downloadUtil.aggregateDownloadSpeedBytesPerSecond.collectAsState()
+    val activeDownloadCount = downloads.values.count { it.state == Download.STATE_DOWNLOADING }
+    val queuedDownloadCount = downloads.values.count {
+        it.state == Download.STATE_QUEUED || it.state == Download.STATE_RESTARTING
+    }
+    val failedDownloadCount = downloads.values.count { it.state == Download.STATE_FAILED }
 
     var clearDownloads by remember { mutableStateOf(false) }
     var clearCacheDialog by remember { mutableStateOf(false) }
@@ -293,6 +320,103 @@ fun StorageSettings(
                     WindowInsetsSides.Top
                 )
             )
+        )
+        Material3SettingsGroup(
+            title = stringResource(R.string.download_performance),
+            items = listOf(
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.xan_icon_download),
+                    title = { Text(stringResource(R.string.download_activity)) },
+                    description = {
+                        Text(
+                            stringResource(
+                                R.string.download_activity_summary,
+                                activeDownloadCount,
+                                queuedDownloadCount,
+                                formatFileSize(downloadSpeed) + "/s",
+                            ),
+                        )
+                    },
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.cached),
+                    title = { Text(stringResource(R.string.adaptive_parallel_downloads)) },
+                    description = { Text(stringResource(R.string.adaptive_parallel_downloads_desc)) },
+                    trailingContent = {
+                        Switch(checked = adaptiveParallel, onCheckedChange = onAdaptiveParallelChange)
+                    },
+                    onClick = { onAdaptiveParallelChange(!adaptiveParallel) },
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.cached),
+                    title = { Text(stringResource(R.string.maximum_parallel_downloads)) },
+                    description = {
+                        Column {
+                            Text("$maxParallelDownloads")
+                            Slider(
+                                value = maxParallelDownloads.coerceIn(2, 32).toFloat(),
+                                onValueChange = { onMaxParallelDownloadsChange(it.roundToInt().coerceIn(2, 32)) },
+                                valueRange = 2f..32f,
+                                steps = 29,
+                            )
+                        }
+                    },
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.cached),
+                    title = { Text(stringResource(R.string.download_speed_limit)) },
+                    description = {
+                        Column {
+                            Text(if (speedLimitKib == 0) stringResource(R.string.download_speed_unlimited) else "$speedLimitKib KiB/s")
+                            Slider(
+                                value = speedLimitKib.coerceIn(0, 4096).toFloat(),
+                                onValueChange = { onSpeedLimitKibChange(it.roundToInt()) },
+                                valueRange = 0f..4096f,
+                                steps = 31,
+                            )
+                        }
+                    },
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.cached),
+                    title = { Text(stringResource(R.string.automatic_download_retry)) },
+                    description = { Text(stringResource(R.string.automatic_download_retry_desc)) },
+                    trailingContent = { Switch(checked = automaticRetry, onCheckedChange = onAutomaticRetryChange) },
+                    onClick = { onAutomaticRetryChange(!automaticRetry) },
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.cached),
+                    title = { Text(stringResource(R.string.resume_interrupted_downloads)) },
+                    description = { Text(stringResource(R.string.resume_interrupted_downloads_desc)) },
+                    trailingContent = { Switch(checked = resumeInterrupted, onCheckedChange = onResumeInterruptedChange) },
+                    onClick = { onResumeInterruptedChange(!resumeInterrupted) },
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.cached),
+                    title = { Text(stringResource(R.string.background_downloads)) },
+                    description = { Text(stringResource(R.string.background_downloads_desc)) },
+                    trailingContent = { Switch(checked = backgroundDownloads, onCheckedChange = onBackgroundDownloadsChange) },
+                    onClick = { onBackgroundDownloadsChange(!backgroundDownloads) },
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.xan_icon_storage),
+                    title = { Text(stringResource(R.string.keep_downloads_after_uninstall)) },
+                    description = { Text(stringResource(R.string.keep_downloads_after_uninstall_desc)) },
+                    trailingContent = { Switch(checked = preserveAfterUninstall, onCheckedChange = onPreserveAfterUninstallChange) },
+                    onClick = { onPreserveAfterUninstallChange(!preserveAfterUninstall) },
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.cached),
+                    title = { Text(stringResource(R.string.retry_failed_downloads)) },
+                    description = { Text(stringResource(R.string.retry_failed_downloads_desc, failedDownloadCount)) },
+                    enabled = failedDownloadCount > 0,
+                    onClick = {
+                        downloads.values.filter { it.state == Download.STATE_FAILED }.forEach {
+                            runCatching { AudioDownloadRecoveryWorker.retryNow(context, it) }
+                        }
+                    },
+                ),
+            ),
         )
         Material3SettingsGroup(
             title = stringResource(R.string.storage),

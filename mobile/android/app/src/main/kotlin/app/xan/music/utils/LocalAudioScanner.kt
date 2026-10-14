@@ -89,7 +89,7 @@ object LocalAudioScanner {
                 context.dataStore.data.first()[LocalExcludedFoldersKey] ?: "",
             )
 
-            val projection = arrayOf(
+            val baseProjection = arrayOf(
                 MediaStore.Audio.Media._ID,
                 MediaStore.Audio.Media.TITLE,
                 MediaStore.Audio.Media.DISPLAY_NAME,
@@ -102,6 +102,7 @@ object LocalAudioScanner {
                 MediaStore.Audio.Media.YEAR,
                 LocalFolderIndex.pathColumn,
             )
+            val projection = baseProjection
 
             // IS_MUSIC alone misses files whose scanner flag isn't set (common
             // for FLAC/OGG/OPUS from downloads) — accept anything with an
@@ -196,7 +197,15 @@ object LocalAudioScanner {
                         ?: mediaStoreAlbumArt
                         ?: defaultArtworkUri(context)
 
-                    val songId = contentUri
+                    val restoredDownloadId = Regex("\\[xan-id-([A-Za-z0-9_-]+)]")
+                        .find(displayName)?.groupValues?.getOrNull(1)
+                        ?.let { encoded ->
+                            runCatching {
+                                String(android.util.Base64.decode(encoded, android.util.Base64.URL_SAFE or android.util.Base64.NO_WRAP or android.util.Base64.NO_PADDING))
+                            }.getOrNull()
+                        }
+                        ?.takeIf { it.isNotBlank() }
+                    val songId = restoredDownloadId ?: contentUri
 
                     // Check if song already exists
                     val existingSong = database.getSongById(songId)
@@ -237,6 +246,15 @@ object LocalAudioScanner {
                                             ?: java.time.Instant.ofEpochSecond(dateAdded)
                                                 .atZone(java.time.ZoneId.systemDefault())
                                                 .toLocalDateTime(),
+                                        persistentMediaUri = if (restoredDownloadId != null) {
+                                            contentUri
+                                        } else existingSong.song.persistentMediaUri,
+                                        isDownloaded = existingSong.song.isDownloaded || restoredDownloadId != null,
+                                        dateDownload = existingSong.song.dateDownload ?: restoredDownloadId?.let {
+                                            java.time.Instant.ofEpochSecond(dateAdded)
+                                                .atZone(java.time.ZoneId.systemDefault())
+                                                .toLocalDateTime()
+                                        },
                                         dateModified = java.time.Instant.ofEpochSecond(dateModified)
                                             .atZone(java.time.ZoneId.systemDefault())
                                             .toLocalDateTime(),
@@ -264,6 +282,13 @@ object LocalAudioScanner {
                             .atZone(java.time.ZoneId.systemDefault())
                             .toLocalDateTime(),
                         isLocal = true,
+                        isDownloaded = restoredDownloadId != null,
+                        persistentMediaUri = contentUri.takeIf { restoredDownloadId != null },
+                        dateDownload = if (restoredDownloadId != null) {
+                            java.time.Instant.ofEpochSecond(dateAdded)
+                                .atZone(java.time.ZoneId.systemDefault())
+                                .toLocalDateTime()
+                        } else null,
                         // The file's real MediaStore DATE_ADDED, not the scan time —
                         // scanning stamps every song with the same instant, which makes
                         // "Date added" sorting meaningless. dateAdded was already being

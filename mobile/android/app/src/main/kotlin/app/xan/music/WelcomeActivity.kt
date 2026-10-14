@@ -141,6 +141,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.lifecycleScope
 import app.xan.music.constants.IsFirstRunKey
+import app.xan.music.db.MusicDatabase
 import app.xan.music.ui.theme.xanTheme
 import app.xan.music.ui.utils.XanLogoMotion
 import app.xan.music.ui.utils.safeOpenUri
@@ -150,12 +151,18 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlin.math.absoluteValue
 import androidx.datastore.preferences.core.edit
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 data class OnboardingPageInfo(
-    val content: @Composable (onUpdateScrollState: (Boolean) -> Unit) -> Unit
+    val content: @Composable (onUpdateScrollState: (Boolean) -> Unit, onSkip: () -> Unit) -> Unit
 )
 
+@AndroidEntryPoint
 class WelcomeActivity : ComponentActivity() {
+    @Inject
+    lateinit var database: MusicDatabase
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -174,7 +181,7 @@ class WelcomeActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    WelcomePagerScreen(onFinished = {
+                    WelcomePagerScreen(database = database, onFinished = {
                         lifecycleScope.launch {
                             dataStore.edit { it[IsFirstRunKey] = false }
                             if (forceShow) {
@@ -211,7 +218,7 @@ val GoogleSansFlex = FontFamily(
 
 @OptIn(ExperimentalTextApi::class)
 @Composable
-fun WelcomePagerScreen(onFinished: () -> Unit) {
+fun WelcomePagerScreen(database: MusicDatabase, onFinished: () -> Unit) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
     val scope = rememberCoroutineScope()
@@ -301,7 +308,7 @@ fun WelcomePagerScreen(onFinished: () -> Unit) {
 
     val pages = listOf(
         OnboardingPageInfo(
-            content = { _ ->
+            content = { _, _ ->
                 Column(
                     modifier = Modifier.fillMaxSize(),
                     horizontalAlignment = Alignment.Start
@@ -375,7 +382,15 @@ fun WelcomePagerScreen(onFinished: () -> Unit) {
             }
         ),
         OnboardingPageInfo(
-            content = { _ ->
+            content = { _, onSkip ->
+                ArtistSelectionOnboardingScreen(
+                    database = database,
+                    onSkip = onSkip,
+                )
+            }
+        ),
+        OnboardingPageInfo(
+            content = { _, _ ->
                 Column(
                     modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -391,7 +406,7 @@ fun WelcomePagerScreen(onFinished: () -> Unit) {
             }
         ),
         OnboardingPageInfo(
-            content = { _ ->
+            content = { _, _ ->
                 Column(
                     modifier = Modifier.fillMaxSize(),
                     horizontalAlignment = Alignment.Start
@@ -517,7 +532,7 @@ fun WelcomePagerScreen(onFinished: () -> Unit) {
             }
         ),
         OnboardingPageInfo(
-            content = { _ ->
+            content = { _, _ ->
                 Column(
                     modifier = Modifier.fillMaxSize(),
                     horizontalAlignment = Alignment.Start
@@ -601,7 +616,7 @@ fun WelcomePagerScreen(onFinished: () -> Unit) {
             }
         ),
         OnboardingPageInfo(
-            content = { onUpdateScroll ->
+            content = { onUpdateScroll, _ ->
                 Column(
                     modifier = Modifier.fillMaxSize(),
                     horizontalAlignment = Alignment.Start
@@ -803,11 +818,23 @@ fun WelcomePagerScreen(onFinished: () -> Unit) {
                             }
                         }
                 ) {
-                    pages[index].content { scrolledToEnd ->
-                        if (index == pages.size - 1) {
-                            isLastPageScrolledToEnd = true
+                    pages[index].content(
+                        { scrolledToEnd ->
+                            if (index == pages.size - 1) {
+                                isLastPageScrolledToEnd = scrolledToEnd
+                            }
+                        },
+                        {
+                            if (index < pages.lastIndex) {
+                                scope.launch {
+                                    pagerState.animateScrollToPage(
+                                        index + 1,
+                                        animationSpec = commonAnimSpec,
+                                    )
+                                }
+                            }
                         }
-                    }
+                    )
                 }
             }
 

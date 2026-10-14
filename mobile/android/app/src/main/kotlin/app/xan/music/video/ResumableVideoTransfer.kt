@@ -6,6 +6,9 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.File
 import java.io.IOException
+import java.io.FileOutputStream
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 import java.util.Properties
 
 internal class VideoHttpStatusException(val code: Int) : IOException("Source returned HTTP $code.") {
@@ -19,8 +22,15 @@ internal suspend fun transferVideoStream(
     headers: Map<String, String>,
     destination: File,
     onProgress: suspend (downloaded: Long, total: Long) -> Unit,
+    onBytesTransferred: (Int) -> Unit = {},
+    beforeRead: suspend () -> Unit = {},
+    allowResume: Boolean = true,
 ) {
     val metadataFile = File(destination.parentFile, "${destination.name}.resume")
+    if (!allowResume) {
+        destination.delete()
+        metadataFile.delete()
+    }
     val metadata = Properties().apply {
         if (metadataFile.isFile) runCatching { metadataFile.inputStream().use(::load) }
     }
@@ -56,6 +66,12 @@ internal suspend fun transferVideoStream(
         val append = offset > 0 && response.code == 206
         val range = response.header("Content-Range")?.let { Regex("bytes (\\d+)-(\\d+)/(\\d+|\\*)").matchEntire(it) }
         if (response.code == 206 && (range == null || range.groupValues[1].toLong() != if (append) offset else 0L)) {
+            if (offset > 0) {
+                // Keep the queue, but force the next attempt to request the whole
+                // representation instead of repeating the same unsafe range.
+                destination.delete()
+                metadataFile.delete()
+            }
             throw IOException("The source returned an unexpected byte range.")
         }
         if (append && validatorHeader != null && response.header(validatorHeader.first) != validatorHeader.second) {
@@ -76,32 +92,49 @@ internal suspend fun transferVideoStream(
         if (total > 0 && parentDirectory.usableSpace < total - start) {
             throw IOException("There is not enough storage to download this video.")
         }
-        Properties().apply {
+        val newMetadata = Properties().apply {
             setProperty("url", url)
             response.header("ETag")?.let { setProperty("etag", it) }
             response.header("Last-Modified")?.let { setProperty("lastModified", it) }
-            metadataFile.outputStream().use { store(it, null) }
+        }
+        val metadataTemporary = File(metadataFile.parentFile, "${metadataFile.name}.tmp")
+        try {
+            FileOutputStream(metadataTemporary).use { output ->
+                newMetadata.store(output, null)
+                output.fd.sync()
+            }
+            Files.move(metadataTemporary.toPath(), metadataFile.toPath(), StandardCopyOption.REPLACE_EXISTING)
+        } finally {
+            metadataTemporary.delete()
         }
         var bytes = start
         onProgress(bytes, total)
-        body.byteStream().use { input ->
-            java.io.FileOutputStream(destination, append).use { output ->
-                val buffer = ByteArray(64 * 1024)
-                while (true) {
-                    currentCoroutineContext().ensureActive()
-                    val count = input.read(buffer)
-                    if (count < 0) break
-                    output.write(buffer, 0, count)
-                    bytes += count
-                    onProgress(bytes, total)
+        try {
+            body.byteStream().use { input ->
+                java.io.FileOutputStream(destination, append).use { output ->
+                    val buffer = ByteArray(64 * 1024)
+                    while (true) {
+                        currentCoroutineContext().ensureActive()
+                        beforeRead()
+                        val count = input.read(buffer)
+                        if (count < 0) break
+                        onBytesTransferred(count)
+                        output.write(buffer, 0, count)
+                        bytes += count
+                        onProgress(bytes, total)
+                    }
                 }
-                output.fd.sync()
             }
+        } finally {
+            // Persist even a partial prefix before WorkManager retries after a
+            // process death, cancellation, or a socket reset.
+            FileOutputStream(destination, true).use { output -> output.fd.sync() }
         }
         if (bytes == 0L || (total >= 0 && bytes != total)) {
             throw IOException("The stream ended before all bytes were received.")
         }
         onProgress(bytes, bytes)
+        metadataFile.delete()
     }
 }
 

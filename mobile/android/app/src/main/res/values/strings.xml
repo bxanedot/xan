@@ -445,6 +445,9 @@
     <string name="audio_quality_auto">Auto</string>
     <string name="audio_quality_high">High</string>
     <string name="audio_quality_low">Low</string>
+    <string name="download_quality">Download quality</string>
+    <string name="download_quality_auto">Automatic</string>
+    <string name="download_quality_lossless">Lossless (FLAC)</string>
     <string name="audio_quality_lossless">Lossless</string>
     <string name="queue">Queue</string>
     <string name="persistent_queue">Persistent queue</string>
@@ -658,5 +661,23 @@
     <string name="artist_download_counting_progress">%1$d / %2$d downloaded · counting…</string>
     <string name="artist_playlist_close">Close</string>
     <string name="artist_download_partial_total">Total incomplete</string>
+    <string name="download_performance">Download performance</string>
+    <string name="download_activity">Download activity</string>
+    <string name="download_activity_summary">%1$d active · %2$d queued · %3$s</string>
+    <string name="adaptive_parallel_downloads">Adaptive parallel downloads</string>
+    <string name="adaptive_parallel_downloads_desc">Adjust concurrency in response to throughput, throttling, memory, and available storage.</string>
+    <string name="maximum_parallel_downloads">Maximum parallel downloads</string>
+    <string name="download_speed_limit">Download speed limit</string>
+    <string name="download_speed_unlimited">Unlimited</string>
+    <string name="automatic_download_retry">Automatic retry</string>
+    <string name="automatic_download_retry_desc">Retry temporary network and server failures with capped backoff. Permanent errors remain failed for review.</string>
+    <string name="resume_interrupted_downloads">Resume interrupted downloads</string>
+    <string name="resume_interrupted_downloads_desc">Keep validated partial video transfers and resume when the source supports it.</string>
+    <string name="background_downloads">Background downloads</string>
+    <string name="background_downloads_desc">Continue downloads while XAN is in the background.</string>
+    <string name="keep_downloads_after_uninstall">Keep downloads after uninstall</string>
+    <string name="keep_downloads_after_uninstall_desc">Save completed audio and video in Music/XAN and Movies/XAN. Existing shared files are preserved when this setting changes.</string>
+    <string name="retry_failed_downloads">Retry failed audio downloads</string>
+    <string name="retry_failed_downloads_desc">%1$d failed items. Retry keeps each original request and its saved progress.</string>
 </resources>
 

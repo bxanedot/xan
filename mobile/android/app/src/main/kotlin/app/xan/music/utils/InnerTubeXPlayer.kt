@@ -350,6 +350,7 @@ object InnerTubeXPlayer {
             AudioQuality.HIGH -> InnerTubeXAudioQuality.HIGH
             AudioQuality.LOW -> InnerTubeXAudioQuality.LOW
             AudioQuality.AUTO -> InnerTubeXAudioQuality.AUTO
+            AudioQuality.LOSSLESS -> InnerTubeXAudioQuality.HIGH
         }
 
 

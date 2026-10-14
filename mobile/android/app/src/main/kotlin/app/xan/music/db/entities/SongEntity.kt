@@ -52,6 +52,8 @@ data class SongEntity(
     val romanizeLyrics: Boolean = true,
     @ColumnInfo(defaultValue = "0")
     val isDownloaded: Boolean = false,
+    /** Shared MediaStore or app-specific URI for a completed downloadable copy. */
+    val persistentMediaUri: String? = null,
     @ColumnInfo(name = "isUploaded", defaultValue = false.toString())
     val isUploaded: Boolean = false,
     @ColumnInfo(name = "isVideo", defaultValue = false.toString())

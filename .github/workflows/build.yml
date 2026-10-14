@@ -52,8 +52,11 @@ jobs:
         run: |
           ./gradlew :app:assembleDebug --no-daemon --no-configuration-cache --console=plain --warning-mode summary -Dorg.gradle.problems.report=false
 
+      - name: Name debug APK
+        run: cp mobile/android/app/build/outputs/apk/debug/app-debug.apk mobile/android/app/build/outputs/apk/debug/XAN-debug.apk
+
       - name: Upload Debug APK
         uses: actions/upload-artifact@v7.0.2
         with:
-          name: xan-debug
-          path: mobile/android/app/build/outputs/apk/debug/*.apk
+          name: XAN-debug
+          path: mobile/android/app/build/outputs/apk/debug/XAN-debug.apk

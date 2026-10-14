@@ -44,6 +44,8 @@ import app.xan.music.constants.AudioNormalizationKey
 import app.xan.music.constants.AudioOffload
 import app.xan.music.constants.AudioQuality
 import app.xan.music.constants.AudioQualityKey
+import app.xan.music.constants.DownloadQuality
+import app.xan.music.constants.DownloadQualityKey
 import app.xan.music.constants.VideoSearchFallbackKey
 import app.xan.music.constants.AutoDownloadOnLikeKey
 import app.xan.music.constants.CrossfadeDurationKey
@@ -93,6 +95,10 @@ fun PlayerSettings(
     val (audioQuality, onAudioQualityChange) = rememberEnumPreference(
         AudioQualityKey,
         defaultValue = AudioQuality.AUTO
+    )
+    val (downloadQuality, onDownloadQualityChange) = rememberEnumPreference(
+        DownloadQualityKey,
+        defaultValue = DownloadQuality.AUTO
     )
     val (canvasWifiOnly, onCanvasWifiOnlyChange) = rememberPreference(
         CanvasWifiOnlyKey,
@@ -229,6 +235,9 @@ fun PlayerSettings(
     var showAudioQualityDialog by remember {
         mutableStateOf(false)
     }
+    var showDownloadQualityDialog by remember {
+        mutableStateOf(false)
+    }
 
     if (showAudioQualityDialog) {
         EnumDialog(
@@ -245,6 +254,28 @@ fun PlayerSettings(
                     AudioQuality.AUTO -> stringResource(R.string.audio_quality_auto)
                     AudioQuality.HIGH -> stringResource(R.string.audio_quality_high)
                     AudioQuality.LOW -> stringResource(R.string.audio_quality_low)
+                    AudioQuality.LOSSLESS -> stringResource(R.string.audio_quality_lossless)
+                }
+            }
+        )
+    }
+
+    if (showDownloadQualityDialog) {
+        EnumDialog(
+            onDismiss = { showDownloadQualityDialog = false },
+            onSelect = {
+                onDownloadQualityChange(it)
+                showDownloadQualityDialog = false
+            },
+            title = stringResource(R.string.download_quality),
+            current = downloadQuality,
+            values = DownloadQuality.values().toList(),
+            valueText = {
+                when (it) {
+                    DownloadQuality.AUTO -> stringResource(R.string.download_quality_auto)
+                    DownloadQuality.HIGH -> stringResource(R.string.audio_quality_high)
+                    DownloadQuality.LOW -> stringResource(R.string.audio_quality_low)
+                    DownloadQuality.LOSSLESS -> stringResource(R.string.download_quality_lossless)
                 }
             }
         )
@@ -305,10 +336,26 @@ fun PlayerSettings(
                                 AudioQuality.AUTO -> stringResource(R.string.audio_quality_auto)
                                 AudioQuality.HIGH -> stringResource(R.string.audio_quality_high)
                                 AudioQuality.LOW -> stringResource(R.string.audio_quality_low)
+                                AudioQuality.LOSSLESS -> stringResource(R.string.audio_quality_lossless)
                             }
                         )
                     },
                     onClick = { showAudioQualityDialog = true }
+                ))
+                add(Material3SettingsItem(
+                    icon = painterResource(R.drawable.xan_icon_download),
+                    title = { Text(stringResource(R.string.download_quality)) },
+                    description = {
+                        Text(
+                            when (downloadQuality) {
+                                DownloadQuality.AUTO -> stringResource(R.string.download_quality_auto)
+                                DownloadQuality.HIGH -> stringResource(R.string.audio_quality_high)
+                                DownloadQuality.LOW -> stringResource(R.string.audio_quality_low)
+                                DownloadQuality.LOSSLESS -> stringResource(R.string.download_quality_lossless)
+                            }
+                        )
+                    },
+                    onClick = { showDownloadQualityDialog = true }
                 ))
                 add(Material3SettingsItem(
                     icon = painterResource(R.drawable.xan_icon_search),

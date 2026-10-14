@@ -56,6 +56,7 @@ fun getAllSearchableSettings(): List<SearchableSetting> {
         SearchableSetting(stringResource(R.string.audio_normalization), null, "Player and audio", "settings/player"),
         SearchableSetting(stringResource(R.string.audio_offload), null, "Player and audio", "settings/player"),
         SearchableSetting(stringResource(R.string.audio_quality), null, "Player and audio", "settings/player"),
+        SearchableSetting(stringResource(R.string.download_quality), null, "Player and audio", "settings/player"),
         SearchableSetting(stringResource(R.string.crossfade), null, "Player and audio", "settings/player"),
         SearchableSetting(stringResource(R.string.crossfade_duration), null, "Player and audio", "settings/player"),
         SearchableSetting(stringResource(R.string.crossfade_gapless), null, "Player and audio", "settings/player"),

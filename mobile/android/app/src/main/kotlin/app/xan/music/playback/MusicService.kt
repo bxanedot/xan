@@ -100,7 +100,6 @@ import app.xan.music.constants.AudioNormalizationKey
 import app.xan.music.constants.MediaSessionConstants
 import app.xan.music.constants.AudioOffload
 import app.xan.music.constants.AudioQualityKey
-import app.xan.music.constants.EnableTidalStreamingKey
 import app.xan.music.constants.AutoLoadMoreKey
 import app.xan.music.constants.AutoSkipNextOnErrorKey
 import app.xan.music.constants.CrossfadeDurationKey
@@ -3436,7 +3435,7 @@ class MusicService :
             val key = spec.key
             if (key != null && !key.startsWith(EXTERNAL_VIDEO_MEDIA_ID_PREFIX) &&
                 !key.contains("://") && !key.startsWith("/storage/") &&
-                dataStore.get(EnableTidalStreamingKey, false)) {
+                (audioQuality == app.xan.music.constants.AudioQuality.LOSSLESS)) {
                 spec.buildUpon().setKey("$key#flac").build()
             } else spec
         }
@@ -3467,6 +3466,24 @@ class MusicService :
                 mediaId.startsWith("/storage/")
             ) {
                 return@Factory dataSpec
+            }
+
+            // A durable MediaStore/app-specific copy lets completed downloads keep
+            // playing even after the private Media3 cache is cleared or the app is
+            // reinstalled. If the file was removed outside XAN, fall through to the
+            // normal network resolver instead of pinning playback to a dead URI.
+            val persistentMediaUri = database.getSongByIdBlocking(mediaId)?.song?.persistentMediaUri
+            if (!persistentMediaUri.isNullOrBlank()) {
+                val localUri = android.net.Uri.parse(persistentMediaUri)
+                val readable = runCatching {
+                    contentResolver.openFileDescriptor(localUri, "r")?.use { true } ?: false
+                }.getOrDefault(false)
+                if (readable) return@Factory dataSpec.buildUpon().setUri(localUri).build()
+                scope.launch(Dispatchers.IO) {
+                    database.getSongById(mediaId)?.let { song ->
+                        database.update(song.song.copy(persistentMediaUri = null))
+                    }
+                }
             }
 
             // External extractor results already contain their source stream URL.

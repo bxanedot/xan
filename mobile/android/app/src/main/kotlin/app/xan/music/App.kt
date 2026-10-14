@@ -62,14 +62,20 @@ import java.util.Locale
 import javax.inject.Inject
 
 @HiltAndroidApp
-class App : Application(), SingletonImageLoader.Factory {
+class App : Application(), SingletonImageLoader.Factory, Application.ActivityLifecycleCallbacks {
 
     @Inject
     @ApplicationScope
     lateinit var applicationScope: CoroutineScope
 
+    @Inject
+    lateinit var downloadUtil: app.xan.music.playback.DownloadUtil
+
+    private var startedActivityCount = 0
+
     override fun onCreate() {
         super.onCreate()
+        registerActivityLifecycleCallbacks(this)
 
         // Restored synchronously, before anything else can start: the async
         // DataStore collector further down (applicationScope.launch { ... }
@@ -115,6 +121,22 @@ class App : Application(), SingletonImageLoader.Factory {
             observeSettingsChanges()
         }
     }
+
+    override fun onActivityStarted(activity: android.app.Activity) {
+        startedActivityCount++
+        if (startedActivityCount == 1) downloadUtil.setApplicationForeground(true)
+    }
+
+    override fun onActivityStopped(activity: android.app.Activity) {
+        startedActivityCount = (startedActivityCount - 1).coerceAtLeast(0)
+        if (startedActivityCount == 0) downloadUtil.setApplicationForeground(false)
+    }
+
+    override fun onActivityCreated(activity: android.app.Activity, savedInstanceState: android.os.Bundle?) = Unit
+    override fun onActivityResumed(activity: android.app.Activity) = Unit
+    override fun onActivityPaused(activity: android.app.Activity) = Unit
+    override fun onActivitySaveInstanceState(activity: android.app.Activity, outState: android.os.Bundle) = Unit
+    override fun onActivityDestroyed(activity: android.app.Activity) = Unit
 
     private suspend fun initializeSettings() {
         val settings = dataStore.data.first()

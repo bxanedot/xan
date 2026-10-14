@@ -7,6 +7,7 @@ package app.xan.music.ui.menu
 
 import android.content.Intent
 import android.content.res.Configuration
+import android.widget.Toast
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -24,6 +25,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -43,6 +47,9 @@ import app.xan.music.ui.component.Material3MenuItemData
 import app.xan.music.ui.component.NewAction
 import app.xan.music.ui.component.NewActionGrid
 import app.xan.music.ui.component.YouTubeListItem
+import app.xan.music.utils.artistFollowErrorMessage
+import app.xan.music.utils.toggleArtistFollowing
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
@@ -62,6 +69,7 @@ fun YouTubeArtistMenu(
     val isGuest = listenTogetherManager?.isInRoom == true && !listenTogetherManager.isHost
     val isPinned by database.speedDialDao.isPinned(artist.id).collectAsState(initial = false)
     val coroutineScope = rememberCoroutineScope()
+    var followRequestLoading by remember(artist.id) { mutableStateOf(false) }
 
     YouTubeListItem(
         item = artist,
@@ -165,7 +173,7 @@ fun YouTubeArtistMenu(
                 items = listOf(
                     Material3MenuItemData(
                         title = {
-                            Text(text = if (libraryArtist?.artist?.bookmarkedAt != null) stringResource(R.string.subscribed) else stringResource(R.string.subscribe))
+                            Text(text = if (followRequestLoading) stringResource(R.string.artist_follow_updating) else if (libraryArtist?.artist?.bookmarkedAt != null) stringResource(R.string.subscribed) else stringResource(R.string.subscribe))
                         },
                         icon = {
                             Icon(
@@ -179,20 +187,26 @@ fun YouTubeArtistMenu(
                                 contentDescription = null,
                             )
                         },
-                        onClick = {
-                            database.query {
-                                val libraryArtist = libraryArtist
-                                if (libraryArtist != null) {
-                                    update(libraryArtist.artist.toggleLike())
-                                } else {
-                                    insert(
-                                        ArtistEntity(
-                                            id = artist.id,
-                                            name = artist.title,
-                                            channelId = artist.channelId,
-                                            thumbnailUrl = artist.thumbnail,
-                                        ).toggleLike()
-                                    )
+                        onClick = if (followRequestLoading) null else {
+                            {
+                                followRequestLoading = true
+                                val targetArtist = libraryArtist?.artist ?: ArtistEntity(
+                                    id = artist.id,
+                                    name = artist.title,
+                                    channelId = artist.channelId,
+                                    thumbnailUrl = artist.thumbnail,
+                                )
+                                coroutineScope.launch {
+                                    try {
+                                        toggleArtistFollowing(context, database, targetArtist)
+                                        onDismiss()
+                                    } catch (error: CancellationException) {
+                                        throw error
+                                    } catch (error: Exception) {
+                                        Toast.makeText(context, context.artistFollowErrorMessage(error), Toast.LENGTH_LONG).show()
+                                    } finally {
+                                        followRequestLoading = false
+                                    }
                                 }
                             }
                         }

@@ -184,21 +184,40 @@ val ProxyTypeKey = stringPreferencesKey("proxyType")
 val ProxyUsernameKey = stringPreferencesKey("proxyUsername")
 val ProxyPasswordKey = stringPreferencesKey("proxyPassword")
 val YtmSyncKey = booleanPreferencesKey("ytmSync")
+/** Local artist follow changes waiting to be mirrored to YouTube Music. */
+val PendingArtistSubscriptionSyncKey = stringSetPreferencesKey("pendingArtistSubscriptionSync")
 val SelectedYtmPlaylistsKey = stringPreferencesKey("selectedYtmPlaylists")
 
 val AudioQualityKey = stringPreferencesKey("audioQuality")
+val DownloadQualityKey = stringPreferencesKey("downloadQuality")
+/** Zero means unlimited; otherwise this is an aggregate KiB/s cap shared by audio and video. */
+val DownloadSpeedLimitKibKey = intPreferencesKey("downloadSpeedLimitKib")
+val AdaptiveParallelDownloadsKey = booleanPreferencesKey("adaptiveParallelDownloads")
+val MaxParallelDownloadsKey = intPreferencesKey("maxParallelDownloads")
+val AutomaticDownloadRetryKey = booleanPreferencesKey("automaticDownloadRetry")
+val ResumeInterruptedDownloadsKey = booleanPreferencesKey("resumeInterruptedDownloads")
+val BackgroundDownloadsEnabledKey = booleanPreferencesKey("backgroundDownloadsEnabled")
+/** True publishes downloads into public MediaStore collections so they survive uninstall. */
+val PreserveDownloadsAfterUninstallKey = booleanPreferencesKey("preserveDownloadsAfterUninstall")
 val IpVersionKey = stringPreferencesKey("ipVersion")
 
 enum class AudioQuality {
     AUTO,
     HIGH,
     LOW,
+    LOSSLESS,
+}
+
+enum class DownloadQuality {
+    AUTO,
+    HIGH,
+    LOW,
+    LOSSLESS,
 }
 
 val AudioOffload = booleanPreferencesKey("enableOffload")
 
-// Lossless (TIDAL via hifi-api). Opt-in, off by default. Streaming only for now.
-val EnableTidalStreamingKey = booleanPreferencesKey("enableTidalStreaming")
+// Lossless (TIDAL via hifi-api).
 val TidalQualityKey         = stringPreferencesKey("tidalQuality")
 val TidalInstanceUrlKey     = stringPreferencesKey("tidalInstanceUrl")
 
