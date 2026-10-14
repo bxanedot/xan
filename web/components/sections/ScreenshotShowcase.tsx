@@ -5,89 +5,89 @@ import { T, useLanguage } from "@/lib/i18n";
 
 const screenshots = [
   {
-    src: "/screenshots/magnet-expanded.jpg",
-    label: "Magnet navigation",
-    alt: "XAN Search screen with the Magnet shortcut menu expanded",
+    src: "/screenshots/home-shortcuts.jpg",
+    label: "Home shortcuts",
+    alt: "XAN Listen Now home screen with the navigation shortcuts open",
   },
   {
-    src: "/screenshots/08.jpg",
-    label: "Legacy navigation",
-    alt: "XAN Listen Now screen with the classic bottom navigation bar",
-  },
-  {
-    src: "/screenshots/01.jpg",
-    label: "Media controls",
-    alt: "XAN lock screen media controls",
-  },
-  {
-    src: "/screenshots/02.jpg",
-    label: "Top songs",
-    alt: "XAN Search suggestions showing top songs",
-  },
-  {
-    src: "/screenshots/03.jpg",
-    label: "Trending albums",
-    alt: "XAN Search suggestions showing trending albums",
-  },
-  {
-    src: "/screenshots/04.jpg",
-    label: "Explore",
-    alt: "XAN Explore screen with moods and moments",
-  },
-  {
-    src: "/screenshots/05.jpg",
-    label: "Search",
-    alt: "XAN Search screen with the keyboard open",
-  },
-  {
-    src: "/screenshots/06.jpg",
-    label: "Mini player",
-    alt: "XAN Search screen with the floating mini player",
-  },
-  {
-    src: "/screenshots/07.jpg",
+    src: "/screenshots/library.jpg",
     label: "Library",
-    alt: "XAN Library screen",
+    alt: "XAN library screen with saved music and collections",
   },
   {
-    src: "/screenshots/09.jpg",
-    label: "Recently played",
-    alt: "XAN home screen showing recently played music",
+    src: "/screenshots/recognize-music.jpg",
+    label: "Song recognition",
+    alt: "XAN Recognize Music screen",
   },
   {
-    src: "/screenshots/10.jpg",
-    label: "Appearance",
-    alt: "XAN Appearance settings screen",
+    src: "/screenshots/player-audio-settings.jpg",
+    label: "Player audio settings",
+    alt: "XAN player and audio settings screen",
   },
   {
-    src: "/screenshots/11.jpg",
-    label: "Equalizer",
-    alt: "XAN advanced equalizer controls",
-  },
-  {
-    src: "/screenshots/12.jpg",
+    src: "/screenshots/settings.jpg",
     label: "Settings",
     alt: "XAN settings screen",
   },
   {
-    src: "/screenshots/13.jpg",
-    label: "Search",
-    alt: "XAN Search suggestions and trending albums",
+    src: "/screenshots/system-update.jpg",
+    label: "System update",
+    alt: "XAN system update screen",
   },
   {
-    src: "/screenshots/14.jpg",
-    label: "Recognize Music",
-    alt: "XAN music recognition screen",
+    src: "/screenshots/appearance.jpg",
+    label: "Appearance",
+    alt: "XAN Appearance settings screen",
   },
   {
-    src: "/screenshots/15.jpg",
-    label: "Library",
-    alt: "XAN Library with playlists, downloaded music, and local files",
+    src: "/screenshots/about.jpg",
+    label: "About",
+    alt: "XAN About screen",
   },
   {
-    src: "/screenshots/16.jpg",
+    src: "/screenshots/home-mini-player.jpg",
+    label: "Home mini player",
+    alt: "XAN Listen Now home screen with the mini player active",
+  },
+  {
+    src: "/screenshots/now-playing.jpg",
     label: "Now playing",
     alt: "XAN full-screen player with track details and playback controls",
+  },
+  {
+    src: "/screenshots/artist-adele.jpg",
+    label: "Adele",
+    alt: "XAN artist page for Adele",
+  },
+  {
+    src: "/screenshots/listen-together.jpg",
+    label: "Listen together",
+    alt: "XAN Listen Together screen",
+  },
+  {
+    src: "/screenshots/integrations.jpg",
+    label: "Integrations",
+    alt: "XAN integrations settings screen",
+  },
+  {
+    src: "/screenshots/account-settings.jpg",
+    label: "Account settings",
+    alt: "XAN account settings screen",
+  },
+  {
+    src: "/screenshots/content-settings.jpg",
+    label: "Content settings",
+    alt: "XAN content settings screen",
+  },
+  {
+    src: "/screenshots/artist-olivia-rodrigo.jpg",
+    label: "Olivia Rodrigo",
+    alt: "XAN artist page for Olivia Rodrigo",
+  },
+  {
+    src: "/screenshots/search.jpg",
+    label: "Search",
+    alt: "XAN search screen with suggestions and Apple Music Top 100",
   },
 ] as const;
 

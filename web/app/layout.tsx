@@ -4,6 +4,7 @@ import "./globals.css";
 
 const logo = "/xan-white-mark-512.png";
 const socialImage = "/xan-social-card.png";
+const socialTitle = "XAN — Free to use. Made for the love of music.";
 
 const themeScript = `
 (function () {
@@ -37,7 +38,7 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/",
   },
-  title: "XAN — Free to use. Open to everyone.",
+  title: socialTitle,
   description: "A free, open-source Android player. Discover artists and download available catalogues.",
   applicationName: "XAN",
   icons: {
@@ -49,16 +50,16 @@ export const metadata: Metadata = {
     url: "https://xan.lat/",
     siteName: "XAN",
     locale: "en_US",
-    title: "XAN — Free to use. Open to everyone.",
+    title: socialTitle,
     description: "A free, open-source Android player. Discover artists and download available catalogues.",
     type: "website",
-    images: [{ url: socialImage, width: 1200, height: 630, alt: "XAN — Free to use. Open to everyone.", type: "image/png" }],
+    images: [{ url: socialImage, width: 1200, height: 630, alt: socialTitle, type: "image/png" }],
   },
   twitter: {
     card: "summary_large_image",
     site: "@bxanedot",
     creator: "@bxanedot",
-    title: "XAN — Free to use. Open to everyone.",
+    title: socialTitle,
     description: "A free, open-source Android player. Discover artists and download available catalogues.",
     images: [socialImage],
   },

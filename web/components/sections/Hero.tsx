@@ -20,7 +20,6 @@ export function Hero() {
               <GitHubIcon className="github-repo-icon" /><T text="View source code on GitHub" />
             </a>
           </div>
-          <div className="xan-app-hero-pills" aria-label="XAN features"><span>Library</span><span>Lyrics</span><span>Equalizer</span><span>Playlists</span></div>
         </div>
 
       </div>

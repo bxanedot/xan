@@ -3,8 +3,23 @@
 import { useEffect, useState } from "react";
 
 const shots = [
-  "magnet-expanded.jpg",
-  ...Array.from({ length: 16 }, (_, i) => String(i + 1).padStart(2, "0") + ".jpg"),
+  "home-shortcuts.jpg",
+  "library.jpg",
+  "recognize-music.jpg",
+  "player-audio-settings.jpg",
+  "settings.jpg",
+  "system-update.jpg",
+  "appearance.jpg",
+  "about.jpg",
+  "home-mini-player.jpg",
+  "now-playing.jpg",
+  "artist-adele.jpg",
+  "listen-together.jpg",
+  "integrations.jpg",
+  "account-settings.jpg",
+  "content-settings.jpg",
+  "artist-olivia-rodrigo.jpg",
+  "search.jpg",
 ];
 const src = (name: string) => "/screenshots/" + name;
 

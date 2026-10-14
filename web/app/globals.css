@@ -405,9 +405,8 @@ html[dir="rtl"] .download-page-header { direction:rtl; }
 .xan-app-brandline .xan-brand-mark { width:42px; height:42px; }
 .xan-app-hero .hero-title { margin:0 0 24px; font-size:clamp(54px,6.5vw,94px); line-height:1.02; letter-spacing:-.065em; font-weight:750; }
 .xan-app-hero .hero-description { max-width:470px; color:var(--muted); font-size:clamp(16px,1.7vw,19px); line-height:1.7; }
-.xan-app-hero .hero-actions { display:flex; flex-wrap:wrap; gap:14px; align-items:center; margin-top:30px; }
-.xan-app-hero-pills { display:flex; flex-wrap:wrap; gap:9px; margin-top:36px; }
-.xan-app-hero-pills span { padding:9px 14px; border:1px solid var(--line); border-radius:999px; background:var(--panel); color:var(--muted); font-size:12px; }
+.xan-app-hero .hero-actions { display:flex; flex-wrap:wrap; gap:14px; align-items:flex-start; margin-top:30px; }
+.xan-app-hero .download-button,.xan-app-hero .github-repo-button { min-height:54px; }
 .xan-app-preview { position:relative; overflow:hidden; padding:22px 24px 0; border:1px solid var(--line); border-radius:28px; background:radial-gradient(ellipse at 50% 35%,color-mix(in srgb,var(--pink) 11%,transparent),transparent 65%),var(--panel); text-align:center; }
 .xan-app-preview-header { display:flex; align-items:center; gap:9px; color:var(--muted); font-size:10px; font-weight:700; letter-spacing:.12em; text-align:left; }
 .xan-app-preview-header span:last-child { margin-left:auto; }
@@ -453,8 +452,6 @@ body { background:var(--bg); }
 .xan-landing .xan-app-hero-copy { max-width:850px; }
 .xan-landing .hero-title { font-size:clamp(58px,10vw,128px); letter-spacing:-.075em; line-height:.98; font-weight:750; }
 .xan-landing .hero-description { max-width:560px; font-size:clamp(16px,2vw,19px); color:var(--muted); line-height:1.65; }
-.xan-landing .xan-app-hero-pills { display:flex; flex-wrap:wrap; gap:10px; margin-top:28px; }
-.xan-landing .xan-app-hero-pills span { border:1px solid var(--line); background:var(--panel); border-radius:999px; padding:9px 15px; font-size:13px; color:var(--ink); }
 .xan-landing .xan-app-source { margin-top:clamp(70px,9vw,125px); }
 .xan-landing .hero-ambient { opacity:.22; }
 #screenshots { margin-top:30px; }
