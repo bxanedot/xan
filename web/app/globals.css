@@ -428,3 +428,33 @@ html[dir="rtl"] .download-page-header { direction:rtl; }
 .xan-app-preview-thumbnails button { flex:0 0 38px; width:38px; height:65px; overflow:hidden; border:2px solid transparent; border-radius:8px; opacity:.55; scroll-snap-align:center; }
 .xan-app-preview-thumbnails button.is-active { border-color:var(--pink); opacity:1; }
 .xan-app-preview-thumbnails button img { width:100%; height:100%; object-fit:cover; object-position:top; }
+
+
+/* Website adapts XAN Android's AppleTokens surfaces, type and spacing, without screenshots in the hero. */
+.xan-native-panel{background:#121212;border:1px solid #ffffff16;border-radius:28px;padding:24px 24px 0;color:#fff;box-shadow:0 35px 100px #0008;overflow:hidden;font-family:Inter,"Segoe UI",system-ui,sans-serif}
+.xan-native-top{display:flex;align-items:center;justify-content:space-between;color:#fa2d48;font-size:12px;font-weight:800;letter-spacing:.18em}
+.xan-native-avatar{display:grid;place-items:center;width:35px;height:35px;background:#2c2c2e;border-radius:50%;color:white}
+.xan-native-panel h2{font-size:34px;letter-spacing:-.045em;margin:14px 0 18px;font-weight:750}
+.xan-native-chips{display:flex;gap:8px;overflow:auto;padding-bottom:22px;scrollbar-width:none}
+.xan-native-chips span{flex:none;background:#2c2c2e;border-radius:99px;padding:8px 13px;font-size:12px;color:#e9e9e9}
+.xan-native-chips .selected{background:#fa2d48;color:white}
+.xan-native-feature{display:grid;grid-template-columns:38% 1fr;align-items:center;gap:18px;padding:14px;border-radius:22px;background:linear-gradient(135deg,#54202d,#24151a 72%,#1c1c1e)}
+.xan-native-art{display:grid;place-items:center;aspect-ratio:1;border-radius:12px;background:linear-gradient(140deg,#fa2d48,#6e1935,#160d18);font-size:70px;color:#ffccd2}
+.xan-native-feature small{display:block;color:#ffb4c0;font-size:9px;letter-spacing:.13em}
+.xan-native-feature strong{display:block;font-size:clamp(18px,2.4vw,29px);line-height:1.15;margin:8px 0}
+.xan-native-feature p{font-size:12px;color:#c9a9b0}
+.xan-native-section-title{display:flex;justify-content:space-between;align-items:center;margin:24px 0 14px}
+.xan-native-section-title strong{font-size:22px;letter-spacing:-.04em}
+.xan-native-section-title span{font-size:12px;color:#fa647a}
+.xan-native-albums{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.xan-native-albums>div{min-width:0}.xan-native-cover{display:grid;place-items:center;aspect-ratio:1;border-radius:12px;font-size:38px;margin-bottom:8px}
+.cover-a{background:linear-gradient(140deg,#4a526a,#161923)}.cover-b{background:linear-gradient(140deg,#ad654e,#271713)}.cover-c{background:linear-gradient(140deg,#79558c,#201529)}
+.xan-native-albums strong,.xan-native-albums small{display:block;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.xan-native-albums strong{font-size:13px}.xan-native-albums small{font-size:11px;color:#8e8e93;margin-top:3px}
+.xan-native-mini{display:flex;align-items:center;gap:10px;margin:24px -12px 8px;padding:9px 12px;border-radius:13px;background:#2c2c2e}
+.xan-native-mini-art{display:grid;place-items:center;width:38px;height:38px;border-radius:8px;background:#7c4258}
+.xan-native-mini>span:nth-child(2){flex:1;min-width:0}.xan-native-mini strong,.xan-native-mini small{display:block;font-size:12px}.xan-native-mini small{font-size:10px;color:#8e8e93;margin-top:3px}
+.xan-native-play{color:white;font-size:20px}
+.xan-native-tabs{display:flex;justify-content:space-around;border-top:1px solid #ffffff18;padding:10px 0 14px;color:#8e8e93}
+.xan-native-tabs>span{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:23px}.xan-native-tabs>span:first-child{color:#fa2d48}.xan-native-tabs small{font-size:9px}
+@media(max-width:500px){.xan-native-panel{padding:17px 17px 0}.xan-native-feature{gap:10px}.xan-native-art{font-size:44px}.xan-native-feature strong{font-size:19px}.xan-native-albums{gap:9px}}
