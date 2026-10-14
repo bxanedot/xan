@@ -119,13 +119,14 @@ internal fun canReserveVideoTransferSlots(
     activeAudioTransfers.coerceAtLeast(0) + activeVideoSlots.coerceAtLeast(0) + requestedVideoSlots <=
     transferLimit.coerceAtLeast(1)
 
-/** Lossless downloads try FLAC first, then use high quality if no match exists. */
+/** Preserve explicit FLAC selection so the resolver can try it before its high-quality fallback. */
 internal fun audioQualityForDownload(
     requested: DownloadQuality,
     automaticSelection: AudioQuality,
 ): AudioQuality = when (requested) {
     DownloadQuality.AUTO -> automaticSelection
-    DownloadQuality.HIGH, DownloadQuality.LOSSLESS -> AudioQuality.HIGH
+    DownloadQuality.HIGH -> AudioQuality.HIGH
+    DownloadQuality.LOSSLESS -> AudioQuality.LOSSLESS
     DownloadQuality.LOW -> AudioQuality.LOW
 }
 

@@ -8,8 +8,8 @@ import org.junit.Test
 
 class DownloadPerformancePolicyTest {
     @Test
-    fun `lossless download falls back to high audio when no FLAC match exists`() {
-        assertEquals(AudioQuality.HIGH, audioQualityForDownload(DownloadQuality.LOSSLESS, AudioQuality.LOW))
+    fun `lossless download preserves FLAC lookup before the resolver high quality fallback`() {
+        assertEquals(AudioQuality.LOSSLESS, audioQualityForDownload(DownloadQuality.LOSSLESS, AudioQuality.LOW))
         assertEquals(AudioQuality.LOW, audioQualityForDownload(DownloadQuality.LOW, AudioQuality.HIGH))
         assertEquals(AudioQuality.LOW, audioQualityForDownload(DownloadQuality.AUTO, AudioQuality.LOW))
     }
