@@ -134,15 +134,24 @@ private fun rememberIsConnectedToWifi(context: Context) = remember(context) {
         }
 
         trySend(activeNetworkUsesWifi())
-        try {
+        val registered = try {
             manager.registerDefaultNetworkCallback(callback)
-            awaitClose { runCatching { manager.unregisterNetworkCallback(callback) } }
+            true
         } catch (_: SecurityException) {
             trySend(false)
-            awaitClose { }
+            false
         } catch (_: RuntimeException) {
             trySend(false)
-            awaitClose { }
+            false
+        }
+
+        // Keep awaitClose outside the registration try/catch. Cancellation from
+        // awaitClose is a RuntimeException; catching it and calling awaitClose
+        // again registers a second close handler and crashes the player.
+        awaitClose {
+            if (registered) {
+                runCatching { manager.unregisterNetworkCallback(callback) }
+            }
         }
     }.conflate().distinctUntilChanged()
 }.collectAsState(initial = false)
